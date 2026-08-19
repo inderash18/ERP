@@ -27,6 +27,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 import authRoutes from './routes/auth.routes.js';
+import masterRoutes from './routes/master.routes.js';
+import inventoryRoutes from './routes/inventory.routes.js';
 
 // Health check
 app.get('/api/v1/health', (req, res) => {
@@ -35,6 +37,8 @@ app.get('/api/v1/health', (req, res) => {
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/master', masterRoutes);
+app.use('/api/v1/inventory', inventoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
