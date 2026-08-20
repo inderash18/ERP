@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -96,14 +96,18 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto" style={{ background: '#e8eee9' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="p-8 max-w-7xl mx-auto"
-        >
-          <Outlet />
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, filter: 'blur(10px)', scale: 1.015, y: 12 }}
+            animate={{ opacity: 1, filter: 'blur(0px)', scale: 1, y: 0 }}
+            exit={{ opacity: 0, filter: 'blur(10px)', scale: 0.985, y: -12 }}
+            transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto' }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

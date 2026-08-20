@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { CharMorph, WordMorph } from '../components/AnimatedText';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar
@@ -97,11 +98,11 @@ export default function Dashboard() {
           <p style={{ color: '#6b7c71', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>
             {greeting} 👋
           </p>
-          <h1 style={{ color: '#17241d', fontSize: 30, fontWeight: 700, lineHeight: 1.1 }}>
-            Operations Overview
+          <h1 style={{ color: '#17241d', fontSize: 30, fontWeight: 700, lineHeight: 1.1, margin: 0 }}>
+            <CharMorph text="Operations Overview" stagger={0.028} />
           </h1>
           <p style={{ color: '#9da49f', marginTop: 6, fontSize: 13 }}>
-            Here's what's happening across your facilities today.
+            <WordMorph text="Here's what's happening across your facilities today." stagger={0.06} delay={0.2} />
           </p>
         </div>
         <div style={{
