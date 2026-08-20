@@ -5,6 +5,7 @@ import Login from "./components/Login";
 import AdminLogin from "./components/AdminLogin";
 import Signup from "./components/Signup";
 import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
 import PageTransition from "./components/PageTransition";
 
 function AnimatedRoutes() {
@@ -50,7 +51,7 @@ function AnimatedRoutes() {
           }
         />
 
-        {/* Main Layout */}
+        {/* Main Layout with nested routes */}
         <Route
           path="/layout"
           element={
@@ -58,7 +59,10 @@ function AnimatedRoutes() {
               <Layout />
             </PageTransition>
           }
-        />
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+        </Route>
 
         {/* Any unknown URL → Login */}
         <Route
