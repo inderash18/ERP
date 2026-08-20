@@ -6,7 +6,13 @@ import AdminLogin from "./components/AdminLogin";
 import Signup from "./components/Signup";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
+import Inventory from "./pages/Inventory";
+import Sales from "./pages/Sales";
+import Production from "./pages/Production";
+import Customers from "./pages/Customers";
+import Settings from "./pages/Settings";
 import PageTransition from "./components/PageTransition";
+
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -62,6 +68,11 @@ function AnimatedRoutes() {
         >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="sales" element={<Sales />} />
+          <Route path="production" element={<Production />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* Any unknown URL → Login */}
