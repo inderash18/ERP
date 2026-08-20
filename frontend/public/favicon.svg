@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Hexagon background with gradient -->
+  <defs>
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hexagon shape -->
+  <polygon
+    points="32,4 56,18 56,46 32,60 8,46 8,18"
+    fill="url(#hexGrad)"
+  />
+
+  <!-- Lightning bolt / spark -->
+  <polygon
+    points="36,14 24,34 31,34 28,50 40,30 33,30"
+    fill="white"
+    opacity="0.95"
+  />
+</svg>
