@@ -1,14 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 
 import Login from "./components/Login";
 import AdminLogin from "./components/AdminLogin";
 import Signup from "./components/Signup";
 import Layout from "./components/Layout";
+import PageTransition from "./components/PageTransition";
 
-function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
 
         {/* Default → Login */}
         <Route
@@ -19,25 +23,41 @@ function App() {
         {/* Login Page */}
         <Route
           path="/login"
-          element={<Login />}
+          element={
+            <PageTransition>
+              <Login />
+            </PageTransition>
+          }
         />
 
         {/* Admin Login Page */}
         <Route
           path="/admin-login"
-          element={<AdminLogin />}
+          element={
+            <PageTransition>
+              <AdminLogin />
+            </PageTransition>
+          }
         />
 
         {/* Signup Page */}
         <Route
           path="/signup"
-          element={<Signup />}
+          element={
+            <PageTransition>
+              <Signup />
+            </PageTransition>
+          }
         />
 
         {/* Main Layout */}
         <Route
           path="/layout"
-          element={<Layout />}
+          element={
+            <PageTransition>
+              <Layout />
+            </PageTransition>
+          }
         />
 
         {/* Any unknown URL → Login */}
@@ -47,6 +67,14 @@ function App() {
         />
 
       </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }
