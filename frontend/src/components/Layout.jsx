@@ -26,12 +26,12 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-50 overflow-hidden">
+    <div className="flex h-screen bg-white text-zinc-900 overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col">
-        <div className="p-6 border-b border-zinc-800">
+      <aside className="w-64 bg-white border-r border-zinc-200 flex flex-col">
+        <div className="p-6 border-b border-zinc-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-zinc-950">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-white">
               ERP
             </div>
             <span className="text-lg font-bold tracking-tight" style={{ color: '#17241d' }}>
@@ -45,18 +45,18 @@ export default function Layout() {
             <Link 
               key={item.name} 
               to={item.path}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-400 hover:text-zinc-50 hover:bg-zinc-800/50 transition-colors"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive(item.path) ? 'bg-zinc-100 text-zinc-900 font-semibold' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'}`}
             >
               <item.icon size={18} />
-              <span className="font-medium">{item.name}</span>
+              <span>{item.name}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-zinc-800">
+        <div className="p-4 border-t border-zinc-200">
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-zinc-600 hover:text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut size={17} />
             <span>Logout</span>
@@ -65,7 +65,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-zinc-950">
+      <main className="flex-1 overflow-y-auto bg-zinc-50">
         <div className="p-8 max-w-7xl mx-auto h-full">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
