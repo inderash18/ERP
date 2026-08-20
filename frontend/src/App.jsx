@@ -1,20 +1,35 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/Login";
-import Dashboard from "./components/Layout";
+import Layout from "./components/Layout";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<Login />} />
+        {/* Default → Login */}
+        <Route
+          path="/"
+          element={<Navigate to="/login" replace />}
+        />
 
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Login Page */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
+        {/* Main Layout */}
+        <Route
+          path="/layout"
+          element={<Layout />}
+        />
+
+        {/* Any unknown URL → Login */}
         <Route
           path="*"
-          element={<Navigate to="/" replace />}
+          element={<Navigate to="/login" replace />}
         />
 
       </Routes>

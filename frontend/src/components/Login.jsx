@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import loginImage from "../assets/login1.jpg";
 export default function Login() {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -175,19 +177,22 @@ export default function Login() {
 
 
                         {/* LOGIN BUTTON */}
-                        <button className="
-              mt-6
-              h-[43px]
-              w-full
-              rounded-full
-              bg-[#405b4d]
-              text-[13px]
-              font-medium
-              text-white
-              shadow-sm
-              transition
-              hover:bg-[#314b3e]
-            ">
+                        <button
+                            onClick={() => navigate("/layout")}
+                            className="
+    mt-6
+    h-[43px]
+    w-full
+    rounded-full
+    bg-[#405b4d]
+    text-[13px]
+    font-medium
+    text-white
+    shadow-sm
+    transition
+    hover:bg-[#314b3e]
+  "
+                        >
                             Log in
                         </button>
 
