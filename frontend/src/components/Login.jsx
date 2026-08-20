@@ -211,70 +211,49 @@ export default function Login() {
                         </div>
 
 
-                        {/* SOCIAL LOGIN */}
-                        <div className="
-                            flex
-                            justify-center
-                            gap-4
-            ">
-
-                            {/* GOOGLE */}
-                            <button className="
-                flex
-                h-[42px]
-                w-[50px]
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-[#d1d5d2]
-                bg-white
-                shadow-sm
-                transition
-                hover:bg-gray-50
-              ">
-                                <span className="
-                  text-[21px]
-                  font-bold
-                  text-[#4285F4]
-                ">
-                                    G
-                                </span>
-                            </button>
-
-
-                            {/* MICROSOFT */}
+                        {/* ADMIN LOGIN */}
+                        <div className="mt-5 flex justify-center">
                             <button
+                                type="button"
+                                onClick={() => navigate("/admin-login")}
                                 className="
-    flex
-    h-[42px]
-    w-[50px]
-    items-center
-    justify-center
-    rounded-xl
-    border
-    border-[#d1d5d2]
-    bg-white
-    shadow-sm
-    transition
-    hover:bg-gray-50
-  "
+            h-[42px]
+            w-full
+            rounded-xl
+            border
+            border-[#d1d5d2]
+            bg-white
+            text-[12px]
+            font-medium
+            text-[#405b4d]
+            shadow-sm
+            transition
+            hover:bg-[#f3f6f4]
+            hover:border-[#405b4d]
+        "
                             >
-                                <div className="grid grid-cols-2 gap-[2px]">
-
-                                    <span className="h-[9px] w-[9px] bg-[#f25022]" />
-
-                                    <span className="h-[9px] w-[9px] bg-[#7fba00]" />
-
-                                    <span className="h-[9px] w-[9px] bg-[#00a4ef]" />
-
-                                    <span className="h-[9px] w-[9px] bg-[#ffb900]" />
-
-                                </div>
+                                Login as Admin
                             </button>
-
                         </div>
 
+                        {/* SIGN UP */}
+                        <div className="mt-5 text-center">
+                            <p className="text-[11px] text-[#777f7a]">
+                                Don't have an account?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => navigate("/signup")}
+                                    className="
+                font-semibold
+                text-[#405b4d]
+                hover:text-[#314b3e]
+                hover:underline
+            "
+                                >
+                                    Sign up
+                                </button>
+                            </p>
+                        </div>
 
                         {/* =========================
             WAVY WHITE DIVIDER
