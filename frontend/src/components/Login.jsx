@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import loginImage from "../assets/login.jpg";
+import loginImage from "../assets/login1.jpg";
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
 
@@ -39,13 +39,15 @@ export default function Login() {
         shadow-[0_25px_70px_rgba(30,50,40,0.18)]
       ">
 
-                {/* IMAGE PANEL (RIGHT SIDE) */}
-                <div className="absolute right-0 top-0 h-full w-[50%] z-0">
+                {/* IMAGE PANEL */}
+                <div className="absolute left-0 top-0 h-full w-[60%] z-0">
                     <img
                         src={loginImage}
                         alt="Decorative background"
                         className="h-full w-full object-cover"
                     />
+                    {/* GREEN OVERLAY */}
+                    <div className="absolute inset-0 bg-[#19352b]/30" />
                 </div>
 
                 {/* =========================
@@ -54,13 +56,13 @@ export default function Login() {
 
                 <div className="
           absolute
-          left-0
+          right-0
           top-0
           z-10
           h-full
-          w-[58%]
+          w-[40%]
           bg-white
-          px-[85px]
+          px-[40px]
           pt-[120px]
         ">
 
@@ -266,13 +268,6 @@ export default function Login() {
                                 </div>
                             </button>
 
-                            {/* GREEN OVERLAY */}
-                            <div className="
-            absolute
-            inset-0
-            bg-[#19352b]/30
-          " />
-
                         </div>
 
 
@@ -283,7 +278,7 @@ export default function Login() {
                         <svg
                             className="
             absolute
-            left-[49%]
+            right-[calc(100%-2px)]
             top-0
             z-20
             h-full
