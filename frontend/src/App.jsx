@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/Login";
+import AdminLogin from "./components/AdminLogin";
+import Signup from "./components/Signup";
 import Layout from "./components/Layout";
 
 function App() {
@@ -18,6 +20,18 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        {/* Admin Login Page */}
+        <Route
+          path="/admin-login"
+          element={<AdminLogin />}
+        />
+
+        {/* Signup Page */}
+        <Route
+          path="/signup"
+          element={<Signup />}
         />
 
         {/* Main Layout */}
