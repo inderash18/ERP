@@ -982,9 +982,13 @@ export function ErpProvider({ children }) {
       });
     });
 
+    const inventoryValue = products.reduce((sum, item) => sum + (Number(item.stock) * Number(item.sellingPrice || item.purchasePrice || 0)), 0);
+
     return {
       totalRevenue,
+      totalSales: totalRevenue, // Alias for Dashboard
       paidRevenue,
+      inventoryValue,
       activeOrdersCount: activeOrders.length,
       lowStockCount: lowStockItems.length,
       activeBatchesCount: activeBatches.length,
