@@ -175,7 +175,7 @@ export default function Login() {
                                 shadow-[0_7px_18px_rgba(64,91,77,0.28)]
                                 transition-all
                                 hover:-translate-y-[1px]
-                                hover:bg-[#314b3e]
+                                hover:bg-[#8B4513]
                                 hover:shadow-[0_10px_25px_rgba(64,91,77,0.35)]
                             "
                         >

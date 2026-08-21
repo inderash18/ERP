@@ -160,13 +160,13 @@ export default function Signup() {
     h-[43px]
     w-full
     rounded-full
-    bg-[#405b4d]
+    bg-[#8B4513]
     text-[13px]
     font-medium
     text-white
     shadow-sm
     transition
-    hover:bg-[#314b3e]
+    hover:bg-[#8B4513]
   "
                         >
                             Sign up
@@ -183,7 +183,7 @@ export default function Signup() {
                                     className="
                 font-semibold
                 text-[#405b4d]
-                hover:text-[#314b3e]
+                hover:text-[#8B4513]
                 hover:underline
             "
                                 >
