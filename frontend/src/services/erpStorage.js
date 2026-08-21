@@ -28,11 +28,11 @@ export const DEFAULT_PRODUCTS = [
   { id: "PRD-003", sku: "FG-CAB-WOOD", name: "Wooden Cabinet", category: "Storage", type: "Finished Good", stock: 10, minStock: 5, targetStock: 15, unit: "units", purchasePrice: 0, sellingPrice: 8500, status: "In Stock", supplierId: null },
   { id: "PRD-004", sku: "FG-TBL-DINE", name: "Dining Table", category: "Tables", type: "Finished Good", stock: 5, minStock: 5, targetStock: 10, unit: "units", purchasePrice: 0, sellingPrice: 12000, status: "Low Stock", supplierId: null },
   // Raw Materials
-  { id: "PRD-005", sku: "RM-WOOD-PNL", name: "Wood Panel", category: "Wood", type: "Raw Material", stock: 45, minStock: 50, targetStock: 200, unit: "pcs", purchasePrice: 400, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
-  { id: "PRD-006", sku: "RM-SCRW-16", name: "Screws", category: "Hardware", type: "Raw Material", stock: 2000, minStock: 1000, targetStock: 5000, unit: "pcs", purchasePrice: 2, sellingPrice: 0, status: "In Stock", supplierId: "SUP-002" },
-  { id: "PRD-007", sku: "RM-POL-WOOD", name: "Wood Polish", category: "Finishing", type: "Raw Material", stock: 15, minStock: 20, targetStock: 50, unit: "L", purchasePrice: 350, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-003" },
+  { id: "PRD-005", sku: "RM-WOOD-PNL", name: "Wood Panel", category: "Wood", type: "Raw Material", stock: 10, minStock: 50, targetStock: 200, unit: "pcs", purchasePrice: 400, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
+  { id: "PRD-006", sku: "RM-SCRW-16", name: "Screws", category: "Hardware", type: "Raw Material", stock: 100, minStock: 1000, targetStock: 5000, unit: "pcs", purchasePrice: 2, sellingPrice: 0, status: "In Stock", supplierId: "SUP-002" },
+  { id: "PRD-007", sku: "RM-POL-WOOD", name: "Wood Polish", category: "Finishing", type: "Raw Material", stock: 5, minStock: 20, targetStock: 50, unit: "L", purchasePrice: 350, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-003" },
   // Components
-  { id: "PRD-008", sku: "CMP-TBL-LEG", name: "Table Leg", category: "Wood", type: "Component", stock: 32, minStock: 40, targetStock: 100, unit: "pcs", purchasePrice: 150, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
+  { id: "PRD-008", sku: "CMP-TBL-LEG", name: "Table Leg", category: "Wood", type: "Component", stock: 20, minStock: 40, targetStock: 100, unit: "pcs", purchasePrice: 150, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
   { id: "PRD-009", sku: "CMP-MTL-FRM", name: "Metal Frame", category: "Hardware", type: "Component", stock: 10, minStock: 20, targetStock: 50, unit: "pcs", purchasePrice: 800, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-002" },
   { id: "PRD-010", sku: "CMP-CHR-CSH", name: "Chair Cushion", category: "Upholstery", type: "Component", stock: 40, minStock: 30, targetStock: 100, unit: "pcs", purchasePrice: 250, sellingPrice: 0, status: "In Stock", supplierId: "SUP-003" },
 ];

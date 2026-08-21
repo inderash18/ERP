@@ -498,30 +498,14 @@ export function ErpProvider({ children }) {
       fulfillmentStatus: orderData.fulfillmentStatus || 'Processing',
     };
 
-    // Note: Deducting stock is now deferred to order fulfillment or dispatch to be more robust, 
-    // but to preserve existing behavior and satisfy Phase 1, we map it to stock movements if it's considered "Processed".
-    // For now, let's deduct immediately to keep backward compat if requested, OR handle it during fulfillment.
-    // The prompt says "When the sale is fulfilled: Finished Goods stock decreases. An inventory movement should be created."
-    // So we should not deduct here! (Unlike before)
-    // Actually, in the old codebase we deducted instantly. Let's preserve old behavior for now, or use addStockMovement.
-    
-    // I will use addStockMovement to deduct stock instantly if we are preserving old behavior, but prompt says "When the sale is fulfilled".
-    // I will deduct stock here to prevent breaking the existing app until Sales enhancement phase.
-    items.forEach(item => {
-      addStockMovement({
-        productId: item.productId,
-        type: 'SALE_OUT',
-        quantity: -Math.abs(Number(item.quantity)),
-        referenceType: 'SalesOrder',
-        referenceId: id
-      });
-    });
+    // In the new flow, stock is checked and deducted during fulfillment or MTO process.
+    // We only create the order here.
 
     setOrders(prev => [newOrder, ...prev]);
     logActivity('order', `New Sales Order created: #${id} for ${newOrder.customerName}`);
     createAuditLog('Create', 'Sales', id, `Created sales order for ${newOrder.customerName}`);
     return newOrder;
-  }, [logActivity, createAuditLog, addStockMovement]);
+  }, [logActivity, createAuditLog]);
 
   const updateOrderStatus = useCallback((orderId, fulfillmentStatus, paymentStatus) => {
     setOrders(prev => prev.map(ord => {
@@ -608,6 +592,198 @@ export function ErpProvider({ children }) {
     setBatches(prev => prev.filter(b => b.id !== batchId));
     logActivity('production', `Archived batch run #${batchId}`);
   }, [logActivity]);
+
+  // ----------------------------------------------------
+  // EVENT ENGINE (End-to-End ERP Flow)
+  // ----------------------------------------------------
+  
+  const checkStock = useCallback((productId) => {
+    const product = products.find(p => p.id === productId);
+    return product ? Number(product.stock) : 0;
+  }, [products]);
+
+  const calculateMaterialRequirements = useCallback((productId, quantity) => {
+    const bom = boms.find(b => b.productId === productId);
+    if (!bom) return null; // No BoM means it's not manufactured
+    
+    return bom.components.map(comp => {
+      const required = Number(comp.quantity) * Number(quantity);
+      const available = checkStock(comp.productId);
+      const shortage = Math.max(0, required - available);
+      return {
+        ...comp,
+        required,
+        available,
+        shortage,
+        status: shortage > 0 ? 'SHORTAGE' : 'AVAILABLE'
+      };
+    });
+  }, [boms, checkStock]);
+
+  const generateProcurementRecommendation = useCallback((materials, referenceId) => {
+    materials.forEach(mat => {
+      if (mat.shortage > 0) {
+        const product = products.find(p => p.id === mat.productId);
+        const suggestedQty = Math.max(mat.shortage, product ? (product.targetStock - product.stock) : mat.shortage);
+        
+        const newRec = {
+          id: `PR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          materialId: mat.productId,
+          materialName: mat.productName,
+          required: mat.required,
+          available: mat.available,
+          shortage: mat.shortage,
+          suggestedPurchase: suggestedQty,
+          supplierId: product?.supplierId || null,
+          status: 'Pending Approval',
+          referenceId,
+          date: new Date().toISOString()
+        };
+        setProcurementRecs(prev => [newRec, ...prev]);
+        createAuditLog('Create', 'Procurement', newRec.id, `Generated procurement recommendation for ${mat.productName}`);
+      }
+    });
+  }, [products, createAuditLog]);
+
+  const createMTORequirement = useCallback((orderId, productId, shortageQty) => {
+    const order = orders.find(o => o.id === orderId);
+    const product = products.find(p => p.id === productId);
+    const bom = boms.find(b => b.productId === productId);
+    
+    if (!product || !bom) return;
+
+    const reqMaterials = calculateMaterialRequirements(productId, shortageQty);
+    
+    const hasShortage = reqMaterials.some(m => m.shortage > 0);
+    
+    if (hasShortage) {
+      generateProcurementRecommendation(reqMaterials, orderId);
+    }
+
+    const newMO = {
+      id: `MO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      salesOrderId: orderId,
+      productId: productId,
+      productName: product.name,
+      quantity: shortageQty,
+      bomId: bom.id,
+      materials: reqMaterials,
+      status: hasShortage ? 'Waiting for Materials' : 'Planned',
+      progress: 0,
+      createdAt: new Date().toISOString(),
+    };
+    
+    setWorkOrders(prev => [newMO, ...prev]);
+    updateOrderStatus(orderId, 'Processing (MTO)');
+    logActivity('production', `MTO Work Order ${newMO.id} created for ${orderId}`);
+    createAuditLog('Create', 'Manufacturing', newMO.id, `MTO Work Order created for Sales Order ${orderId}`);
+    
+    return newMO;
+  }, [orders, products, boms, calculateMaterialRequirements, generateProcurementRecommendation, updateOrderStatus, logActivity, createAuditLog]);
+
+  const fulfillSalesOrder = useCallback((orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Check if we have enough stock for all items
+    let allAvailable = true;
+    order.items.forEach(item => {
+      const available = checkStock(item.productId);
+      if (available < item.quantity) {
+        allAvailable = false;
+        createMTORequirement(orderId, item.productId, item.quantity - available);
+      }
+    });
+
+    if (allAvailable) {
+      updateOrderStatus(orderId, 'Ready for Delivery');
+      
+      // Consume the finished goods
+      order.items.forEach(item => {
+        addStockMovement({
+          productId: item.productId,
+          type: 'SALE_OUT',
+          quantity: -Math.abs(Number(item.quantity)),
+          referenceType: 'SalesOrder',
+          referenceId: orderId
+        });
+      });
+      
+      logActivity('order', `Order ${orderId} is Ready for Delivery and stock deducted.`);
+      createAuditLog('Fulfill', 'Sales', orderId, 'Stock deducted and ready for delivery');
+    }
+  }, [orders, checkStock, createMTORequirement, updateOrderStatus, addStockMovement, logActivity, createAuditLog]);
+
+  const completeDelivery = useCallback((orderId) => {
+    updateOrderStatus(orderId, 'Completed', 'Paid');
+    logActivity('order', `Order ${orderId} has been successfully delivered.`);
+    createAuditLog('Deliver', 'Sales', orderId, 'Order delivered to customer');
+  }, [updateOrderStatus, logActivity, createAuditLog]);
+
+  const startProduction = useCallback((moId) => {
+    const mo = workOrders.find(w => w.id === moId);
+    if (!mo) return;
+
+    // Final check for materials
+    const updatedMaterials = calculateMaterialRequirements(mo.productId, mo.quantity);
+    const hasShortage = updatedMaterials.some(m => m.shortage > 0);
+    
+    if (hasShortage) {
+      alert("Cannot start production. Materials are still missing.");
+      return;
+    }
+
+    // Consume materials
+    updatedMaterials.forEach(mat => {
+      addStockMovement({
+        productId: mat.productId,
+        type: 'PRODUCTION_CONSUMPTION',
+        quantity: -Math.abs(Number(mat.required)),
+        referenceType: 'WorkOrder',
+        referenceId: moId
+      });
+    });
+
+    setWorkOrders(prev => prev.map(w => w.id === moId ? { ...w, status: 'In Progress', materials: updatedMaterials } : w));
+    logActivity('production', `Started production for MO ${moId}`);
+    createAuditLog('Start', 'Manufacturing', moId, 'Started production and consumed materials');
+  }, [workOrders, calculateMaterialRequirements, addStockMovement, logActivity, createAuditLog]);
+
+  const completeProduction = useCallback((moId) => {
+    const mo = workOrders.find(w => w.id === moId);
+    if (!mo) return;
+
+    setWorkOrders(prev => prev.map(w => w.id === moId ? { ...w, status: 'Completed', progress: 100 } : w));
+    
+    // Add FG to inventory
+    addStockMovement({
+      productId: mo.productId,
+      type: 'PRODUCTION_OUTPUT',
+      quantity: Math.abs(Number(mo.quantity)),
+      referenceType: 'WorkOrder',
+      referenceId: moId
+    });
+
+    logActivity('production', `Completed production for MO ${moId}`);
+    createAuditLog('Complete', 'Manufacturing', moId, 'Finished goods moved to inventory');
+
+    // Fulfill linked sales order
+    if (mo.salesOrderId) {
+      // Re-trigger fulfillment check since stock is now available
+      fulfillSalesOrder(mo.salesOrderId);
+    }
+  }, [workOrders, addStockMovement, logActivity, createAuditLog, fulfillSalesOrder]);
+
+  const recordScrap = useCallback((moId, materialId, qty, reason) => {
+    addStockMovement({
+      productId: materialId,
+      type: 'SCRAP_OUT',
+      quantity: -Math.abs(Number(qty)),
+      referenceType: 'WorkOrder',
+      referenceId: moId
+    });
+    createAuditLog('Scrap', 'Manufacturing', moId, `Scrapped ${qty} of ${materialId}: ${reason}`);
+  }, [addStockMovement, createAuditLog]);
 
   // ----------------------------------------------------
   // MANAGED USERS & RBAC PERMISSIONS ACTIONS
@@ -861,6 +1037,17 @@ export function ErpProvider({ children }) {
     createAuditLog,
     addStockMovement,
     
+    // Event Engine Functions
+    checkStock,
+    calculateMaterialRequirements,
+    generateProcurementRecommendation,
+    createMTORequirement,
+    fulfillSalesOrder,
+    completeDelivery,
+    startProduction,
+    completeProduction,
+    recordScrap,
+
     // Products & Inventory
     addProduct,
     updateProduct,
