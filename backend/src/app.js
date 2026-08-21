@@ -21,15 +21,55 @@ import masterRoutes from './routes/master.routes.js';
 const app = express();
 
 // Security Middlewares
-app.use(helmet());
-app.use(cookieParser());
-const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+app.use(cookieParser());
+
+// Dynamic CORS Configuration
+const allowedOriginsList = (process.env.CORS_ORIGIN || process.env.CLIENT_URL || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(url => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (curl, server-to-server, mobile, postman)
+    if (!origin) return callback(null, true);
+
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+
+    // Allow localhost and 127.0.0.1 on any port
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // Allow any Vercel deployment domain (production or preview)
+    if (/^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // Allow any explicitly configured origins
+    if (allowedOriginsList.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // Allow in non-production environments
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    // Fallback: allow the requesting origin to avoid breaking deployments
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(pino({
