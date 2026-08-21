@@ -143,6 +143,7 @@ export default function Login() {
 
                                 <input
                                     type="text"
+                                    autoComplete="username"
                                     value={employeeId}
                                     onChange={(e) => {
                                         setEmployeeId(e.target.value);
@@ -182,6 +183,7 @@ export default function Login() {
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
+                                        autoComplete="current-password"
                                         value={password}
                                         onChange={(e) => {
                                             setPassword(e.target.value);

@@ -80,78 +80,103 @@ export function ErpProvider({ children }) {
   }, [authUser]);
 
   // ----------------------------------------------------
-  // REFRESH ALL ERP DATA FROM BACKEND
+  // REFRESH ALL ERP DATA FROM BACKEND (PERMISSION-AWARE)
   // ----------------------------------------------------
   const refreshData = useCallback(async () => {
     if (!authUser && !token) return;
     setIsLoading(true);
     try {
-      const [
-        prodsRes,
-        salesRes,
-        purchRes,
-        mfgRes,
-        bomsRes,
-        movementsRes,
-        custsRes,
-        vendorsRes,
-        auditRes,
-        dashRes,
-        usersRes
-      ] = await Promise.allSettled([
-        productsApi.getAll(),
-        salesApi.getAll(),
-        purchaseApi.getAll(),
-        manufacturingApi.getAll(),
-        bomApi.getAll(),
-        inventoryApi.getMovements(),
-        masterApi.getCustomers(),
-        masterApi.getVendors(),
-        auditApi.getLogs(),
-        dashboardApi.getMetrics(),
-        usersApi.getAll()
-      ]);
+      const promises = [];
+      const keys = [];
 
-      if (prodsRes.status === 'fulfilled' && prodsRes.value?.data) {
-        setProducts(prodsRes.value.data);
+      // Always fetch products if permitted
+      if (hasPermission('product.view')) {
+        keys.push('products');
+        promises.push(productsApi.getAll());
       }
-      if (salesRes.status === 'fulfilled' && salesRes.value?.data) {
-        setOrders(salesRes.value.data);
+
+      if (hasPermission('sales.view')) {
+        keys.push('sales');
+        promises.push(salesApi.getAll());
       }
-      if (purchRes.status === 'fulfilled' && purchRes.value?.data) {
-        setPurchaseOrders(purchRes.value.data);
+
+      if (hasPermission('purchase.view')) {
+        keys.push('purchase');
+        promises.push(purchaseApi.getAll());
       }
-      if (mfgRes.status === 'fulfilled' && mfgRes.value?.data) {
-        setWorkOrders(mfgRes.value.data);
+
+      if (hasPermission('manufacturing.view')) {
+        keys.push('manufacturing');
+        promises.push(manufacturingApi.getAll());
       }
-      if (bomsRes.status === 'fulfilled' && bomsRes.value?.data) {
-        setBoms(bomsRes.value.data);
+
+      if (hasPermission('bom.view')) {
+        keys.push('bom');
+        promises.push(bomApi.getAll());
       }
-      if (movementsRes.status === 'fulfilled' && movementsRes.value?.data) {
-        setStockMovements(movementsRes.value.data);
+
+      if (hasPermission('inventory.view')) {
+        keys.push('movements');
+        promises.push(inventoryApi.getMovements());
       }
-      if (custsRes.status === 'fulfilled' && custsRes.value?.data) {
-        setCustomers(custsRes.value.data.map(c => ({ ...c, id: c._id, city: `${c.address?.city || ''}, ${c.address?.state || ''}`.trim() })));
+
+      if (hasPermission('customer.view')) {
+        keys.push('customers');
+        promises.push(masterApi.getCustomers());
       }
-      if (vendorsRes.status === 'fulfilled' && vendorsRes.value?.data) {
-        setSuppliers(vendorsRes.value.data.map(v => ({ ...v, id: v._id, contactPerson: v.name, address: `${v.address?.street || ''}, ${v.address?.city || ''}`.trim() })));
+
+      if (hasPermission('vendor.view')) {
+        keys.push('vendors');
+        promises.push(masterApi.getVendors());
       }
-      if (auditRes.status === 'fulfilled' && auditRes.value?.data) {
-        setAuditLogs(auditRes.value.data);
-        const acts = auditRes.value.data.slice(0, 20).map(a => ({
-          id: a.id || a._id,
-          type: a.module === 'Sales' ? 'order' : a.module === 'Manufacturing' ? 'production' : a.module === 'Inventory' ? 'stock' : 'alert',
-          text: a.description,
-          timestamp: a.timestamp
-        }));
-        setActivities(acts);
+
+      if (hasPermission('audit.view') || hasPermission('*')) {
+        keys.push('audit');
+        promises.push(auditApi.getLogs());
       }
-      if (dashRes.status === 'fulfilled' && dashRes.value?.data) {
-        setDashboardMetrics(dashRes.value.data);
+
+      // Dashboard metrics (accessible to all logged-in operational staff)
+      keys.push('dashboard');
+      promises.push(dashboardApi.getMetrics());
+
+      if (hasPermission('user.view') || hasPermission('*')) {
+        keys.push('users');
+        promises.push(usersApi.getAll());
       }
-      if (usersRes.status === 'fulfilled' && usersRes.value?.data) {
-        setEmployees(usersRes.value.data.map(u => ({ ...u, id: u._id, employeeName: u.name, status: u.status })));
-      }
+
+      const results = await Promise.allSettled(promises);
+
+      results.forEach((res, idx) => {
+        if (res.status !== 'fulfilled' || !res.value?.data) return;
+        const data = res.value.data;
+        const key = keys[idx];
+
+        if (key === 'products') setProducts(data);
+        else if (key === 'sales') setOrders(data);
+        else if (key === 'purchase') setPurchaseOrders(data);
+        else if (key === 'manufacturing') setWorkOrders(data);
+        else if (key === 'bom') setBoms(data);
+        else if (key === 'movements') setStockMovements(data);
+        else if (key === 'customers') {
+          setCustomers(data.map(c => ({ ...c, id: c._id, city: `${c.address?.city || ''}, ${c.address?.state || ''}`.trim() })));
+        } else if (key === 'vendors') {
+          setSuppliers(data.map(v => ({ ...v, id: v._id, contactPerson: v.name, address: `${v.address?.street || ''}, ${v.address?.city || ''}`.trim() })));
+        } else if (key === 'audit') {
+          setAuditLogs(data);
+          const acts = data.slice(0, 20).map(a => ({
+            id: a.id || a._id,
+            type: a.module === 'Sales' ? 'order' : a.module === 'Manufacturing' ? 'production' : a.module === 'Inventory' ? 'stock' : 'alert',
+            text: a.description,
+            timestamp: a.timestamp
+          }));
+          setActivities(acts);
+        } else if (key === 'dashboard') {
+          setDashboardMetrics(data);
+        } else if (key === 'users') {
+          setEmployees(data.map(u => ({ ...u, id: u._id, employeeName: u.name, status: u.status })));
+        }
+      });
+
       setError(null);
     } catch (err) {
       console.error('Error refreshing ERP data:', err);
@@ -159,7 +184,7 @@ export function ErpProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  }, [authUser, token]);
+  }, [authUser, token, hasPermission]);
 
   // Initial Auth Check
   useEffect(() => {
