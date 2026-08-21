@@ -16,6 +16,30 @@ const moComponentSchema = new mongoose.Schema({
   }
 });
 
+const workOrderSchema = new mongoose.Schema({
+  operation: {
+    type: String,
+    required: true
+  },
+  workCenter: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'WorkCenter'
+  },
+  workCenterName: String,
+  durationMinutes: {
+    type: Number,
+    default: 30
+  },
+  assignee: String,
+  status: {
+    type: String,
+    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+    default: 'PENDING'
+  },
+  startedAt: Date,
+  completedAt: Date
+});
+
 const manufacturingOrderSchema = new mongoose.Schema({
   organizationId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +52,10 @@ const manufacturingOrderSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  salesOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SalesOrder'
+  },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
@@ -35,8 +63,7 @@ const manufacturingOrderSchema = new mongoose.Schema({
   },
   bom: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BoM',
-    required: true
+    ref: 'BoM'
   },
   quantityToProduce: {
     type: Number,
@@ -47,14 +74,24 @@ const manufacturingOrderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  line: {
+    type: String,
+    default: 'Line Alpha (CNC Milling)'
+  },
+  progress: {
+    type: Number,
+    default: 0
+  },
   components: [moComponentSchema],
+  workOrders: [workOrderSchema],
   status: {
     type: String,
     enum: ['DRAFT', 'PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
-    default: 'DRAFT'
+    default: 'PLANNED'
   },
   startDate: Date,
   endDate: Date,
+  targetDate: Date,
   notes: String
 }, {
   timestamps: true

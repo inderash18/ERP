@@ -24,6 +24,19 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  employeeId: {
+    type: String,
+    trim: true,
+    uppercase: true
+  },
+  department: {
+    type: String,
+    trim: true
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
   password: {
     type: String,
     required: true,
@@ -42,8 +55,9 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure email is unique per organization
+// Ensure email and employeeId are indexed per organization
 userSchema.index({ organizationId: 1, email: 1 }, { unique: true });
+userSchema.index({ organizationId: 1, employeeId: 1 }, { sparse: true });
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();

@@ -11,6 +11,10 @@ const soLineItemSchema = new mongoose.Schema({
     required: true,
     min: 0.0001
   },
+  deliveredQuantity: {
+    type: Number,
+    default: 0
+  },
   unitPrice: {
     type: Number,
     required: true
@@ -45,8 +49,13 @@ const salesOrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['DRAFT', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
+    enum: ['DRAFT', 'CONFIRMED', 'PROCESSING', 'PROCESSING_MTO', 'READY_FOR_DELIVERY', 'SHIPPED', 'DELIVERED', 'CANCELLED'],
     default: 'DRAFT'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['PENDING', 'PAID', 'PARTIALLY_PAID', 'CANCELLED'],
+    default: 'PENDING'
   },
   expectedDeliveryDate: Date,
   shippingAddress: String,

@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import dns from 'dns';
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {}
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -11,16 +13,20 @@ import Category from './models/Category.js';
 import Vendor from './models/Vendor.js';
 import Customer from './models/Customer.js';
 import Product from './models/Product.js';
+import BoM from './models/BoM.js';
+import WorkCenter from './models/WorkCenter.js';
 import InventoryBalance from './models/InventoryBalance.js';
 import StockLedger from './models/StockLedger.js';
 import SalesOrder from './models/SalesOrder.js';
+import PurchaseOrder from './models/PurchaseOrder.js';
 import ManufacturingOrder from './models/ManufacturingOrder.js';
+import AuditLog from './models/AuditLog.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mini-erp';
 
 async function seedDatabase() {
   try {
-    console.log(`Connecting to MongoDB...`);
+    console.log(`Connecting to MongoDB at ${MONGODB_URI}...`);
     await mongoose.connect(MONGODB_URI);
     console.log(`Connected successfully.`);
 
@@ -33,27 +39,32 @@ async function seedDatabase() {
       Vendor.deleteMany({}),
       Customer.deleteMany({}),
       Product.deleteMany({}),
+      BoM.deleteMany({}),
+      WorkCenter.deleteMany({}),
       InventoryBalance.deleteMany({}),
       StockLedger.deleteMany({}),
       SalesOrder.deleteMany({}),
+      PurchaseOrder.deleteMany({}),
       ManufacturingOrder.deleteMany({}),
+      AuditLog.deleteMany({})
     ]);
     console.log(`Existing collections cleaned.`);
 
     // 1. Create Organization
-    console.log(`Creating Organization...`);
+    console.log(`Creating Organization: Shiv Furniture Works...`);
     const org = await Organization.create({
-      name: 'Mini-ERP Industrial Solutions Pvt Ltd',
-      domain: 'minierp-solutions.com',
+      name: 'Shiv Furniture Works',
+      domain: 'shivfurniture.in',
       status: 'ACTIVE',
       settings: {
         currency: 'INR',
+        currencySymbol: '₹',
         timezone: 'Asia/Kolkata'
       }
     });
 
     // 2. Create Roles
-    console.log(`Creating Roles...`);
+    console.log(`Creating Roles with granular RBAC permissions...`);
     const adminRole = await Role.create({
       organizationId: org._id,
       name: 'ADMIN',
@@ -64,329 +75,384 @@ async function seedDatabase() {
     const salesRole = await Role.create({
       organizationId: org._id,
       name: 'SALES',
-      permissions: ['sales.*', 'customer.*', 'product.view'],
+      permissions: ['sales.*', 'customer.*', 'product.view', 'inventory.view'],
       isSystem: false
     });
 
-    const opsRole = await Role.create({
+    const purchaseRole = await Role.create({
       organizationId: org._id,
-      name: 'OPERATIONS',
-      permissions: ['inventory.*', 'manufacturing.*', 'product.*'],
+      name: 'PURCHASE',
+      permissions: ['purchase.*', 'vendor.*', 'product.*', 'inventory.view'],
+      isSystem: false
+    });
+
+    const mfgRole = await Role.create({
+      organizationId: org._id,
+      name: 'MANUFACTURING',
+      permissions: ['manufacturing.*', 'bom.*', 'inventory.view', 'product.view'],
+      isSystem: false
+    });
+
+    const invRole = await Role.create({
+      organizationId: org._id,
+      name: 'INVENTORY',
+      permissions: ['inventory.*', 'product.*', 'stock.*'],
       isSystem: false
     });
 
     // 3. Create Users
-    console.log(`Creating Users...`);
+    console.log(`Creating Seed Users & Employees...`);
+    const hashedPassword = await bcrypt.hash('password123', 12);
+
     const adminUser = await User.create({
       organizationId: org._id,
-      firstName: 'Alexander',
-      lastName: 'Reed',
-      email: 'admin@minierp.io',
-      password: 'password123',
+      firstName: 'Arjun',
+      lastName: 'Shiv',
+      employeeId: 'OWNER01',
+      department: 'Executive',
+      email: 'arjun@shivfurniture.in',
+      password: hashedPassword,
       role: adminRole._id,
       status: 'ACTIVE'
     });
 
-    const salesUser = await User.create({
+    const systemAdmin = await User.create({
       organizationId: org._id,
-      firstName: 'Rajesh',
-      lastName: 'Sharma',
-      email: 'sales@minierp.io',
-      password: 'password123',
-      role: salesRole._id,
+      firstName: 'System',
+      lastName: 'Admin',
+      employeeId: 'ADMIN01',
+      department: 'IT',
+      email: 'admin@shivfurniture.in',
+      password: hashedPassword,
+      role: adminRole._id,
       status: 'ACTIVE'
     });
+
+    await User.create({
+      organizationId: org._id,
+      firstName: 'IT',
+      lastName: 'Support',
+      employeeId: 'ADMIN02',
+      department: 'IT',
+      email: 'support@shivfurniture.in',
+      password: hashedPassword,
+      role: adminRole._id,
+      status: 'ACTIVE'
+    });
+
+    await User.create({
+      organizationId: org._id,
+      firstName: 'Alexander',
+      lastName: 'Reed',
+      employeeId: 'ADMIN03',
+      department: 'Executive',
+      email: 'admin@minierp.io',
+      password: hashedPassword,
+      role: adminRole._id,
+      status: 'ACTIVE'
+    });
+
+    // Department Users
+    for (let i = 1; i <= 10; i++) {
+      const pad = String(i).padStart(2, '0');
+      await User.create({
+        organizationId: org._id,
+        firstName: `Sales`,
+        lastName: `Rep ${i}`,
+        employeeId: `SALE${pad}`,
+        department: 'Sales',
+        email: `sale${i}@shivfurniture.in`,
+        password: hashedPassword,
+        role: salesRole._id,
+        status: 'ACTIVE'
+      });
+
+      await User.create({
+        organizationId: org._id,
+        firstName: `Purchase`,
+        lastName: `Agent ${i}`,
+        employeeId: `PUR${pad}`,
+        department: 'Procurement',
+        email: `pur${i}@shivfurniture.in`,
+        password: hashedPassword,
+        role: purchaseRole._id,
+        status: 'ACTIVE'
+      });
+
+      await User.create({
+        organizationId: org._id,
+        firstName: `Mfg`,
+        lastName: `Engineer ${i}`,
+        employeeId: `MFG${pad}`,
+        department: 'Manufacturing',
+        email: `mfg${i}@shivfurniture.in`,
+        password: hashedPassword,
+        role: mfgRole._id,
+        status: 'ACTIVE'
+      });
+    }
+
+    for (let i = 1; i <= 5; i++) {
+      const pad = String(i).padStart(2, '0');
+      await User.create({
+        organizationId: org._id,
+        firstName: `Inventory`,
+        lastName: `Manager ${i}`,
+        employeeId: `INV${pad}`,
+        department: 'Warehouse',
+        email: `inv${i}@shivfurniture.in`,
+        password: hashedPassword,
+        role: invRole._id,
+        status: 'ACTIVE'
+      });
+    }
 
     // 4. Create Categories
     console.log(`Creating Categories...`);
-    const catRaw = await Category.create({
-      organizationId: org._id,
-      name: 'Raw Material',
-      description: 'Primary raw feedstock materials for production'
-    });
+    const catFG = await Category.create({ organizationId: org._id, name: 'Finished Goods', description: 'Completed furniture ready for dispatch' });
+    const catWood = await Category.create({ organizationId: org._id, name: 'Wood', description: 'Timber, planks, and raw wood panels' });
+    const catHardware = await Category.create({ organizationId: org._id, name: 'Hardware', description: 'Fasteners, screws, and metal fittings' });
+    const catFinishing = await Category.create({ organizationId: org._id, name: 'Finishing', description: 'Paints, polish, and varnishes' });
+    const catUpholstery = await Category.create({ organizationId: org._id, name: 'Upholstery', description: 'Cushions and fabrics' });
 
-    const catComponents = await Category.create({
-      organizationId: org._id,
-      name: 'Components',
-      description: 'Precision manufactured components and sub-assemblies'
-    });
-
-    const catHardware = await Category.create({
-      organizationId: org._id,
-      name: 'Hardware',
-      description: 'Industrial fasteners, bolts, and mechanical fittings'
-    });
-
-    const catFinished = await Category.create({
-      organizationId: org._id,
-      name: 'Finished Goods',
-      description: 'Completed products ready for customer dispatch'
-    });
-
-    // 5. Create Vendors
+    // 5. Create Vendors / Suppliers
     console.log(`Creating Vendors...`);
-    const vendorTata = await Vendor.create({
+    const vendorTimber = await Vendor.create({
       organizationId: org._id,
-      name: 'Tata Advanced Materials Ltd',
-      email: 'sales@tatamaterials.com',
-      phone: '+91 22 6665 8282',
-      address: {
-        street: 'Bombay House, 24 Homi Mody Street',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        country: 'India',
-        zipCode: '400001'
-      },
+      name: 'Local Timber Co.',
+      email: 'sales@localtimber.in',
+      phone: '+91 98765 11111',
+      address: { street: 'Timber Market', city: 'Pune', state: 'Maharashtra', country: 'India', zipCode: '411002' },
       status: 'ACTIVE'
     });
 
-    const vendorBosch = await Vendor.create({
+    const vendorFasteners = await Vendor.create({
       organizationId: org._id,
-      name: 'Bosch Rexroth Hydraulics',
-      email: 'orders@boschrexroth.co.in',
-      phone: '+91 80 6757 1000',
-      address: {
-        street: 'Hosur Road, Adugodi',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        country: 'India',
-        zipCode: '560030'
-      },
+      name: 'Fasteners India',
+      email: 'orders@fasteners.in',
+      phone: '+91 98765 22222',
+      address: { street: 'GIDC Industrial Area', city: 'Ahmedabad', state: 'Gujarat', country: 'India', zipCode: '382445' },
+      status: 'ACTIVE'
+    });
+
+    const vendorUniversal = await Vendor.create({
+      organizationId: org._id,
+      name: 'Universal Furniture Parts',
+      email: 'supply@universalparts.in',
+      phone: '+91 98765 33333',
+      address: { street: 'Andheri East', city: 'Mumbai', state: 'Maharashtra', country: 'India', zipCode: '400069' },
       status: 'ACTIVE'
     });
 
     // 6. Create Customers
     console.log(`Creating Customers...`);
-    const custApex = await Customer.create({
+    const custUrban = await Customer.create({
       organizationId: org._id,
-      name: 'Apex Industrial Corp',
-      email: 'procurement@apexcorp.in',
-      phone: '+91 98234 11200',
-      address: {
-        street: 'Plot 45, MIDC Industrial Area',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        country: 'India',
-        zipCode: '400093'
-      },
+      name: 'Urban Home Decor',
+      email: 'purchasing@urbanhome.in',
+      phone: '+91 99887 77665',
+      address: { street: 'Linking Road, Bandra', city: 'Mumbai', state: 'Maharashtra', country: 'India', zipCode: '400050' },
       status: 'ACTIVE'
     });
 
-    const custNexus = await Customer.create({
+    const custOfficeSpaces = await Customer.create({
       organizationId: org._id,
-      name: 'Nexus Logistics Ltd',
-      email: 'contact@nexuslogistics.com',
-      phone: '+91 97120 54321',
-      address: {
-        street: 'Sector 18, Viman Nagar',
-        city: 'Pune',
-        state: 'Maharashtra',
-        country: 'India',
-        zipCode: '411014'
-      },
+      name: 'Office Spaces Ltd',
+      email: 'neha@officespaces.co.in',
+      phone: '+91 98765 54321',
+      address: { street: 'Viman Nagar', city: 'Pune', state: 'Maharashtra', country: 'India', zipCode: '411014' },
       status: 'ACTIVE'
     });
 
-    const custZenith = await Customer.create({
-      organizationId: org._id,
-      name: 'Zenith Automotive Systems',
-      email: 'karan@zenithauto.io',
-      phone: '+91 98980 99881',
-      address: {
-        street: 'GIDC Sanand Phase II',
-        city: 'Ahmedabad',
-        state: 'Gujarat',
-        country: 'India',
-        zipCode: '382110'
-      },
-      status: 'ACTIVE'
-    });
+    // 7. Create Work Centers
+    console.log(`Creating Work Centers...`);
+    const wcAssembly = await WorkCenter.create({ organizationId: org._id, name: 'Assembly Station 1', code: 'WC-ASM-01', capacityHoursPerDay: 8 });
+    const wcFinishing = await WorkCenter.create({ organizationId: org._id, name: 'Finishing & Polish Booth', code: 'WC-FIN-01', capacityHoursPerDay: 8 });
+    const wcPacking = await WorkCenter.create({ organizationId: org._id, name: 'Quality Inspection & Packing', code: 'WC-PKG-01', capacityHoursPerDay: 8 });
 
-    const custBeacon = await Customer.create({
-      organizationId: org._id,
-      name: 'Beacon Energy Solutions',
-      email: 'priya@beaconenergy.org',
-      phone: '+91 94470 33211',
-      address: {
-        street: 'Electronic City Phase 1',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        country: 'India',
-        zipCode: '560100'
-      },
-      status: 'ACTIVE'
-    });
-
-    // 7. Create Products & Inventory Balances
-    console.log(`Creating Products & Stock Balances...`);
-    const productData = [
-      {
-        name: 'Aluminum Extrusion Bar (6063-T6)',
-        sku: 'SKU-9021',
-        category: catRaw._id,
-        salesPrice: 350,
-        costPrice: 280,
-        procurementStrategy: 'MTS',
-        procurementType: 'PURCHASE',
-        defaultVendor: vendorTata._id,
-        reorderLevel: 100,
-        onHand: 450,
-        reserved: 50,
-        incoming: 200
-      },
-      {
-        name: 'Precision Roller Bearing 25mm',
-        sku: 'SKU-8842',
-        category: catComponents._id,
-        salesPrice: 220,
-        costPrice: 150,
-        procurementStrategy: 'MTS',
-        procurementType: 'PURCHASE',
-        defaultVendor: vendorBosch._id,
-        reorderLevel: 300,
-        onHand: 1240,
-        reserved: 200,
-        incoming: 500
-      },
-      {
-        name: 'High-Tensile Hex Bolt M8x40',
-        sku: 'SKU-7721',
-        category: catHardware._id,
-        salesPrice: 650,
-        costPrice: 450,
-        procurementStrategy: 'MTS',
-        procurementType: 'PURCHASE',
-        defaultVendor: vendorTata._id,
-        reorderLevel: 200,
-        onHand: 85, // Low stock
-        reserved: 30,
-        incoming: 300
-      },
-      {
-        name: 'Hydraulic Fluid Type IV (20L)',
-        sku: 'SKU-6519',
-        category: catRaw._id,
-        salesPrice: 4200,
-        costPrice: 3200,
-        procurementStrategy: 'MTS',
-        procurementType: 'PURCHASE',
-        defaultVendor: vendorBosch._id,
-        reorderLevel: 15,
-        onHand: 18,
-        reserved: 5,
-        incoming: 40
-      },
-      {
-        name: 'Tempered Glass Panel 600x800',
-        sku: 'SKU-5402',
-        category: catFinished._id,
-        salesPrice: 2450,
-        costPrice: 1850,
-        procurementStrategy: 'MTS',
-        procurementType: 'MANUFACTURING',
-        reorderLevel: 50,
-        onHand: 320,
-        reserved: 60,
-        incoming: 500
-      },
-      {
-        name: 'Heavy Duty Servo Motor 400W',
-        sku: 'SKU-4310',
-        category: catComponents._id,
-        salesPrice: 11200,
-        costPrice: 8500,
-        procurementStrategy: 'MTO',
-        procurementType: 'PURCHASE',
-        defaultVendor: vendorBosch._id,
-        reorderLevel: 20,
-        onHand: 42,
-        reserved: 30,
-        incoming: 100
-      }
+    // 8. Create Raw Materials & Components Products
+    console.log(`Creating Raw Materials & Components...`);
+    const rawMaterials = [
+      { idKey: 'RM_WOOD', name: 'Wood Panel', sku: 'RM-WOOD-PNL', category: catWood._id, type: 'Raw Material', unit: 'pcs', costPrice: 400, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorTimber._id, reorderLevel: 50, initialOnHand: 100 },
+      { idKey: 'RM_SCREW', name: 'Screws (Pack of 100)', sku: 'RM-SCRW-16', category: catHardware._id, type: 'Raw Material', unit: 'pcs', costPrice: 2, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorFasteners._id, reorderLevel: 500, initialOnHand: 2000 },
+      { idKey: 'RM_POLISH', name: 'Wood Polish (Litre)', sku: 'RM-POL-WOOD', category: catFinishing._id, type: 'Raw Material', unit: 'L', costPrice: 350, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorUniversal._id, reorderLevel: 20, initialOnHand: 50 },
+      { idKey: 'CMP_LEG', name: 'Table Leg', sku: 'CMP-TBL-LEG', category: catWood._id, type: 'Component', unit: 'pcs', costPrice: 150, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorTimber._id, reorderLevel: 40, initialOnHand: 120 },
+      { idKey: 'CMP_FRAME', name: 'Metal Frame', sku: 'CMP-MTL-FRM', category: catHardware._id, type: 'Component', unit: 'pcs', costPrice: 800, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorFasteners._id, reorderLevel: 20, initialOnHand: 40 },
+      { idKey: 'CMP_CUSHION', name: 'Chair Cushion', sku: 'CMP-CHR-CSH', category: catUpholstery._id, type: 'Component', unit: 'pcs', costPrice: 250, salesPrice: 0, procurementStrategy: 'MTS', procurementType: 'PURCHASE', defaultVendor: vendorUniversal._id, reorderLevel: 30, initialOnHand: 60 }
     ];
 
-    const createdProducts = [];
+    const prodMap = {};
 
-    for (const item of productData) {
+    for (const rm of rawMaterials) {
+      console.log(`Creating product: ${rm.name} with SKU: ${rm.sku}`);
       const prod = await Product.create({
         organizationId: org._id,
-        name: item.name,
-        sku: item.sku,
-        category: item.category,
-        salesPrice: item.salesPrice,
-        costPrice: item.costPrice,
-        procurementStrategy: item.procurementStrategy,
-        procurementType: item.procurementType,
-        defaultVendor: item.defaultVendor,
-        reorderLevel: item.reorderLevel,
+        name: rm.name,
+        sku: String(rm.sku),
+        category: rm.category,
+        type: rm.type,
+        unit: rm.unit,
+        costPrice: rm.costPrice,
+        salesPrice: rm.salesPrice,
+        procurementStrategy: rm.procurementStrategy,
+        procurementType: rm.procurementType,
+        defaultVendor: rm.defaultVendor,
+        reorderLevel: rm.reorderLevel,
+        targetStock: rm.reorderLevel * 3,
         isActive: true
       });
+
+      prodMap[rm.idKey] = prod;
 
       await InventoryBalance.create({
         organizationId: org._id,
         product: prod._id,
-        onHand: item.onHand,
-        reserved: item.reserved,
-        incoming: item.incoming
+        onHand: rm.initialOnHand,
+        reserved: 0,
+        incoming: 0
       });
 
       await StockLedger.create({
         organizationId: org._id,
         product: prod._id,
         eventType: 'PURCHASE_RECEIPT',
-        quantityChange: item.onHand,
+        quantityChange: rm.initialOnHand,
         previousOnHand: 0,
-        newOnHand: item.onHand,
-        referenceType: 'MANUAL_ADJUSTMENT',
+        newOnHand: rm.initialOnHand,
+        referenceType: 'InitialOpeningBalance',
         referenceId: prod._id,
         userId: adminUser._id,
-        notes: 'Initial opening stock ledger balance'
+        notes: 'Initial warehouse opening balance'
       });
-
-      createdProducts.push({ ...item, _id: prod._id });
     }
 
-    // 8. Create Sales Orders
-    console.log(`Creating Sales Orders...`);
-    const glassProd = createdProducts.find(p => p.sku === 'SKU-5402');
-    const bearingProd = createdProducts.find(p => p.sku === 'SKU-8842');
-    const motorProd = createdProducts.find(p => p.sku === 'SKU-4310');
-
-    await SalesOrder.create({
+    // 9. Create Finished Goods Products
+    console.log(`Creating Finished Goods Products...`);
+    const studyTable = await Product.create({
       organizationId: org._id,
-      orderNumber: 'SO-2026-0941',
-      customer: custApex._id,
-      items: [
-        { product: glassProd._id, quantity: 60, unitPrice: glassProd.salesPrice, totalPrice: 60 * glassProd.salesPrice },
-        { product: bearingProd._id, quantity: 200, unitPrice: bearingProd.salesPrice, totalPrice: 200 * bearingProd.salesPrice }
-      ],
-      totalAmount: (60 * glassProd.salesPrice) + (200 * bearingProd.salesPrice),
-      status: 'CONFIRMED',
-      expectedDeliveryDate: new Date('2026-08-25'),
-      shippingAddress: 'Plot 45, MIDC Industrial Area, Mumbai, MH'
+      name: 'Wooden Study Table',
+      sku: 'FG-TBL-STUDY',
+      category: catFG._id,
+      type: 'Finished Good',
+      unit: 'units',
+      costPrice: 2500,
+      salesPrice: 4500,
+      procurementStrategy: 'MTS',
+      procurementType: 'MANUFACTURING',
+      reorderLevel: 10,
+      targetStock: 25,
+      imageUrl: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500&q=80',
+      isActive: true
+    });
+    prodMap['FG_TABLE'] = studyTable;
+
+    const officeChair = await Product.create({
+      organizationId: org._id,
+      name: 'Office Chair',
+      sku: 'FG-CHR-OFFC',
+      category: catFG._id,
+      type: 'Finished Good',
+      unit: 'units',
+      costPrice: 1800,
+      salesPrice: 3200,
+      procurementStrategy: 'MTS',
+      procurementType: 'PURCHASE', // Can test purchase procurement
+      defaultVendor: vendorUniversal._id,
+      reorderLevel: 10,
+      targetStock: 30,
+      imageUrl: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=500&q=80',
+      isActive: true
+    });
+    prodMap['FG_CHAIR'] = officeChair;
+
+    // Stock for Finished Goods
+    await InventoryBalance.create({
+      organizationId: org._id,
+      product: studyTable._id,
+      onHand: 5,
+      reserved: 0,
+      incoming: 0
+    });
+    await StockLedger.create({
+      organizationId: org._id,
+      product: studyTable._id,
+      eventType: 'STOCK_ADJUSTMENT',
+      quantityChange: 5,
+      previousOnHand: 0,
+      newOnHand: 5,
+      referenceType: 'InitialOpeningBalance',
+      referenceId: studyTable._id,
+      userId: adminUser._id,
+      notes: 'Initial opening stock balance'
     });
 
-    await SalesOrder.create({
+    await InventoryBalance.create({
       organizationId: org._id,
-      orderNumber: 'SO-2026-0939',
-      customer: custZenith._id,
-      items: [
-        { product: motorProd._id, quantity: 30, unitPrice: motorProd.salesPrice, totalPrice: 30 * motorProd.salesPrice }
-      ],
-      totalAmount: 30 * motorProd.salesPrice,
-      status: 'PROCESSING',
-      expectedDeliveryDate: new Date('2026-08-28'),
-      shippingAddress: 'GIDC Sanand Phase II, Ahmedabad, GJ'
+      product: officeChair._id,
+      onHand: 2,
+      reserved: 0,
+      incoming: 0
+    });
+    await StockLedger.create({
+      organizationId: org._id,
+      product: officeChair._id,
+      eventType: 'STOCK_ADJUSTMENT',
+      quantityChange: 2,
+      previousOnHand: 0,
+      newOnHand: 2,
+      referenceType: 'InitialOpeningBalance',
+      referenceId: officeChair._id,
+      userId: adminUser._id,
+      notes: 'Initial opening stock balance'
     });
 
-    console.log(`===========================================`);
-    console.log(`DATABASE SEEDING COMPLETED SUCCESSFULLY!`);
+    // 10. Create BoMs
+    console.log(`Creating Bills of Materials (BoM)...`);
+    const tableBoM = await BoM.create({
+      organizationId: org._id,
+      product: studyTable._id,
+      name: 'BoM - Wooden Study Table',
+      version: '1.0',
+      components: [
+        { product: prodMap['RM_WOOD']._id, quantity: 2 },
+        { product: prodMap['CMP_LEG']._id, quantity: 4 },
+        { product: prodMap['RM_SCREW']._id, quantity: 12 },
+        { product: prodMap['RM_POLISH']._id, quantity: 1 }
+      ],
+      operations: [
+        { workCenter: wcAssembly._id, name: 'Assembly & Joinery', durationMinutes: 60, sequence: 1 },
+        { workCenter: wcFinishing._id, name: 'Sanding & Polish', durationMinutes: 30, sequence: 2 },
+        { workCenter: wcPacking._id, name: 'Inspection & Packaging', durationMinutes: 20, sequence: 3 }
+      ]
+    });
+    studyTable.bom = tableBoM._id;
+    await studyTable.save();
+
+    // 11. Initial Audit Log
+    await AuditLog.create({
+      organizationId: org._id,
+      action: 'LOGIN',
+      module: 'Settings',
+      referenceType: 'SystemSeed',
+      referenceId: org._id.toString(),
+      userId: adminUser._id,
+      userEmail: adminUser.email,
+      userName: 'Arjun Shiv',
+      description: 'System initialized and seeded with Shiv Furniture Works master data'
+    });
+
+    console.log(`=======================================================`);
+    console.log(`DATABASE SEEDING COMPLETED FOR SHIV FURNITURE WORKS!`);
     console.log(`Organization: ${org.name}`);
-    console.log(`Admin User: admin@minierp.io / password123`);
-    console.log(`Products Seeded: ${createdProducts.length}`);
-    console.log(`Customers Seeded: 4`);
-    console.log(`Vendors Seeded: 2`);
-    console.log(`===========================================`);
+    console.log(`Admin Login: ADMIN01 / password123 (or admin@shivfurniture.in)`);
+    console.log(`Owner Login: OWNER01 / password123 (or arjun@shivfurniture.in)`);
+    console.log(`Sales Login: SALE01 / password123`);
+    console.log(`Purchase Login: PUR01 / password123`);
+    console.log(`Manufacturing Login: MFG01 / password123`);
+    console.log(`Inventory Login: INV01 / password123`);
+    console.log(`Products Seeded: 8 (Finished Goods: 2, Raw Materials/Components: 6)`);
+    console.log(`BoMs Seeded: 1 (Wooden Study Table)`);
+    console.log(`=======================================================`);
 
     await mongoose.disconnect();
     process.exit(0);

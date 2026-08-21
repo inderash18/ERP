@@ -15,22 +15,11 @@ const stockLedgerSchema = new mongoose.Schema({
   },
   eventType: {
     type: String,
-    enum: [
-      'PURCHASE_RECEIPT',
-      'SALES_DELIVERY',
-      'MANUFACTURING_CONSUMPTION',
-      'MANUFACTURING_PRODUCTION',
-      'INVENTORY_ADJUSTMENT',
-      'RESERVATION',
-      'RESERVATION_RELEASE'
-    ],
     required: true
   },
   quantityChange: {
     type: Number,
     required: true
-    // Positive for increases (Receipts, Production, positive Adjustments)
-    // Negative for decreases (Deliveries, Consumption, negative Adjustments)
   },
   previousOnHand: {
     type: Number,
@@ -40,26 +29,31 @@ const stockLedgerSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  previousReserved: {
+    type: Number,
+    default: 0
+  },
+  newReserved: {
+    type: Number,
+    default: 0
+  },
   referenceType: {
     type: String,
-    enum: ['SALES_ORDER', 'PURCHASE_ORDER', 'MANUFACTURING_ORDER', 'MANUAL_ADJUSTMENT'],
-    required: true
+    default: 'MANUAL_ADJUSTMENT'
   },
   referenceId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
+    type: mongoose.Schema.Types.Mixed,
+    default: 'N/A'
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: 'User'
   },
   notes: String
 }, {
   timestamps: true
 });
 
-// For viewing history of a specific product
 stockLedgerSchema.index({ organizationId: 1, product: 1, createdAt: -1 });
 
 export default mongoose.model('StockLedger', stockLedgerSchema);

@@ -20,12 +20,11 @@ const inventoryReservationSchema = new mongoose.Schema({
   },
   referenceType: {
     type: String,
-    enum: ['SALES_ORDER', 'MANUFACTURING_ORDER'],
-    required: true
+    default: 'SALES_ORDER'
   },
   referenceId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
+    type: mongoose.Schema.Types.Mixed,
+    default: 'N/A'
   },
   status: {
     type: String,
@@ -36,7 +35,6 @@ const inventoryReservationSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index to quickly find active reservations for a specific product or order
 inventoryReservationSchema.index({ organizationId: 1, product: 1, status: 1 });
 inventoryReservationSchema.index({ organizationId: 1, referenceType: 1, referenceId: 1 });
 

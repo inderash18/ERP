@@ -22,11 +22,36 @@ export const getAvailability = async (req, res) => {
 
 export const getLedger = async (req, res) => {
   try {
-    const ledger = await StockLedger.find({ 
-      organizationId: req.organizationId, 
-      product: req.params.productId 
-    }).sort({ createdAt: -1 }).populate('userId', 'firstName lastName');
+    const ledger = await StockLedger.find({
+      organizationId: req.organizationId,
+      product: req.params.productId
+    }).sort({ createdAt: -1 }).populate('userId', 'firstName lastName email');
     res.json({ success: true, count: ledger.length, data: ledger });
+  } catch (error) {
+    res.status(500).json({ success: false, error: { message: error.message } });
+  }
+};
+
+export const getMovements = async (req, res) => {
+  try {
+    const movements = await StockLedger.find({ organizationId: req.organizationId })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .populate('product userId');
+
+    const formatted = movements.map(m => ({
+      id: m._id,
+      productId: m.product?._id,
+      productName: m.product?.name || 'Unknown Product',
+      type: m.eventType,
+      quantity: m.quantityChange,
+      referenceType: m.referenceType,
+      referenceId: m.referenceId,
+      date: m.createdAt ? new Date(m.createdAt).toISOString() : '',
+      user: m.userId ? `${m.userId.firstName || ''} ${m.userId.lastName || ''}`.trim() || m.userId.email : 'System'
+    }));
+
+    res.json({ success: true, count: formatted.length, data: formatted });
   } catch (error) {
     res.status(500).json({ success: false, error: { message: error.message } });
   }
@@ -34,11 +59,18 @@ export const getLedger = async (req, res) => {
 
 export const adjustStock = async (req, res) => {
   try {
-    const { productId, newQuantity, notes } = req.body;
+    const { productId, newQuantity, delta, notes } = req.body;
+    let targetQuantity = newQuantity;
+
+    if (targetQuantity === undefined && delta !== undefined) {
+      const current = await InventoryService.getAvailability(req.organizationId, productId);
+      targetQuantity = Math.max(0, current.onHand + Number(delta));
+    }
+
     const result = await InventoryService.adjust({
       organizationId: req.organizationId,
       productId,
-      newQuantity,
+      newQuantity: Number(targetQuantity) || 0,
       userId: req.user._id,
       notes
     });

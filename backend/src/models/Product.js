@@ -34,6 +34,23 @@ const productSchema = new mongoose.Schema({
   // but we may store cached quantity values here if needed. 
   // Following Rule 9: Do NOT simply store stock in Product. 
   // We will omit stock fields here and rely on InventoryBalance/StockLedger
+  type: {
+    type: String,
+    enum: ['Finished Good', 'Raw Material', 'Component', 'Hardware', 'Other'],
+    default: 'Finished Good'
+  },
+  unit: {
+    type: String,
+    default: 'pcs'
+  },
+  imageUrl: {
+    type: String,
+    default: ''
+  },
+  bom: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BoM'
+  },
   procurementStrategy: {
     type: String,
     enum: ['MTS', 'MTO'], // Make To Stock, Make To Order
@@ -51,6 +68,10 @@ const productSchema = new mongoose.Schema({
   reorderLevel: {
     type: Number,
     default: 0
+  },
+  targetStock: {
+    type: Number,
+    default: 50
   },
   isActive: {
     type: Boolean,

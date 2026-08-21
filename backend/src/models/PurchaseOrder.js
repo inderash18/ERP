@@ -11,6 +11,10 @@ const poLineItemSchema = new mongoose.Schema({
     required: true,
     min: 0.0001
   },
+  receivedQuantity: {
+    type: Number,
+    default: 0
+  },
   unitPrice: {
     type: Number,
     required: true
@@ -32,6 +36,10 @@ const purchaseOrderSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true
+  },
+  salesOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SalesOrder'
   },
   vendor: {
     type: mongoose.Schema.Types.ObjectId,
