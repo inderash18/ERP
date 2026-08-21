@@ -102,7 +102,7 @@ async function seedDatabase() {
 
     // 3. Create Users
     console.log(`Creating Seed Users & Employees...`);
-    const hashedPassword = await bcrypt.hash('password123', 12);
+    const defaultPassword = 'password123';
 
     const adminUser = await User.create({
       organizationId: org._id,
@@ -111,7 +111,7 @@ async function seedDatabase() {
       employeeId: 'OWNER01',
       department: 'Executive',
       email: 'arjun@shivfurniture.in',
-      password: hashedPassword,
+      password: defaultPassword,
       role: adminRole._id,
       status: 'ACTIVE'
     });
@@ -123,7 +123,7 @@ async function seedDatabase() {
       employeeId: 'ADMIN01',
       department: 'IT',
       email: 'admin@shivfurniture.in',
-      password: hashedPassword,
+      password: defaultPassword,
       role: adminRole._id,
       status: 'ACTIVE'
     });
@@ -135,7 +135,7 @@ async function seedDatabase() {
       employeeId: 'ADMIN02',
       department: 'IT',
       email: 'support@shivfurniture.in',
-      password: hashedPassword,
+      password: defaultPassword,
       role: adminRole._id,
       status: 'ACTIVE'
     });
@@ -147,7 +147,7 @@ async function seedDatabase() {
       employeeId: 'ADMIN03',
       department: 'Executive',
       email: 'admin@minierp.io',
-      password: hashedPassword,
+      password: defaultPassword,
       role: adminRole._id,
       status: 'ACTIVE'
     });
@@ -162,7 +162,7 @@ async function seedDatabase() {
         employeeId: `SALE${pad}`,
         department: 'Sales',
         email: `sale${i}@shivfurniture.in`,
-        password: hashedPassword,
+        password: defaultPassword,
         role: salesRole._id,
         status: 'ACTIVE'
       });
@@ -174,7 +174,7 @@ async function seedDatabase() {
         employeeId: `PUR${pad}`,
         department: 'Procurement',
         email: `pur${i}@shivfurniture.in`,
-        password: hashedPassword,
+        password: defaultPassword,
         role: purchaseRole._id,
         status: 'ACTIVE'
       });
@@ -186,7 +186,7 @@ async function seedDatabase() {
         employeeId: `MFG${pad}`,
         department: 'Manufacturing',
         email: `mfg${i}@shivfurniture.in`,
-        password: hashedPassword,
+        password: defaultPassword,
         role: mfgRole._id,
         status: 'ACTIVE'
       });
@@ -201,7 +201,7 @@ async function seedDatabase() {
         employeeId: `INV${pad}`,
         department: 'Warehouse',
         email: `inv${i}@shivfurniture.in`,
-        password: hashedPassword,
+        password: defaultPassword,
         role: invRole._id,
         status: 'ACTIVE'
       });
