@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
+import { ErpProvider } from "./context/ErpContext";
 import Login from "./components/Login";
 import AdminLogin from "./components/AdminLogin";
 import Signup from "./components/Signup";
@@ -13,14 +14,12 @@ import Customers from "./pages/Customers";
 import Settings from "./pages/Settings";
 import PageTransition from "./components/PageTransition";
 
-
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-
         {/* Default → Login */}
         <Route
           path="/"
@@ -80,7 +79,6 @@ function AnimatedRoutes() {
           path="*"
           element={<Navigate to="/login" replace />}
         />
-
       </Routes>
     </AnimatePresence>
   );
@@ -88,9 +86,11 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AnimatedRoutes />
-    </BrowserRouter>
+    <ErpProvider>
+      <BrowserRouter>
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </ErpProvider>
   );
 }
 
