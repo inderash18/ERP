@@ -7,10 +7,10 @@ import {
 } from "recharts";
 import {
   Package, TrendingUp, AlertCircle, CheckCircle2,
-  ShoppingCart, Users, ArrowUpRight, Clock, Plus, Factory, ChevronRight
+  ShoppingCart, Users, ArrowUpRight, Clock, Plus, Factory, ChevronRight, Settings
 } from "lucide-react";
-import { useErp } from "../context/ErpContext";
-import { TextShuffle } from "../components/AnimatedText";
+import { useErp } from "../../context/ErpContext";
+import { TextShuffle } from "../common/AnimatedText";
 
 const CARD_STYLE = {
   background: "#ffffff",
@@ -109,7 +109,7 @@ function StatCard({ title, value, change, icon: Icon, trend, color, bg, delay = 
 export default function Dashboard() {
   const { metrics, orders, activities, formatCurrency } = useErp();
 
-  const recentOrders = orders.slice(0, 5);
+  const recentOrders = (orders || []).slice(0, 5);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -181,6 +181,44 @@ export default function Dashboard() {
             }}
           >
             <Factory size={15} /> Launch Batch
+          </Link>
+          <Link
+            to="/layout/customers"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "9px 16px",
+              borderRadius: "11px",
+              background: "#059669",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: 600,
+              textDecoration: "none",
+              boxShadow: "0 2px 8px rgba(5,150,105,0.25)",
+              transition: "transform 0.15s"
+            }}
+          >
+            <Users size={15} /> View Customers
+          </Link>
+          <Link
+            to="/layout/settings"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "9px 16px",
+              borderRadius: "11px",
+              background: "#475569",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: 600,
+              textDecoration: "none",
+              boxShadow: "0 2px 8px rgba(71,85,105,0.25)",
+              transition: "transform 0.15s"
+            }}
+          >
+            <Settings size={15} /> Settings
           </Link>
         </div>
       </div>
@@ -384,7 +422,7 @@ export default function Dashboard() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 250, overflowY: "auto" }}>
-            {activities.slice(0, 7).map((act) => (
+            {(activities || []).slice(0, 7).map((act) => (
               <div key={act.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: "10px", background: "#fafcfb", border: "1px solid #f1f5f2" }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: "8px",

@@ -4,8 +4,8 @@ import {
   Trash2, Edit2, Search, X, ShoppingBag, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useErp } from '../context/ErpContext';
-import { TextShuffle } from '../components/AnimatedText';
+import { useErp } from '../../context/ErpContext';
+import { TextShuffle } from '../common/AnimatedText';
 
 const CARD_STYLE = {
   background: '#ffffff',

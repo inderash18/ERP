@@ -2,24 +2,25 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AnimatePresence } from "framer-motion";
 
 import { ErpProvider } from "./context/ErpContext";
-import Login from "./components/Login";
-import AdminLogin from "./components/AdminLogin";
-import Signup from "./components/Signup";
-import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
-import Inventory from "./pages/Inventory";
-import Sales from "./pages/Sales";
-import Production from "./pages/Production";
-import Customers from "./pages/Customers";
-import Settings from "./pages/Settings";
-import PageTransition from "./components/PageTransition";
+import Login from "./components/common/Login";
+import AdminLogin from "./components/common/AdminLogin";
+import Signup from "./components/common/Signup";
+import Layout from "./components/layout/Layout";
+import Dashboard from "./components/dashboard/Dashboard";
+import Inventory from "./components/inventory/Inventory";
+import Sales from "./components/sales/Sales";
+import Production from "./components/manufacturing/Production";
+import Customers from "./components/sales/Customers";
+import Settings from "./components/common/Settings";
+import PageTransition from "./components/layout/PageTransition";
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const baseKey = location.pathname.startsWith("/layout") ? "/layout" : location.pathname;
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location} key={baseKey}>
         {/* Default → Login */}
         <Route
           path="/"

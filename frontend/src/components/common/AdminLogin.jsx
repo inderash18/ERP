@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import loginImage from "../assets/login1.jpg";
-export default function Login() {
+import loginImage from "../../assets/login1.jpg";
+
+export default function AdminLogin() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -77,7 +78,7 @@ export default function Login() {
               tracking-tight
               text-[#17241d]
             ">
-                            Log in
+                            Admin Login
                         </h1>
 
 
@@ -91,7 +92,7 @@ export default function Login() {
                 font-medium
                 text-[#3f4943]
               ">
-                                Login email or Login ID
+                                Admin email or Admin ID
                             </label>
 
                             <input
@@ -211,11 +212,11 @@ export default function Login() {
                         </div>
 
 
-                        {/* ADMIN LOGIN */}
+                        {/* USER LOGIN */}
                         <div className="mt-5 flex justify-center">
                             <button
                                 type="button"
-                                onClick={() => navigate("/admin-login")}
+                                onClick={() => navigate("/login")}
                                 className="
             h-[42px]
             w-full
@@ -232,7 +233,7 @@ export default function Login() {
             hover:border-[#405b4d]
         "
                             >
-                                Login as Admin
+                                Login as User
                             </button>
                         </div>
 

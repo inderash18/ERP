@@ -4,9 +4,9 @@ import {
   Save, RotateCcw, Trash2, Download, Check, AlertTriangle, UserCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useErp } from '../context/ErpContext';
-import { storage } from '../services/erpStorage';
-import { TextShuffle } from '../components/AnimatedText';
+import { useErp } from '../../context/ErpContext';
+import { storage } from '../../services/erpStorage';
+import { TextShuffle } from '../common/AnimatedText';
 
 const CARD_STYLE = {
   background: '#ffffff',
@@ -37,23 +37,23 @@ export default function Settings() {
   } = useErp();
 
   const [formSettings, setFormSettings] = useState({
-    orgName: settings.orgName || '',
-    orgEmail: settings.orgEmail || '',
-    orgPhone: settings.orgPhone || '',
-    currency: settings.currency || 'INR',
-    currencySymbol: settings.currencySymbol || '₹',
-    taxRate: settings.taxRate || 18,
-    lowStockThresholdPercent: settings.lowStockThresholdPercent || 20,
-    twoFactorAuth: settings.twoFactorAuth !== false,
-    autoReorderAlerts: settings.autoReorderAlerts !== false,
-    emailNotifications: settings.emailNotifications !== false,
+    orgName: settings?.orgName || '',
+    orgEmail: settings?.orgEmail || '',
+    orgPhone: settings?.orgPhone || '',
+    currency: settings?.currency || 'INR',
+    currencySymbol: settings?.currencySymbol || '₹',
+    taxRate: settings?.taxRate || 18,
+    lowStockThresholdPercent: settings?.lowStockThresholdPercent || 20,
+    twoFactorAuth: settings?.twoFactorAuth !== false,
+    autoReorderAlerts: settings?.autoReorderAlerts !== false,
+    emailNotifications: settings?.emailNotifications !== false,
   });
 
   const [formUser, setFormUser] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    role: user.role || 'Operations Director',
-    avatar: user.avatar || 'AR',
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || 'Operations Director',
+    avatar: user?.avatar || 'AR',
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);

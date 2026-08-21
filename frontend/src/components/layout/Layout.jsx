@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useErp } from "../context/ErpContext";
-import {
+import { useErp } from "../../context/ErpContext";
+import RouteTransition from "./RouteTransition";
+import LiquidCursor from "../common/LiquidCursor";
+import { 
   CharMorph, TextFlip, ClipReveal,
-  ElasticText, PerspectiveText, TextShuffle,
-} from "./AnimatedText";
+  ElasticText, PerspectiveText, TextShuffle
+} from "../common/AnimatedText";
 
 /* One animation per nav item — plays only when that item becomes active */
 const NAV_ANIM = [

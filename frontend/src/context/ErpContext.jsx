@@ -4,13 +4,13 @@ import { storage, DEFAULT_SETTINGS, DEFAULT_USER } from '../services/erpStorage'
 const ErpContext = createContext(null);
 
 export function ErpProvider({ children }) {
-  const [inventory, setInventory] = useState(() => storage.getInventory());
-  const [customers, setCustomers] = useState(() => storage.getCustomers());
-  const [orders, setOrders] = useState(() => storage.getOrders());
-  const [batches, setBatches] = useState(() => storage.getBatches());
-  const [activities, setActivities] = useState(() => storage.getActivities());
-  const [settings, setSettings] = useState(() => storage.getSettings());
-  const [user, setUser] = useState(() => storage.getUser());
+  const [inventory, setInventory] = useState(() => storage.getInventory() || []);
+  const [customers, setCustomers] = useState(() => storage.getCustomers() || []);
+  const [orders, setOrders] = useState(() => storage.getOrders() || []);
+  const [batches, setBatches] = useState(() => storage.getBatches() || []);
+  const [activities, setActivities] = useState(() => storage.getActivities() || []);
+  const [settings, setSettings] = useState(() => storage.getSettings() || {});
+  const [user, setUser] = useState(() => storage.getUser() || {});
 
   // Save to storage on state change
   useEffect(() => { storage.setInventory(inventory); }, [inventory]);

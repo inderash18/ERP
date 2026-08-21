@@ -4,8 +4,8 @@ import {
   Plus, Trash2, Check, AlertCircle, X, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useErp } from '../context/ErpContext';
-import { TextShuffle } from '../components/AnimatedText';
+import { useErp } from '../../context/ErpContext';
+import { TextShuffle } from '../common/AnimatedText';
 
 const CARD_STYLE = {
   background: '#ffffff',
