@@ -6,8 +6,25 @@ import StockLedger from '../models/StockLedger.js';
 import Product from '../models/Product.js';
 import AuditLog from '../models/AuditLog.js';
 
+// Short-lived metric cache (5s TTL) to prevent repeated heavy aggregations on frequent polling
+const metricsCache = new Map();
+const CACHE_TTL_MS = 5000;
+
 export const DashboardService = {
+  invalidateCache(organizationId) {
+    if (organizationId) metricsCache.delete(organizationId.toString());
+    else metricsCache.clear();
+  },
+
   async getMetrics(organizationId) {
+    const orgKey = organizationId ? organizationId.toString() : 'default';
+    const cached = metricsCache.get(orgKey);
+    const now = Date.now();
+
+    if (cached && (now - cached.timestamp < CACHE_TTL_MS)) {
+      return cached.data;
+    }
+
     const [
       salesOrders,
       purchaseOrders,
@@ -78,7 +95,7 @@ export const DashboardService = {
       }
     }
 
-    return {
+    const result = {
       kpis: {
         totalRevenue,
         totalSalesOrders,
@@ -97,5 +114,8 @@ export const DashboardService = {
       recentMovements,
       recentAuditLogs
     };
+
+    metricsCache.set(orgKey, { data: result, timestamp: Date.now() });
+    return result;
   }
 };

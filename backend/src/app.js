@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import pino from 'pino-http';
 import rateLimit from 'express-rate-limit';
 
@@ -20,7 +21,8 @@ import masterRoutes from './routes/master.routes.js';
 
 const app = express();
 
-// Security Middlewares
+// Performance & Security Middlewares
+app.use(compression());
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));

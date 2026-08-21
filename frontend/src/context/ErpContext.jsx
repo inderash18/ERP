@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   authApi,
   productsApi,
@@ -57,6 +57,8 @@ export function ErpProvider({ children }) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const lastFetchTimeRef = useRef(0);
+  const inFlightPromiseRef = useRef(null);
 
   // ----------------------------------------------------
   // PERMISSION MATCHER
@@ -80,20 +82,35 @@ export function ErpProvider({ children }) {
   }, [authUser]);
 
   // ----------------------------------------------------
-  // REFRESH ALL ERP DATA FROM BACKEND (PERMISSION-AWARE)
+  // REFRESH ALL ERP DATA FROM BACKEND (PERMISSION-AWARE + DEDUPLICATED)
   // ----------------------------------------------------
-  const refreshData = useCallback(async () => {
+  const refreshData = useCallback(async (force = false) => {
     if (!authUser && !token) return;
-    setIsLoading(true);
-    try {
-      const promises = [];
-      const keys = [];
 
-      // Always fetch products if permitted
-      if (hasPermission('product.view')) {
-        keys.push('products');
-        promises.push(productsApi.getAll());
-      }
+    const now = Date.now();
+    // Throttle duplicate background fetches within 3 seconds unless explicitly forced
+    if (!force && (now - lastFetchTimeRef.current < 3000)) {
+      return;
+    }
+
+    // If an identical fetch is already in-flight, reuse it
+    if (inFlightPromiseRef.current) {
+      return inFlightPromiseRef.current;
+    }
+
+    lastFetchTimeRef.current = now;
+    setIsLoading(true);
+
+    const executeFetch = async () => {
+      try {
+        const promises = [];
+        const keys = [];
+
+        // Always fetch products if permitted
+        if (hasPermission('product.view')) {
+          keys.push('products');
+          promises.push(productsApi.getAll());
+        }
 
       if (hasPermission('sales.view')) {
         keys.push('sales');
@@ -178,12 +195,17 @@ export function ErpProvider({ children }) {
       });
 
       setError(null);
-    } catch (err) {
-      console.error('Error refreshing ERP data:', err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      } catch (err) {
+        console.error('Error refreshing ERP data:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+        inFlightPromiseRef.current = null;
+      }
+    };
+
+    inFlightPromiseRef.current = executeFetch();
+    return inFlightPromiseRef.current;
   }, [authUser, token, hasPermission]);
 
   // Initial Auth Check
