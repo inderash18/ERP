@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { storage } from '../../services/erpStorage';
 import { TextShuffle } from '../common/AnimatedText';
 
 const CARD_STYLE = {
@@ -25,11 +24,8 @@ const CURRENCIES = [
 export default function Settings() {
   const {
     settings,
-    updateSettings,
     user,
-    setUser,
-    resetToDefaultData,
-    clearAllData,
+    refreshData,
     inventory,
     orders,
     customers,
@@ -71,8 +67,6 @@ export default function Settings() {
 
   const handleSave = (e) => {
     e.preventDefault();
-    updateSettings(formSettings);
-    setUser(formUser);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };

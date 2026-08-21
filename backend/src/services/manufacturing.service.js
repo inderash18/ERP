@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
 import ManufacturingOrder from '../models/ManufacturingOrder.js';
+import SalesOrder from '../models/SalesOrder.js';
 import Product from '../models/Product.js';
 import BoM from '../models/BoM.js';
 import InventoryBalance from '../models/InventoryBalance.js';
+import InventoryReservation from '../models/InventoryReservation.js';
 import StockLedger from '../models/StockLedger.js';
 import { InventoryService } from './inventory.service.js';
 import { AuditService } from './audit.service.js';
 
 export const ManufacturingService = {
   /**
-   * Create Manufacturing Order with BoM explosion
+   * Create Manufacturing Order with dynamic BoM explosion
    */
   async createOrder(params) {
     const {
@@ -33,7 +35,7 @@ export const ManufacturingService = {
       throw new Error('Quantity to produce must be greater than zero');
     }
 
-    // Resolve BoM
+    // Resolve active BoM
     let bom = product.bom;
     if (!bom) {
       bom = await BoM.findOne({ product: product._id, organizationId, isActive: true });
@@ -65,10 +67,10 @@ export const ManufacturingService = {
       }
     }
 
-    // Fallback default work orders if none specified in BoM
+    // Default work orders if none specified in BoM
     if (workOrders.length === 0) {
       workOrders.push(
-        { operation: 'Assembly & Fabrication', durationMinutes: 60, status: 'PENDING' },
+        { operation: 'Assembly & Joinery', durationMinutes: 60, status: 'PENDING' },
         { operation: 'Surface Finishing & Polish', durationMinutes: 30, status: 'PENDING' },
         { operation: 'Quality Inspection & Packing', durationMinutes: 20, status: 'PENDING' }
       );
@@ -161,7 +163,7 @@ export const ManufacturingService = {
   },
 
   /**
-   * Complete Manufacturing Order -> Atomically consume components and produce finished goods
+   * Complete Manufacturing Order -> Atomically consume components and produce finished goods in ONE unified transaction
    */
   async completeOrder(params) {
     const { organizationId, orderId, user } = params;
@@ -181,23 +183,25 @@ export const ManufacturingService = {
     try {
       // 1. Verify component inventory availability
       for (const comp of order.components) {
+        const compId = comp.product?._id || comp.product;
         const compBalance = await InventoryBalance.findOne({
           organizationId,
-          product: comp.product._id || comp.product
+          product: compId
         }).session(session);
 
         const needed = comp.quantityRequired;
         if (!compBalance || compBalance.onHand < needed) {
-          throw new Error(`Insufficient component stock for ${comp.product.name || 'Component'}. Available: ${compBalance?.onHand || 0}, Required: ${needed}`);
+          throw new Error(`Insufficient component stock for ${comp.product?.name || 'Component'}. Available: ${compBalance?.onHand || 0}, Required: ${needed}`);
         }
       }
 
       // 2. Consume components
       for (const comp of order.components) {
-        const compId = comp.product._id || comp.product;
+        const compId = comp.product?._id || comp.product;
         const compBalance = await InventoryBalance.findOne({ organizationId, product: compId }).session(session);
 
         const previousOnHand = compBalance.onHand;
+        const previousReserved = compBalance.reserved;
         compBalance.onHand -= comp.quantityRequired;
         await compBalance.save({ session });
 
@@ -208,6 +212,8 @@ export const ManufacturingService = {
           quantityChange: -comp.quantityRequired,
           previousOnHand,
           newOnHand: compBalance.onHand,
+          previousReserved,
+          newReserved: compBalance.reserved,
           referenceType: 'ManufacturingOrder',
           referenceId: order._id.toString(),
           userId: user?._id,
@@ -226,12 +232,16 @@ export const ManufacturingService = {
       if (!fgBalance) {
         const created = await InventoryBalance.create([{
           organizationId,
-          product: order.product._id || order.product
+          product: order.product._id || order.product,
+          onHand: 0,
+          reserved: 0,
+          incoming: 0
         }], { session });
         fgBalance = created[0];
       }
 
       const fgPreviousOnHand = fgBalance.onHand;
+      const fgPreviousReserved = fgBalance.reserved;
       fgBalance.onHand += order.quantityToProduce;
       await fgBalance.save({ session });
 
@@ -242,6 +252,8 @@ export const ManufacturingService = {
         quantityChange: order.quantityToProduce,
         previousOnHand: fgPreviousOnHand,
         newOnHand: fgBalance.onHand,
+        previousReserved: fgPreviousReserved,
+        newReserved: fgBalance.reserved,
         referenceType: 'ManufacturingOrder',
         referenceId: order._id.toString(),
         userId: user?._id,
@@ -256,8 +268,44 @@ export const ManufacturingService = {
         w.status = 'COMPLETED';
         if (!w.completedAt) w.completedAt = new Date();
       });
-
       await order.save({ session });
+
+      // 5. Update linked Sales Order if MTO
+      if (order.salesOrderId) {
+        const salesOrder = await SalesOrder.findOne({ _id: order.salesOrderId, organizationId }).session(session);
+        if (salesOrder && salesOrder.status !== 'DELIVERED' && salesOrder.status !== 'CANCELLED') {
+          // Reserve the newly produced finished goods for the sales order
+          fgBalance.reserved += order.quantityToProduce;
+          await fgBalance.save({ session });
+
+          await InventoryReservation.create([{
+            organizationId,
+            product: order.product._id || order.product,
+            quantity: order.quantityToProduce,
+            referenceType: 'SalesOrder',
+            referenceId: salesOrder._id.toString(),
+            status: 'ACTIVE'
+          }], { session });
+
+          await StockLedger.create([{
+            organizationId,
+            product: order.product._id || order.product,
+            eventType: 'RESERVATION',
+            quantityChange: 0,
+            previousOnHand: fgBalance.onHand,
+            newOnHand: fgBalance.onHand,
+            previousReserved: fgPreviousReserved,
+            newReserved: fgBalance.reserved,
+            referenceType: 'SalesOrder',
+            referenceId: salesOrder._id.toString(),
+            userId: user?._id,
+            notes: `Auto-reserved from completed MO #${order.orderNumber}`
+          }], { session });
+
+          salesOrder.status = 'READY_FOR_DELIVERY';
+          await salesOrder.save({ session });
+        }
+      }
 
       await session.commitTransaction();
     } catch (error) {
@@ -274,7 +322,7 @@ export const ManufacturingService = {
       referenceType: 'ManufacturingOrder',
       referenceId: order._id.toString(),
       user,
-      description: `Completed Manufacturing Order #${order.orderNumber}. Produced ${order.quantityToProduce} units of ${order.product.name}.`
+      description: `Completed Manufacturing Order #${order.orderNumber}. Produced ${order.quantityToProduce} units of ${order.product?.name || 'Product'}.`
     });
 
     return order;

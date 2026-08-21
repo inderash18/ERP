@@ -11,7 +11,7 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
 
   before(async () => {
     await connectDB();
-    testTenant = await createTestTenant('Inventory Test Org');
+    testTenant = await createTestTenant('Inventory Engine Test Org');
 
     testProduct = await Product.create({
       organizationId: testTenant.org._id,
@@ -32,7 +32,7 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
       productId: testProduct._id,
       quantity: 50,
       eventType: 'PURCHASE_RECEIPT',
-      referenceType: 'TestPO',
+      referenceType: 'PurchaseOrder',
       referenceId: 'PO-001',
       userId: testTenant.adminUser._id,
       notes: 'Initial test stock intake'
@@ -57,7 +57,7 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
       organizationId: testTenant.org._id,
       productId: testProduct._id,
       quantity: 20,
-      referenceType: 'TestSO',
+      referenceType: 'SalesOrder',
       referenceId: 'SO-001',
       userId: testTenant.adminUser._id
     });
@@ -78,7 +78,7 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
           organizationId: testTenant.org._id,
           productId: testProduct._id,
           quantity: 40, // only 30 available
-          referenceType: 'TestSO',
+          referenceType: 'SalesOrder',
           referenceId: 'SO-002',
           userId: testTenant.adminUser._id
         });
@@ -93,7 +93,7 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
       productId: testProduct._id,
       quantity: 10,
       eventType: 'SALES_DELIVERY',
-      referenceType: 'TestSO',
+      referenceType: 'SalesOrder',
       referenceId: 'SO-001',
       userId: testTenant.adminUser._id,
       notes: 'Test sales delivery'
@@ -110,5 +110,23 @@ describe('Inventory Engine & Atomic Transaction Tests', () => {
 
     assert.ok(ledger);
     assert.strictEqual(ledger.quantityChange, -10);
+  });
+
+  it('should adjust physical stock via cycle count and update ledger', async () => {
+    const adjResult = await InventoryService.adjust({
+      organizationId: testTenant.org._id,
+      productId: testProduct._id,
+      newQuantity: 65,
+      userId: testTenant.adminUser._id,
+      notes: 'Warehouse physical audit count'
+    });
+
+    assert.ok(adjResult.success);
+    assert.strictEqual(adjResult.balance.onHand, 65);
+
+    const availability = await InventoryService.getAvailability(testTenant.org._id, testProduct._id);
+    assert.strictEqual(availability.onHand, 65);
+    assert.strictEqual(availability.reserved, 20);
+    assert.strictEqual(availability.available, 45);
   });
 });

@@ -7,7 +7,7 @@ import { AuditService } from './audit.service.js';
 
 export const ProcurementService = {
   /**
-   * Evaluates demand, detects shortages, and triggers procurement documents
+   * Evaluates demand, detects shortages, and triggers procurement documents idempotently
    */
   async evaluateDemand(params) {
     const {
@@ -38,7 +38,46 @@ export const ProcurementService = {
       };
     }
 
-    // Shortage detected -> execute MTO procurement logic
+    // Check if an active procurement document already exists for this reference to prevent duplicate orders
+    if (referenceId) {
+      if (product.procurementType === 'PURCHASE') {
+        const existingPO = await PurchaseOrder.findOne({
+          organizationId,
+          salesOrderId: referenceId,
+          'items.product': product._id,
+          status: { $ne: 'CANCELLED' }
+        });
+        if (existingPO) {
+          return {
+            hasShortage: true,
+            shortage,
+            strategy: 'MTO',
+            documentType: 'PURCHASE_ORDER',
+            document: existingPO,
+            isExisting: true
+          };
+        }
+      } else if (product.procurementType === 'MANUFACTURING') {
+        const existingMO = await ManufacturingOrder.findOne({
+          organizationId,
+          salesOrderId: referenceId,
+          product: product._id,
+          status: { $ne: 'CANCELLED' }
+        });
+        if (existingMO) {
+          return {
+            hasShortage: true,
+            shortage,
+            strategy: 'MTO',
+            documentType: 'MANUFACTURING_ORDER',
+            document: existingMO,
+            isExisting: true
+          };
+        }
+      }
+    }
+
+    // Shortage detected -> execute MTO procurement document creation
     let createdDoc = null;
     let documentType = 'NONE';
 
@@ -89,9 +128,9 @@ export const ProcurementService = {
 
       const components = [];
       const workOrders = [
-        { operation: 'Assembly', durationMinutes: 60, status: 'PENDING' },
-        { operation: 'Finishing & Painting', durationMinutes: 30, status: 'PENDING' },
-        { operation: 'Quality Check & Packing', durationMinutes: 20, status: 'PENDING' }
+        { operation: 'Assembly & Joinery', durationMinutes: 60, status: 'PENDING' },
+        { operation: 'Finishing & Polish', durationMinutes: 30, status: 'PENDING' },
+        { operation: 'Quality Inspection & Packing', durationMinutes: 20, status: 'PENDING' }
       ];
 
       if (bom && bom.components) {

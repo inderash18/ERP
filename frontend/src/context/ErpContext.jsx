@@ -330,6 +330,12 @@ export function ErpProvider({ children }) {
     return res.data;
   }, [refreshData]);
 
+  const confirmPurchaseOrder = useCallback(async (orderId) => {
+    const res = await purchaseApi.confirm(orderId);
+    await refreshData();
+    return res.data;
+  }, [refreshData]);
+
   const receivePurchaseOrder = useCallback(async (orderId) => {
     const res = await purchaseApi.receive(orderId);
     await refreshData();

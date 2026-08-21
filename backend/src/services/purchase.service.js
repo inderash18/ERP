@@ -1,4 +1,5 @@
 import PurchaseOrder from '../models/PurchaseOrder.js';
+import SalesOrder from '../models/SalesOrder.js';
 import Product from '../models/Product.js';
 import { InventoryService } from './inventory.service.js';
 import { AuditService } from './audit.service.js';
@@ -8,7 +9,7 @@ export const PurchaseService = {
    * Create Purchase Order
    */
   async createOrder(params) {
-    const { organizationId, vendor, items, salesOrderId, expectedArrivalDate, notes, user } = params;
+    const { organizationId, vendor, items, salesOrderId = null, expectedArrivalDate, notes, user } = params;
 
     if (!items || items.length === 0) {
       throw new Error('Purchase order must contain at least one line item');
@@ -101,6 +102,7 @@ export const PurchaseService = {
 
   /**
    * Receive goods on Purchase Order -> Increase physical stock -> Update Stock Ledger -> Mark RECEIVED
+   * Idempotent: rejects duplicate receipts exceeding pending ordered quantity.
    */
   async receiveGoods(params) {
     const { organizationId, orderId, itemsToReceive = null, user } = params;
@@ -115,6 +117,7 @@ export const PurchaseService = {
     }
 
     let allItemsFullyReceived = true;
+    let totalReceivedThisBatch = 0;
 
     for (const item of order.items) {
       const productId = item.product._id || item.product;
@@ -146,6 +149,24 @@ export const PurchaseService = {
         });
 
         item.receivedQuantity = alreadyReceived + qtyToReceive;
+        totalReceivedThisBatch += qtyToReceive;
+
+        // If this PO was linked to a Sales Order (MTO Purchase), reserve the received stock for the Sales Order
+        if (order.salesOrderId) {
+          const salesOrder = await SalesOrder.findOne({ _id: order.salesOrderId, organizationId });
+          if (salesOrder && salesOrder.status !== 'DELIVERED' && salesOrder.status !== 'CANCELLED') {
+            await InventoryService.reserve({
+              organizationId,
+              productId,
+              quantity: qtyToReceive,
+              referenceType: 'SalesOrder',
+              referenceId: salesOrder._id.toString(),
+              userId: user?._id
+            });
+            salesOrder.status = 'READY_FOR_DELIVERY';
+            await salesOrder.save();
+          }
+        }
       }
 
       if (item.receivedQuantity < item.quantity) {

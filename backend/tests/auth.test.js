@@ -20,20 +20,42 @@ describe('Authentication & User Resolution Tests', () => {
       organizationId: testTenant.org._id,
       firstName: 'Employee',
       lastName: 'One',
-      employeeId: 'EMP99',
-      email: 'emp99@test.com',
+      employeeId: `EMP-${Date.now()}`,
+      email: `emp-${Date.now()}@test.com`,
       password: 'password123',
       role: testTenant.adminRole._id
     });
 
     const foundUser = await User.findOne({
       organizationId: testTenant.org._id,
-      employeeId: 'EMP99'
+      employeeId: user.employeeId
     }).select('+password');
 
     assert.ok(foundUser, 'User should be found by Employee ID');
     const isPasswordValid = await foundUser.comparePassword('password123');
     assert.strictEqual(isPasswordValid, true, 'Password comparison should succeed');
+  });
+
+  it('should authenticate user via Email and Password', async () => {
+    const email = `emailuser-${Date.now()}@test.com`;
+    const user = await User.create({
+      organizationId: testTenant.org._id,
+      firstName: 'Email',
+      lastName: 'User',
+      employeeId: `EMU-${Date.now()}`,
+      email,
+      password: 'password123',
+      role: testTenant.salesRole._id
+    });
+
+    const foundUser = await User.findOne({
+      organizationId: testTenant.org._id,
+      email
+    }).select('+password');
+
+    assert.ok(foundUser);
+    const isPasswordValid = await foundUser.comparePassword('password123');
+    assert.strictEqual(isPasswordValid, true);
   });
 
   it('should reject invalid password', async () => {

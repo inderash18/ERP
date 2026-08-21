@@ -5,19 +5,22 @@ import StockLedger from '../models/StockLedger.js';
 
 export const InventoryService = {
   /**
-   * Helper to get or create balance record
+   * Helper to get or create balance record with optional session
    */
-  async getOrCreateBalance(organizationId, productId, session) {
-    let balance = await InventoryBalance.findOne({ organizationId, product: productId }).session(session);
+  async getOrCreateBalance(organizationId, productId, session = null) {
+    let query = InventoryBalance.findOne({ organizationId, product: productId });
+    if (session) query = query.session(session);
+    let balance = await query;
+    
     if (!balance) {
-      balance = await InventoryBalance.create([{ organizationId, product: productId }], { session });
-      balance = balance[0];
+      const created = await InventoryBalance.create([{ organizationId, product: productId, onHand: 0, reserved: 0, incoming: 0 }], { session });
+      balance = created[0];
     }
     return balance;
   },
 
   /**
-   * Get dynamic availability calculation
+   * Get dynamic availability calculation (available = onHand - reserved)
    */
   async getAvailability(organizationId, productId) {
     const balance = await InventoryBalance.findOne({ organizationId, product: productId });
@@ -26,29 +29,33 @@ export const InventoryService = {
     return {
       onHand: balance.onHand,
       reserved: balance.reserved,
-      available: balance.available, // virtual field
-      incoming: balance.incoming
+      available: Math.max(0, balance.onHand - balance.reserved),
+      incoming: balance.incoming || 0
     };
   },
 
   /**
    * Increase physical stock (Purchase Receipts, Manufacturing Production, Positive Adjustments)
+   * Supports external session to prevent nested transactions
    */
   async increase(params) {
-    const { organizationId, productId, quantity, eventType, referenceType, referenceId, userId, notes } = params;
-    
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
+    const { organizationId, productId, quantity, eventType, referenceType, referenceId, userId, notes, session: externalSession } = params;
+    const qty = Number(quantity);
+    if (qty <= 0) throw new Error('Increase quantity must be greater than zero');
+
+    const shouldManageSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
+    if (shouldManageSession) session.startTransaction();
+
     try {
       const balance = await this.getOrCreateBalance(organizationId, productId, session);
       
       const previousOnHand = balance.onHand;
-      balance.onHand += quantity;
+      const previousReserved = balance.reserved;
+      balance.onHand += qty;
       
-      // If this was a purchase receipt, we reduce the incoming projection
-      if (eventType === 'PURCHASE_RECEIPT' && balance.incoming >= quantity) {
-        balance.incoming -= quantity;
+      if (eventType === 'PURCHASE_RECEIPT' && balance.incoming >= qty) {
+        balance.incoming -= qty;
       }
       
       await balance.save({ session });
@@ -57,43 +64,50 @@ export const InventoryService = {
         organizationId,
         product: productId,
         eventType,
-        quantityChange: quantity,
+        quantityChange: qty,
         previousOnHand,
         newOnHand: balance.onHand,
-        referenceType,
-        referenceId,
+        previousReserved,
+        newReserved: balance.reserved,
+        referenceType: referenceType || 'PURCHASE_ORDER',
+        referenceId: referenceId || 'N/A',
         userId,
         notes
       }], { session });
 
-      await session.commitTransaction();
+      if (shouldManageSession) await session.commitTransaction();
       return { success: true, balance, ledgerEntry: ledgerEntry[0] };
     } catch (error) {
-      await session.abortTransaction();
+      if (shouldManageSession) await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      if (shouldManageSession) session.endSession();
     }
   },
 
   /**
    * Decrease physical stock (Sales Deliveries, Manufacturing Consumption, Negative Adjustments)
+   * Supports external session
    */
   async decrease(params) {
-    const { organizationId, productId, quantity, eventType, referenceType, referenceId, userId, notes } = params;
-    
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
+    const { organizationId, productId, quantity, eventType, referenceType, referenceId, userId, notes, session: externalSession } = params;
+    const qty = Number(quantity);
+    if (qty <= 0) throw new Error('Decrease quantity must be greater than zero');
+
+    const shouldManageSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
+    if (shouldManageSession) session.startTransaction();
+
     try {
       const balance = await this.getOrCreateBalance(organizationId, productId, session);
       
-      if (balance.onHand < quantity) {
-        throw new Error('Insufficient physical stock for decrease operation');
+      if (balance.onHand < qty) {
+        throw new Error(`Insufficient physical stock for decrease operation. On-hand: ${balance.onHand}, Requested: ${qty}`);
       }
       
       const previousOnHand = balance.onHand;
-      balance.onHand -= quantity;
+      const previousReserved = balance.reserved;
+      balance.onHand -= qty;
       
       await balance.save({ session });
       
@@ -101,89 +115,99 @@ export const InventoryService = {
         organizationId,
         product: productId,
         eventType,
-        quantityChange: -quantity,
+        quantityChange: -qty,
         previousOnHand,
         newOnHand: balance.onHand,
-        referenceType,
-        referenceId,
+        previousReserved,
+        newReserved: balance.reserved,
+        referenceType: referenceType || 'SALES_ORDER',
+        referenceId: referenceId || 'N/A',
         userId,
         notes
       }], { session });
 
-      await session.commitTransaction();
+      if (shouldManageSession) await session.commitTransaction();
       return { success: true, balance, ledgerEntry: ledgerEntry[0] };
     } catch (error) {
-      await session.abortTransaction();
+      if (shouldManageSession) await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      if (shouldManageSession) session.endSession();
     }
   },
 
   /**
-   * Reserve stock for an order
+   * Reserve stock for an order (available = onHand - reserved)
+   * Supports external session
    */
   async reserve(params) {
-    const { organizationId, productId, quantity, referenceType, referenceId, userId } = params;
-    
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
+    const { organizationId, productId, quantity, referenceType, referenceId, userId, session: externalSession } = params;
+    const qty = Number(quantity);
+    if (qty <= 0) throw new Error('Reserve quantity must be greater than zero');
+
+    const shouldManageSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
+    if (shouldManageSession) session.startTransaction();
+
     try {
       const balance = await this.getOrCreateBalance(organizationId, productId, session);
+      const available = Math.max(0, balance.onHand - balance.reserved);
       
-      if (balance.available < quantity) {
-        throw new Error(`Insufficient available stock. Available: ${balance.available}, Requested: ${quantity}`);
+      if (available < qty) {
+        throw new Error(`Insufficient available stock. Available: ${available}, Requested: ${qty}`);
       }
       
       // Create reservation record
       const reservation = await InventoryReservation.create([{
         organizationId,
         product: productId,
-        quantity,
-        referenceType,
-        referenceId,
+        quantity: qty,
+        referenceType: referenceType || 'SALES_ORDER',
+        referenceId: referenceId || 'N/A',
         status: 'ACTIVE'
       }], { session });
       
-      // Update balance
       const previousOnHand = balance.onHand;
-      balance.reserved += quantity;
+      const previousReserved = balance.reserved;
+      balance.reserved += qty;
       await balance.save({ session });
       
-      // Log reservation event
-      await StockLedger.create([{
+      const ledgerEntry = await StockLedger.create([{
         organizationId,
         product: productId,
         eventType: 'RESERVATION',
-        quantityChange: 0, // Doesn't change physical on-hand
+        quantityChange: 0,
         previousOnHand,
         newOnHand: balance.onHand,
-        referenceType,
-        referenceId,
+        previousReserved,
+        newReserved: balance.reserved,
+        referenceType: referenceType || 'SALES_ORDER',
+        referenceId: referenceId || 'N/A',
         userId,
-        notes: `Reserved ${quantity} units`
+        notes: `Reserved ${qty} units`
       }], { session });
 
-      await session.commitTransaction();
-      return { success: true, reservation: reservation[0], balance };
+      if (shouldManageSession) await session.commitTransaction();
+      return { success: true, reservation: reservation[0], balance, ledgerEntry: ledgerEntry[0] };
     } catch (error) {
-      await session.abortTransaction();
+      if (shouldManageSession) await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      if (shouldManageSession) session.endSession();
     }
   },
 
   /**
-   * Release reserved stock (e.g., Order Cancelled or Delivered)
+   * Release reserved stock (Order Cancelled or Delivered)
+   * Supports external session
    */
   async release(params) {
-    const { organizationId, reservationId, userId, isFulfillment } = params;
+    const { organizationId, reservationId, userId, isFulfillment, session: externalSession } = params;
     
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
+    const shouldManageSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
+    if (shouldManageSession) session.startTransaction();
+
     try {
       const reservation = await InventoryReservation.findOne({ 
         _id: reservationId, 
@@ -204,31 +228,33 @@ export const InventoryService = {
       }).session(session);
       
       const previousOnHand = balance.onHand;
-      balance.reserved -= reservation.quantity;
-      if (balance.reserved < 0) balance.reserved = 0; // Guard
+      const previousReserved = balance.reserved;
+      balance.reserved = Math.max(0, balance.reserved - reservation.quantity);
       
       await balance.save({ session });
       
-      await StockLedger.create([{
+      const ledgerEntry = await StockLedger.create([{
         organizationId,
         product: reservation.product,
         eventType: 'RESERVATION_RELEASE',
         quantityChange: 0,
         previousOnHand,
         newOnHand: balance.onHand,
-        referenceType: reservation.referenceType,
-        referenceId: reservation.referenceId,
+        previousReserved,
+        newReserved: balance.reserved,
+        referenceType: reservation.referenceType || 'SALES_ORDER',
+        referenceId: reservation.referenceId || 'N/A',
         userId,
         notes: `Released ${reservation.quantity} units (${isFulfillment ? 'Fulfilled' : 'Cancelled'})`
       }], { session });
 
-      await session.commitTransaction();
-      return { success: true, balance };
+      if (shouldManageSession) await session.commitTransaction();
+      return { success: true, balance, ledgerEntry: ledgerEntry[0] };
     } catch (error) {
-      await session.abortTransaction();
+      if (shouldManageSession) await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      if (shouldManageSession) session.endSession();
     }
   },
 
@@ -236,24 +262,27 @@ export const InventoryService = {
    * Manual inventory adjustment (e.g. cycle counts)
    */
   async adjust(params) {
-    const { organizationId, productId, newQuantity, userId, notes } = params;
-    
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
+    const { organizationId, productId, newQuantity, userId, notes, session: externalSession } = params;
+    const newQty = Number(newQuantity);
+    if (newQty < 0) throw new Error('Adjusted stock cannot be negative');
+
+    const shouldManageSession = !externalSession;
+    const session = externalSession || await mongoose.startSession();
+    if (shouldManageSession) session.startTransaction();
+
     try {
       const balance = await this.getOrCreateBalance(organizationId, productId, session);
       
       const previousOnHand = balance.onHand;
-      const quantityChange = newQuantity - previousOnHand;
+      const previousReserved = balance.reserved;
+      const quantityChange = newQty - previousOnHand;
       
       if (quantityChange === 0) {
-        await session.abortTransaction();
-        session.endSession();
+        if (shouldManageSession) await session.commitTransaction();
         return { success: true, balance, skipped: true };
       }
       
-      balance.onHand = newQuantity;
+      balance.onHand = newQty;
       await balance.save({ session });
       
       const ledgerEntry = await StockLedger.create([{
@@ -263,19 +292,21 @@ export const InventoryService = {
         quantityChange,
         previousOnHand,
         newOnHand: balance.onHand,
+        previousReserved,
+        newReserved: balance.reserved,
         referenceType: 'MANUAL_ADJUSTMENT',
-        referenceId: balance._id, // Self-referential for manual ad-hoc
+        referenceId: balance._id,
         userId,
         notes: notes || 'Manual cycle count adjustment'
       }], { session });
 
-      await session.commitTransaction();
+      if (shouldManageSession) await session.commitTransaction();
       return { success: true, balance, ledgerEntry: ledgerEntry[0] };
     } catch (error) {
-      await session.abortTransaction();
+      if (shouldManageSession) await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      if (shouldManageSession) session.endSession();
     }
   }
 };

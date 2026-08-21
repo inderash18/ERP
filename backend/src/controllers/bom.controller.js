@@ -45,7 +45,7 @@ export const getBoMById = async (req, res) => {
 export const createBoM = async (req, res) => {
   try {
     const { productId, product, name, components, operations, version } = req.body;
-    const prodId = productId || product;
+    const prodId = (productId || product)?.toString();
 
     if (!prodId) {
       return res.status(400).json({ success: false, error: { message: 'Product ID is required' } });
@@ -56,9 +56,24 @@ export const createBoM = async (req, res) => {
       return res.status(404).json({ success: false, error: { message: 'Target product not found' } });
     }
 
-    const formattedComponents = (components || []).map(c => ({
+    if (!components || !Array.isArray(components) || components.length === 0) {
+      return res.status(400).json({ success: false, error: { message: 'BoM must contain at least one component' } });
+    }
+
+    // Circular reference validation: A product cannot use itself as a component
+    for (const comp of components) {
+      const compId = (comp.productId || comp.product)?.toString();
+      if (compId === prodId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'CIRCULAR_BOM', message: 'Circular BoM reference detected: Product cannot be a component of itself.' }
+        });
+      }
+    }
+
+    const formattedComponents = components.map(c => ({
       product: c.productId || c.product,
-      quantity: Number(c.quantity) || 1
+      quantity: Math.max(0.0001, Number(c.quantity) || 1)
     }));
 
     const bom = await BoM.create({
@@ -67,10 +82,10 @@ export const createBoM = async (req, res) => {
       name: name || `BoM for ${prod.name}`,
       components: formattedComponents,
       operations: operations || [],
-      version: version || '1.0'
+      version: version || '1.0',
+      isActive: true
     });
 
-    // Link to Product
     prod.bom = bom._id;
     await prod.save();
 
@@ -83,7 +98,19 @@ export const createBoM = async (req, res) => {
 export const calculateRequirements = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    const qty = Number(quantity) || 1;
+    const qty = Number(quantity);
+
+    if (!productId) {
+      return res.status(400).json({ success: false, error: { message: 'Product ID is required' } });
+    }
+    if (!qty || qty <= 0) {
+      return res.status(400).json({ success: false, error: { message: 'Quantity must be greater than zero' } });
+    }
+
+    const targetProduct = await Product.findOne({ _id: productId, organizationId: req.organizationId });
+    if (!targetProduct) {
+      return res.status(404).json({ success: false, error: { message: 'Product not found' } });
+    }
 
     let bom = await BoM.findOne({ product: productId, organizationId: req.organizationId, isActive: true })
       .populate('components.product');
@@ -102,7 +129,7 @@ export const calculateRequirements = async (req, res) => {
 
       materials.push({
         productId: compProd._id,
-        productName: compProd.name,
+        productName: compProd.name || 'Component',
         required,
         available,
         shortage,
@@ -111,7 +138,15 @@ export const calculateRequirements = async (req, res) => {
       });
     }
 
-    res.json({ success: true, data: { productId, quantity: qty, materials } });
+    res.json({
+      success: true,
+      data: {
+        productId,
+        productName: targetProduct.name,
+        quantity: qty,
+        materials
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: { message: error.message } });
   }

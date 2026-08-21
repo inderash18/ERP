@@ -12,6 +12,7 @@ export const DashboardService = {
       salesOrders,
       purchaseOrders,
       manufacturingOrders,
+      products,
       inventoryBalances,
       recentMovements,
       recentAuditLogs
@@ -19,6 +20,7 @@ export const DashboardService = {
       SalesOrder.find({ organizationId }).lean(),
       PurchaseOrder.find({ organizationId }).lean(),
       ManufacturingOrder.find({ organizationId }).populate('product').lean(),
+      Product.find({ organizationId, isActive: true }).lean(),
       InventoryBalance.find({ organizationId }).populate('product').lean(),
       StockLedger.find({ organizationId }).sort({ createdAt: -1 }).limit(10).populate('product userId').lean(),
       AuditLog.find({ organizationId }).sort({ timestamp: -1 }).limit(10).lean()
@@ -39,18 +41,26 @@ export const DashboardService = {
     const activeManufacturing = manufacturingOrders.filter(m => ['PLANNED', 'IN_PROGRESS'].includes(m.status)).length;
     const completedManufacturing = manufacturingOrders.filter(m => m.status === 'COMPLETED').length;
 
-    // Compute Inventory Metrics
+    // Build Balance Map
+    const balanceMap = new Map();
+    for (const bal of inventoryBalances) {
+      if (bal.product?._id) {
+        balanceMap.set(bal.product._id.toString(), bal);
+      }
+    }
+
+    // Compute Inventory Metrics across all active products
     let totalStockOnHand = 0;
     let totalStockReserved = 0;
     let inventoryValue = 0;
     const lowStockAlerts = [];
 
-    for (const bal of inventoryBalances) {
-      const onHand = bal.onHand || 0;
-      const reserved = bal.reserved || 0;
-      const prod = bal.product || {};
+    for (const prod of products) {
+      const bal = balanceMap.get(prod._id.toString());
+      const onHand = bal ? (bal.onHand || 0) : 0;
+      const reserved = bal ? (bal.reserved || 0) : 0;
       const cost = prod.costPrice || 0;
-      const reorderLevel = prod.reorderLevel || prod.minStock || 10;
+      const reorderLevel = prod.reorderLevel !== undefined ? prod.reorderLevel : (prod.minStock || 10);
 
       totalStockOnHand += onHand;
       totalStockReserved += reserved;
