@@ -109,10 +109,11 @@ export default function Inventory() {
   const filteredItems = useMemo(() => {
     return inventory.filter(item => {
       const q = search.toLowerCase();
+      const catName = typeof item.category === 'object' && item.category ? item.category.name || '' : String(item.category || '');
       const matchesSearch = item.name.toLowerCase().includes(q) ||
                             item.sku.toLowerCase().includes(q) ||
-                            item.category.toLowerCase().includes(q);
-      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+                            catName.toLowerCase().includes(q);
+      const matchesCategory = selectedCategory === 'All' || catName === selectedCategory || item.category === selectedCategory;
       const matchesLowStock = !onlyLowStock || item.stock <= item.minStock;
 
       return matchesSearch && matchesCategory && matchesLowStock;
@@ -291,7 +292,7 @@ export default function Inventory() {
                     </td>
                     <td style={{ padding: '14px 18px', color: '#64748b' }}>
                       <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#f1f5f3', fontSize: '11px', fontWeight: 600, color: '#475569' }}>
-                        {row.category}
+                        {typeof row.category === 'object' && row.category ? row.category.name : (row.category || 'General')}
                       </span>
                     </td>
                     <td style={{ padding: '14px 18px', fontWeight: 600, color: '#1e293b' }}>

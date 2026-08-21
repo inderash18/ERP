@@ -243,7 +243,9 @@ export default function Products() {
                     <div style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: '4px', background: item.type === 'Finished Good' ? '#ede9fe' : item.type === 'Component' ? '#dbeafe' : '#f1f5f9', color: item.type === 'Finished Good' ? '#6d28d9' : item.type === 'Component' ? '#1d4ed8' : '#475569', fontSize: '11.5px', fontWeight: 600 }}>
                       {item.type}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: 4 }}>{item.category}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: 4 }}>
+                      {typeof item.category === 'object' && item.category ? item.category.name : (item.category || '')}
+                    </div>
                   </td>
                   <td style={{ padding: '14px 18px' }}>
                     <div style={{ fontSize: '13px', color: '#0f172a' }}>

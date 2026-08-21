@@ -370,7 +370,7 @@ export default function Production() {
                   >
                     {inventory.map(p => (
                       <option key={p.id} value={p.id}>
-                        {p.name} ({p.category}) - Current Stock: {p.stock} {p.unit}
+                        {p.name} ({typeof p.category === 'object' && p.category ? p.category.name : (p.category || 'General')}) - Current Stock: {p.stock} {p.unit}
                       </option>
                     ))}
                   </select>

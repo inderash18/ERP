@@ -168,7 +168,16 @@ export function ErpProvider({ children }) {
         const data = res.value.data;
         const key = keys[idx];
 
-        if (key === 'products') setProducts(data);
+        if (key === 'products') {
+          const normalized = data.map(p => ({
+            ...p,
+            id: p._id || p.id,
+            category: typeof p.category === 'object' && p.category ? p.category.name || '' : (p.category || ''),
+            categoryObj: typeof p.category === 'object' ? p.category : null,
+            supplierId: typeof p.defaultVendor === 'object' && p.defaultVendor ? p.defaultVendor._id : (p.defaultVendor || p.supplierId || '')
+          }));
+          setProducts(normalized);
+        }
         else if (key === 'sales') setOrders(data);
         else if (key === 'purchase') setPurchaseOrders(data);
         else if (key === 'manufacturing') setWorkOrders(data);
@@ -507,23 +516,23 @@ export function ErpProvider({ children }) {
       signupUser,
       logoutUser,
 
-    // Data State
-    products,
-    inventory,
-    suppliers,
-    customers,
-    orders,
-    purchaseOrders,
-    workOrders,
-    batches,
-    boms,
-    stockMovements,
-    auditLogs,
-    activities,
-    employees,
-    settings,
-    metrics: dashboardMetrics?.kpis || {},
-    dashboardMetrics,
+      // Data State
+      products,
+      inventory: products,
+      suppliers,
+      customers,
+      orders,
+      purchaseOrders,
+      workOrders,
+      batches: workOrders,
+      boms,
+      stockMovements,
+      auditLogs,
+      activities,
+      employees,
+      settings,
+      metrics: dashboardMetrics?.kpis || {},
+      dashboardMetrics,
 
     // Status
     isLoading,
@@ -575,13 +584,11 @@ export function ErpProvider({ children }) {
     signupUser,
     logoutUser,
     products,
-    inventory,
     suppliers,
     customers,
     orders,
     purchaseOrders,
     workOrders,
-    batches,
     boms,
     stockMovements,
     auditLogs,
