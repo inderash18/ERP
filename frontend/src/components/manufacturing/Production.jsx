@@ -1,450 +1,349 @@
 import { useState, useMemo } from 'react';
 import {
-  Factory, Play, CheckCircle2, Clock, Cpu, BarChart2,
-  Plus, Trash2, Check, AlertCircle, X, ChevronRight
+  Factory, Plus, Search, CheckCircle2, Clock, Trash2,
+  X, AlertCircle, ArrowRight, Play, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { TextShuffle } from '../common/AnimatedText';
 
-const CARD_STYLE = {
-  background: '#ffffff',
-  borderRadius: '16px',
-  border: '1px solid #e1ebe4',
-  boxShadow: '0 4px 18px -2px rgba(28, 48, 38, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
-};
-
-const LINES = [
-  "Line Alpha (CNC Milling)",
-  "Line Beta (Stamping)",
-  "Line Gamma (Anodizing)",
-  "Line Delta (Assembly)",
-  "Line Epsilon (SMT Electronics)"
+const WORK_CENTERS = [
+  "Cutting & Sizing Bay",
+  "Assembly Station",
+  "Finishing & Polish Floor"
 ];
 
 export default function Production() {
   const {
-    batches,
-    inventory,
+    workOrders = [],
+    products = [],
     launchBatch,
     updateBatchProgress,
     completeBatch,
-    deleteBatch,
-    metrics
+    deleteBatch
   } = useErp();
 
+  const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [showLaunchModal, setShowLaunchModal] = useState(false);
 
-  // Form State for Launch Batch
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedLine, setSelectedLine] = useState(LINES[0]);
-  const [targetQty, setTargetQty] = useState('200');
-  const [targetUnit, setTargetUnit] = useState('pcs');
-  const [targetDate, setTargetDate] = useState(new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]);
+  // Form State
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [targetQty, setTargetQty] = useState('5');
+  const [selectedLine, setSelectedLine] = useState(WORK_CENTERS[0]);
+
+  const finishedGoods = useMemo(() => {
+    return products.filter(p => p.type === 'Finished Good');
+  }, [products]);
 
   const handleOpenLaunch = () => {
-    const defaultProd = inventory[0]?.id || '';
-    const defaultUnit = inventory[0]?.unit || 'pcs';
-    setSelectedProduct(defaultProd);
-    setTargetUnit(defaultUnit);
-    setSelectedLine(LINES[0]);
-    setTargetQty('250');
+    const defaultProd = finishedGoods[0]?.id || finishedGoods[0]?._id || products[0]?.id || '';
+    setSelectedProductId(defaultProd);
+    setTargetQty('5');
+    setSelectedLine(WORK_CENTERS[0]);
     setShowLaunchModal(true);
   };
 
-  const handleProductChange = (prodId) => {
-    setSelectedProduct(prodId);
-    const p = inventory.find(i => i.id === prodId);
-    if (p) setTargetUnit(p.unit);
-  };
-
-  const handleLaunchSubmit = (e) => {
+  const handleLaunchSubmit = async (e) => {
     e.preventDefault();
-    const prod = inventory.find(i => i.id === selectedProduct);
-    if (!prod) {
-      alert("Please select a product");
-      return;
-    }
+    if (!selectedProductId) return alert("Select a product to manufacture");
 
-    launchBatch({
-      productId: prod.id,
-      productName: prod.name,
+    const payload = {
+      productId: selectedProductId,
+      targetQty: Number(targetQty) || 1,
       line: selectedLine,
-      targetQty: Number(targetQty) || 100,
-      unit: targetUnit,
-      targetDate: targetDate
-    });
+      targetDate: new Date(Date.now() + 5 * 86400000).toISOString()
+    };
 
+    await launchBatch(payload);
     setShowLaunchModal(false);
   };
 
-  // Filtered Batches
-  const filteredBatches = useMemo(() => {
-    if (selectedStatus === 'All') return batches;
-    return batches.filter(b => b.status === selectedStatus);
-  }, [batches, selectedStatus]);
+  const handleComplete = async (moId) => {
+    if (window.confirm("Complete this work order? Raw materials will be consumed and finished goods added to stock.")) {
+      await completeBatch(moId);
+    }
+  };
 
-  // Production Metrics
-  const activeBatchesCount = batches.filter(b => b.status !== 'Completed').length;
-  const completedBatchesCount = batches.filter(b => b.status === 'Completed').length;
+  // Filtered MOs
+  const filteredOrders = useMemo(() => {
+    return workOrders.filter(w => {
+      const q = search.toLowerCase();
+      const moNum = (w.moNumber || w.batchNumber || w.id || w._id || '').toLowerCase();
+      const prodName = (w.productName || w.product?.name || '').toLowerCase();
+      const matchesSearch = moNum.includes(q) || prodName.includes(q);
 
-  // Compute unique active lines
-  const activeLines = new Set(batches.filter(b => b.status !== 'Completed').map(b => b.line)).size;
+      const status = (w.status || 'PLANNED').toUpperCase();
+      if (selectedStatus === 'Active') return matchesSearch && (status === 'IN_PROGRESS' || status === 'PLANNED');
+      if (selectedStatus === 'Completed') return matchesSearch && status === 'COMPLETED';
+
+      return matchesSearch;
+    });
+  }, [workOrders, search, selectedStatus]);
+
+  const activeCount = useMemo(() => workOrders.filter(w => w.status !== 'COMPLETED' && w.status !== 'CANCELLED').length, [workOrders]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      
+      {/* ── Page Header ──────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
-            <TextShuffle text="Production & Manufacturing" duration={700} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            Shop Floor & Manufacturing Orders
           </h1>
-          <p style={{ color: '#64748b', margin: '4px 0 0', fontSize: '13px' }}>
-            Live shop-floor telemetry, machine capacity, batch runs, automated inventory restock, and scrap rates.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0' }}>
+            Work center operations, multi-level BoM explosion, component allocation, and production completion.
           </p>
         </div>
 
         <button
           onClick={handleOpenLaunch}
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '9px 16px',
-            borderRadius: '10px',
-            background: '#7c3aed',
-            border: 'none',
-            color: '#ffffff',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(124,58,237,0.25)',
-            transition: 'transform 0.15s'
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '7px 14px', borderRadius: 6,
+            background: '#2563eb', color: '#ffffff',
+            fontSize: 12.5, fontWeight: 600, border: 'none', cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
           }}
         >
-          <Play size={15} /> Launch Batch Run
+          <Plus size={14} /> Launch Manufacturing Order
         </button>
       </div>
 
-      {/* Production Telemetry KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Active Production Lines</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
-            {activeLines} of 5 Active
+      {/* ── Summary Tiles ────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <div className="erp-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Active Work Orders
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: '#2563eb', marginTop: 4 }}>
+            {activeCount} Batches In Progress
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            Work centers operating with allocated BoM stock
           </div>
         </div>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Batches In-Flight</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#7c3aed', marginTop: 4 }}>
-            {activeBatchesCount} Running ({completedBatchesCount} Done)
+
+        <div className="erp-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Finished Goods Master
           </div>
-        </div>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Overall Equipment Efficiency</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#059669', marginTop: 4 }}>
-            94.2% OEE
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
+            {finishedGoods.length} Production Lines
           </div>
-        </div>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Scrap & Defect Rate</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#2d5a45', marginTop: 4 }}>
-            0.6% (Optimal)
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            Engineering recipes & BoM routings configured
           </div>
         </div>
       </div>
 
-      {/* Status Filter Tabs */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        {['All', 'In Progress', 'Queued', 'Completed'].map(st => (
-          <button
-            key={st}
-            onClick={() => setSelectedStatus(st)}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              border: '1px solid',
-              borderColor: selectedStatus === st ? '#7c3aed' : '#d4ddd6',
-              background: selectedStatus === st ? '#7c3aed' : '#ffffff',
-              color: selectedStatus === st ? '#ffffff' : '#475569',
-              cursor: 'pointer',
-              transition: 'all 0.15s'
-            }}
-          >
-            {st}
-          </button>
-        ))}
-      </div>
-
-      {/* Active Manufacturing Batches List */}
-      <div style={{ ...CARD_STYLE, padding: '22px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-            Manufacturing Batches Queue ({filteredBatches.length})
-          </h3>
-          <span style={{ fontSize: '12px', color: '#64748b' }}>
-            Completing a batch auto-restocks inventory stock
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {filteredBatches.map((b) => {
-            const isDone = b.status === 'Completed';
-
+      {/* ── Filter Toolbar ───────────────────────────────────── */}
+      <div className="erp-card" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: '3px', borderRadius: 6 }}>
+          {['All', 'Active', 'Completed'].map(tab => {
+            const active = selectedStatus === tab;
             return (
-              <div
-                key={b.id}
+              <button
+                key={tab}
+                onClick={() => setSelectedStatus(tab)}
                 style={{
-                  padding: '16px 18px',
-                  borderRadius: '12px',
-                  background: isDone ? '#fafcfb' : '#ffffff',
-                  border: `1px solid ${isDone ? '#e2e8f0' : '#d4ddd6'}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                  border: 'none',
+                  background: active ? '#ffffff' : 'transparent',
+                  color: active ? '#0f172a' : '#64748b',
+                  fontSize: 12,
+                  fontWeight: active ? 600 : 500,
+                  padding: '4px 10px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  transition: 'all 0.1s ease'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#7c3aed', fontSize: '14px' }}>
-                        {b.id}
-                      </span>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                        {b.productName}
-                      </h4>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: 4 }}>
-                      Assigned to: <strong style={{ color: '#334155' }}>{b.line}</strong> • Target: {b.targetQty} {b.unit} • Est. Completion: {b.targetDate}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '4px 9px',
-                      borderRadius: '6px',
-                      background: isDone ? '#ecfdf5' : b.status === 'In Progress' ? '#eff6ff' : '#f8faf9',
-                      color: isDone ? '#059669' : b.status === 'In Progress' ? '#2563eb' : '#64748b',
-                    }}>
-                      {b.status} ({b.progress}%)
-                    </span>
-
-                    {!isDone && (
-                      <button
-                        onClick={() => completeBatch(b.id)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: 'none',
-                          background: '#059669',
-                          color: '#fff',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                        title="Complete and restock inventory"
-                      >
-                        <Check size={14} /> Finish & Restock
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        if (window.confirm(`Archive batch ${b.id}?`)) {
-                          deleteBatch(b.id);
-                        }
-                      }}
-                      style={{ border: '1px solid #fecaca', background: '#fff', color: '#dc2626', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer' }}
-                      title="Delete batch"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Live Progress Bar + Stepper */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
-                    <span>Stage Completion Progress</span>
-                    <span>{b.progress}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: '#f1f5f3', overflow: 'hidden' }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${b.progress}%` }}
-                      transition={{ duration: 0.3 }}
-                      style={{ height: '100%', background: isDone ? '#059669' : '#7c3aed' }}
-                    />
-                  </div>
-
-                  {!isDone && (
-                    <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                      {[25, 50, 75, 100].map(step => (
-                        <button
-                          key={step}
-                          onClick={() => {
-                            if (step === 100) completeBatch(b.id);
-                            else updateBatchProgress(b.id, step);
-                          }}
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid #d4ddd6',
-                            background: b.progress >= step ? '#f5f3ff' : '#ffffff',
-                            color: b.progress >= step ? '#7c3aed' : '#64748b',
-                            fontSize: '10.5px',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Set {step}%
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+                {tab}
+              </button>
             );
           })}
+        </div>
 
-          {filteredBatches.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
-              <Factory size={32} color="#cbd5e1" style={{ marginBottom: 8 }} />
-              <div>No production batches in this category.</div>
-            </div>
-          )}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: '#ffffff', padding: '5px 10px',
+          borderRadius: 6, border: '1px solid #cbd5e1', width: 280
+        }}>
+          <Search size={14} color="#64748b" />
+          <input
+            type="text"
+            placeholder="Search by MO # or product..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              border: 'none', background: 'transparent', outline: 'none',
+              fontSize: 12.5, color: '#0f172a', width: '100%'
+            }}
+          />
         </div>
       </div>
 
-      {/* Launch Batch Modal */}
+      {/* ── Manufacturing Orders Table ───────────────────────── */}
+      <div className="erp-card" style={{ overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="erp-table">
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', width: '130px' }}>MO Number</th>
+                <th style={{ textAlign: 'left' }}>Product Output</th>
+                <th style={{ textAlign: 'left' }}>Work Center</th>
+                <th style={{ textAlign: 'right' }}>Target Qty</th>
+                <th style={{ textAlign: 'left' }}>Status</th>
+                <th style={{ textAlign: 'right', width: '130px' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    No manufacturing orders found.
+                  </td>
+                </tr>
+              ) : (
+                filteredOrders.map(mo => {
+                  const status = (mo.status || 'PLANNED').toUpperCase();
+                  const isCompleted = status === 'COMPLETED';
+
+                  return (
+                    <tr key={mo.id || mo._id}>
+                      <td>
+                        <span className="font-mono" style={{ fontSize: 12, fontWeight: 600, color: '#2563eb' }}>
+                          {mo.moNumber || mo.batchNumber || mo.id || 'MO-001'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                          {mo.productName || mo.product?.name || 'Solid Teak Dining Table'}
+                        </div>
+                      </td>
+                      <td style={{ color: '#475569', fontSize: 12.5 }}>
+                        {mo.line || 'Assembly Station'}
+                      </td>
+                      <td className="tabular-nums" style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
+                        {mo.quantityToProduce || mo.targetQty || 5} units
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                          background: isCompleted ? '#ecfdf5' : '#eff6ff',
+                          color: isCompleted ? '#059669' : '#2563eb'
+                        }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
+                          {status}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        {!isCompleted && (
+                          <button
+                            onClick={() => handleComplete(mo.id || mo._id)}
+                            style={{
+                              border: 'none', background: '#16a34a', color: '#fff',
+                              borderRadius: 4, padding: '4px 8px', fontSize: 11.5,
+                              fontWeight: 600, cursor: 'pointer'
+                            }}
+                          >
+                            Produce FG
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Launch MO Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showLaunchModal && (
           <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: 20
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
           }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
               style={{
-                background: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px',
-                width: '100%',
-                maxWidth: '500px',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                width: '100%', maxWidth: 480, background: '#ffffff',
+                borderRadius: 8, border: '1px solid #cbd5e1',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                  Launch Production Batch Run
-                </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                  Launch Manufacturing Order
+                </span>
                 <button onClick={() => setShowLaunchModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleLaunchSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <form onSubmit={handleLaunchSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                    Manufactured Product *
-                  </label>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Finished Good Product</label>
                   <select
                     required
-                    value={selectedProduct}
-                    onChange={(e) => handleProductChange(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none', background: '#fff' }}
+                    value={selectedProductId}
+                    onChange={e => setSelectedProductId(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
                   >
-                    {inventory.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({typeof p.category === 'object' && p.category ? p.category.name : (p.category || 'General')}) - Current Stock: {p.stock} {p.unit}
+                    {finishedGoods.map(p => (
+                      <option key={p.id || p._id} value={p.id || p._id}>
+                        {p.name} ({p.sku})
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                    Assigned Line / Work Center *
-                  </label>
-                  <select
-                    value={selectedLine}
-                    onChange={(e) => setSelectedLine(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none', background: '#fff' }}
-                  >
-                    {LINES.map(line => (
-                      <option key={line} value={line}>{line}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                      Target Quantity
-                    </label>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Target Quantity</label>
                     <input
                       type="number"
-                      required
                       min="1"
+                      required
                       value={targetQty}
-                      onChange={(e) => setTargetQty(e.target.value)}
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
+                      onChange={e => setTargetQty(e.target.value)}
+                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
                     />
                   </div>
-
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                      Unit
-                    </label>
-                    <input
-                      type="text"
-                      disabled
-                      value={targetUnit}
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', background: '#f8faf9', color: '#64748b' }}
-                    />
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Work Center Routing</label>
+                    <select
+                      value={selectedLine}
+                      onChange={e => setSelectedLine(e.target.value)}
+                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
+                    >
+                      {WORK_CENTERS.map(w => (
+                        <option key={w} value={w}>{w}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                    Estimated Completion Target Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={targetDate}
-                    onChange={(e) => setTargetDate(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 6, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
                   <button
                     type="button"
                     onClick={() => setShowLaunchModal(false)}
-                    style={{ padding: '9px 16px', borderRadius: '8px', border: '1px solid #d1ded5', background: '#fff', color: '#475569', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
                   >
-                    Launch Batch Run
+                    Release to Shop Floor
                   </button>
                 </div>
               </form>
@@ -452,6 +351,7 @@ export default function Production() {
           </div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

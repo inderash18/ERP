@@ -12,36 +12,12 @@
     }
   },
   "roles": [
-    {
-      "name": "Admin",
-      "permissions": ["*"],
-      "isSystem": true
-    },
-    {
-      "name": "Business Owner",
-      "permissions": ["*"],
-      "isSystem": true
-    },
-    {
-      "name": "Sales User",
-      "permissions": ["sales.*", "customer.*", "product.view", "inventory.view"],
-      "isSystem": false
-    },
-    {
-      "name": "Purchase User",
-      "permissions": ["purchase.*", "vendor.*", "product.view", "inventory.view"],
-      "isSystem": false
-    },
-    {
-      "name": "Manufacturing User",
-      "permissions": ["manufacturing.*", "bom.*", "product.view", "inventory.view"],
-      "isSystem": false
-    },
-    {
-      "name": "Inventory Manager",
-      "permissions": ["inventory.*", "product.view", "product.create", "product.edit"],
-      "isSystem": false
-    }
+    { "name": "Admin", "permissions": ["*"], "isSystem": true },
+    { "name": "Business Owner", "permissions": ["*"], "isSystem": true },
+    { "name": "Sales User", "permissions": ["sales.*", "customer.*", "product.view", "inventory.view"], "isSystem": false },
+    { "name": "Purchase User", "permissions": ["purchase.*", "vendor.*", "product.view", "inventory.view"], "isSystem": false },
+    { "name": "Manufacturing User", "permissions": ["manufacturing.*", "bom.*", "product.view", "inventory.view"], "isSystem": false },
+    { "name": "Inventory Manager", "permissions": ["inventory.*", "product.view", "product.create", "product.edit"], "isSystem": false }
   ],
   "users": [
     {
@@ -70,7 +46,7 @@
       "employeeId": "SALE01",
       "email": "sales@shivfurniture.in",
       "password": "password123",
-      "department": "Sales & Commercial",
+      "department": "Sales",
       "roleName": "Sales User",
       "status": "ACTIVE"
     },
@@ -80,7 +56,7 @@
       "employeeId": "PUR01",
       "email": "purchase@shivfurniture.in",
       "password": "password123",
-      "department": "Procurement & Sourcing",
+      "department": "Procurement",
       "roleName": "Purchase User",
       "status": "ACTIVE"
     },
@@ -90,7 +66,7 @@
       "employeeId": "MFG01",
       "email": "mfg@shivfurniture.in",
       "password": "password123",
-      "department": "Shop Floor & Production",
+      "department": "Manufacturing",
       "roleName": "Manufacturing User",
       "status": "ACTIVE"
     },
@@ -100,77 +76,52 @@
       "employeeId": "INV01",
       "email": "inventory@shivfurniture.in",
       "password": "password123",
-      "department": "Warehouse & Logistics",
+      "department": "Inventory",
       "roleName": "Inventory Manager",
       "status": "ACTIVE"
     }
   ],
   "categories": [
-    { "name": "Finished Furniture", "description": "Finished custom and batch furniture ready for dispatch" },
-    { "name": "Raw Wood & Timber", "description": "Teak, Sheesham, Oak logs and sawn timber planks" },
-    { "name": "Hardware & Fasteners", "description": "Screws, bolts, dowel pins, staple pins, needles and fittings" },
-    { "name": "Fabrics & Upholstery", "description": "Foam cushions, velvet fabrics, leatherette and padding" },
-    { "name": "Paints & Finishes", "description": "Wood stains, varnishes, sealers, and protective lacquers" }
+    { "name": "Finished Furniture", "description": "Ready-to-deliver finished furniture" },
+    { "name": "Raw Wood & Timber", "description": "Solid timber logs and cut planks" },
+    { "name": "Hardware & Fasteners", "description": "Screws, joinery dowel pins, glue, and fasteners" }
   ],
   "vendors": [
     {
       "name": "National Timber Suppliers",
       "email": "orders@nationaltimber.in",
       "phone": "+91 98201 11223",
-      "address": { "street": "Timber Market Yard 4", "city": "Mumbai", "state": "MH", "country": "India" },
+      "address": { "street": "Timber Yard Plot 4", "city": "Mumbai", "state": "MH", "country": "India" },
       "status": "ACTIVE"
     },
     {
-      "name": "Apex Hardware & Screws Ltd",
+      "name": "Apex Hardware Ltd",
       "email": "sales@apexhardware.in",
       "phone": "+91 98202 33445",
-      "address": { "street": "MIDC Industrial Area", "city": "Pune", "state": "MH", "country": "India" },
-      "status": "ACTIVE"
-    },
-    {
-      "name": "Heritage Upholstery & Fabrics",
-      "email": "supply@heritagefabrics.in",
-      "phone": "+91 98203 55667",
-      "address": { "street": "Textile Complex 12", "city": "Surat", "state": "GJ", "country": "India" },
-      "status": "ACTIVE"
-    },
-    {
-      "name": "Asian Paints & Coatings Depot",
-      "email": "depot@coatingsasia.in",
-      "phone": "+91 98204 77889",
-      "address": { "street": "Chemical Zone Plot 8", "city": "Thane", "state": "MH", "country": "India" },
+      "address": { "street": "MIDC Area", "city": "Pune", "state": "MH", "country": "India" },
       "status": "ACTIVE"
     }
   ],
   "customers": [
     {
-      "name": "Royal Grand Hotel & Suites",
+      "name": "Royal Grand Hotel",
       "email": "procurement@royalgrandhotel.in",
       "phone": "+91 98111 22334",
-      "address": { "street": "Marine Drive Promenade", "city": "Mumbai", "state": "MH", "country": "India" },
+      "address": { "street": "Marine Drive", "city": "Mumbai", "state": "MH", "country": "India" },
       "status": "ACTIVE"
     },
     {
-      "name": "Urban Spaces Interior Studio",
+      "name": "Urban Spaces Studio",
       "email": "projects@urbanspaces.in",
       "phone": "+91 98222 44556",
-      "address": { "street": "Bandra Kurla Complex", "city": "Mumbai", "state": "MH", "country": "India" },
-      "status": "ACTIVE"
-    },
-    {
-      "name": "Decora Modern Home Solutions",
-      "email": "contact@decorahomes.in",
-      "phone": "+91 98333 66778",
-      "address": { "street": "Koregaon Park Road", "city": "Pune", "state": "MH", "country": "India" },
+      "address": { "street": "BKC Complex", "city": "Mumbai", "state": "MH", "country": "India" },
       "status": "ACTIVE"
     }
   ],
   "workCenters": [
-    { "name": "Woodworking & Cutting Bay", "code": "WC-CUT-01", "costPerHour": 450, "capacity": 100 },
-    { "name": "Assembly Line 1", "code": "WC-ASSY-01", "costPerHour": 350, "capacity": 80 },
-    { "name": "Polishing & Finishing Floor", "code": "WC-FIN-01", "costPerHour": 400, "capacity": 60 },
-    { "name": "Upholstery & Cushioning Station", "code": "WC-UPH-01", "costPerHour": 380, "capacity": 70 },
-    { "name": "Packaging & Quality Bay", "code": "WC-PKG-01", "costPerHour": 250, "capacity": 120 }
+    { "name": "Cutting & Sizing Bay", "code": "WC-CUT-01", "costPerHour": 400, "capacity": 100 },
+    { "name": "Assembly Station", "code": "WC-ASSY-01", "costPerHour": 350, "capacity": 80 },
+    { "name": "Finishing & Polish Floor", "code": "WC-FIN-01", "costPerHour": 380, "capacity": 60 }
   ],
   "products": [
     {
@@ -188,7 +139,7 @@
       "initialStock": 2
     },
     {
-      "name": "Ergonomic Executive Office Chair",
+      "name": "Ergonomic Executive Chair",
       "sku": "CHR-EXEC-01",
       "categoryName": "Finished Furniture",
       "type": "Finished Good",
@@ -197,36 +148,8 @@
       "costPrice": 11000,
       "procurementStrategy": "MTS",
       "procurementType": "MANUFACTURING",
-      "reorderLevel": 10,
-      "targetStock": 50,
-      "initialStock": 25
-    },
-    {
-      "name": "Modern 3-Door Wooden Wardrobe",
-      "sku": "WRD-MOD-01",
-      "categoryName": "Finished Furniture",
-      "type": "Finished Good",
-      "unit": "pcs",
-      "salesPrice": 64000,
-      "costPrice": 39000,
-      "procurementStrategy": "MTO",
-      "procurementType": "MANUFACTURING",
-      "reorderLevel": 1,
-      "targetStock": 5,
-      "initialStock": 1
-    },
-    {
-      "name": "Classic Solid Wood Coffee Table",
-      "sku": "TBL-COF-01",
-      "categoryName": "Finished Furniture",
-      "type": "Finished Good",
-      "unit": "pcs",
-      "salesPrice": 12000,
-      "costPrice": 7200,
-      "procurementStrategy": "MTS",
-      "procurementType": "MANUFACTURING",
       "reorderLevel": 5,
-      "targetStock": 20,
+      "targetStock": 30,
       "initialStock": 15
     },
     {
@@ -240,27 +163,12 @@
       "procurementStrategy": "MTS",
       "procurementType": "PURCHASE",
       "defaultVendorName": "National Timber Suppliers",
-      "reorderLevel": 30,
-      "targetStock": 150,
-      "initialStock": 120
-    },
-    {
-      "name": "Plywood Sheet 18mm (8x4)",
-      "sku": "RAW-PLY-01",
-      "categoryName": "Raw Wood & Timber",
-      "type": "Raw Material",
-      "unit": "sheets",
-      "salesPrice": 0,
-      "costPrice": 1800,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "National Timber Suppliers",
       "reorderLevel": 20,
       "targetStock": 100,
-      "initialStock": 80
+      "initialStock": 60
     },
     {
-      "name": "Hardwood Fluted Joinery Dowel Pins (8x40mm)",
+      "name": "Hardwood Fluted Dowel Pins (8x40mm)",
       "sku": "PIN-DWL-01",
       "categoryName": "Hardware & Fasteners",
       "type": "Component",
@@ -269,44 +177,14 @@
       "costPrice": 4,
       "procurementStrategy": "MTS",
       "procurementType": "PURCHASE",
-      "defaultVendorName": "Apex Hardware & Screws Ltd",
-      "reorderLevel": 200,
-      "targetStock": 2000,
-      "initialStock": 1500
+      "defaultVendorName": "Apex Hardware Ltd",
+      "reorderLevel": 100,
+      "targetStock": 1000,
+      "initialStock": 500
     },
     {
-      "name": "Upholstery Heavy-Duty Steel Staple Pins (10mm)",
-      "sku": "PIN-STP-01",
-      "categoryName": "Hardware & Fasteners",
-      "type": "Component",
-      "unit": "pins",
-      "salesPrice": 0,
-      "costPrice": 0.5,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "Apex Hardware & Screws Ltd",
-      "reorderLevel": 1000,
-      "targetStock": 10000,
-      "initialStock": 8000
-    },
-    {
-      "name": "Precision Upholstery Curved Needles",
-      "sku": "NDL-UPH-01",
-      "categoryName": "Hardware & Fasteners",
-      "type": "Component",
-      "unit": "pcs",
-      "salesPrice": 0,
-      "costPrice": 35,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "Apex Hardware & Screws Ltd",
-      "reorderLevel": 10,
-      "targetStock": 100,
-      "initialStock": 60
-    },
-    {
-      "name": "Zinc-Plated Self-Tapping Fastener Screws (3.5x25mm)",
-      "sku": "HDW-SCR-02",
+      "name": "Zinc Fastener Screws (3.5x25mm)",
+      "sku": "HDW-SCR-01",
       "categoryName": "Hardware & Fasteners",
       "type": "Component",
       "unit": "pcs",
@@ -314,13 +192,13 @@
       "costPrice": 1.5,
       "procurementStrategy": "MTS",
       "procurementType": "PURCHASE",
-      "defaultVendorName": "Apex Hardware & Screws Ltd",
-      "reorderLevel": 500,
-      "targetStock": 5000,
-      "initialStock": 4500
+      "defaultVendorName": "Apex Hardware Ltd",
+      "reorderLevel": 200,
+      "targetStock": 2000,
+      "initialStock": 1000
     },
     {
-      "name": "PVA Industrial Wood Adhesive Glue (Grams)",
+      "name": "PVA Wood Adhesive Glue (Grams)",
       "sku": "CHM-GLUE-01",
       "categoryName": "Hardware & Fasteners",
       "type": "Raw Material",
@@ -329,55 +207,10 @@
       "costPrice": 0.4,
       "procurementStrategy": "MTS",
       "procurementType": "PURCHASE",
-      "defaultVendorName": "Asian Paints & Coatings Depot",
-      "reorderLevel": 1000,
-      "targetStock": 15000,
-      "initialStock": 10000
-    },
-    {
-      "name": "High Density Foam Cushion (Slab)",
-      "sku": "FAB-FOAM-01",
-      "categoryName": "Fabrics & Upholstery",
-      "type": "Raw Material",
-      "unit": "slabs",
-      "salesPrice": 0,
-      "costPrice": 850,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "Heritage Upholstery & Fabrics",
-      "reorderLevel": 15,
-      "targetStock": 80,
-      "initialStock": 60
-    },
-    {
-      "name": "Premium Velvet Fabric (Meters)",
-      "sku": "FAB-VEL-01",
-      "categoryName": "Fabrics & Upholstery",
-      "type": "Raw Material",
-      "unit": "meters",
-      "salesPrice": 0,
-      "costPrice": 450,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "Heritage Upholstery & Fabrics",
-      "reorderLevel": 25,
-      "targetStock": 120,
-      "initialStock": 90
-    },
-    {
-      "name": "Natural Teak Varnish & Polish (Liters)",
-      "sku": "PNT-VAR-01",
-      "categoryName": "Paints & Finishes",
-      "type": "Raw Material",
-      "unit": "liters",
-      "salesPrice": 0,
-      "costPrice": 600,
-      "procurementStrategy": "MTS",
-      "procurementType": "PURCHASE",
-      "defaultVendorName": "Asian Paints & Coatings Depot",
-      "reorderLevel": 10,
-      "targetStock": 50,
-      "initialStock": 40
+      "defaultVendorName": "Apex Hardware Ltd",
+      "reorderLevel": 500,
+      "targetStock": 5000,
+      "initialStock": 3000
     }
   ],
   "boms": [
@@ -388,14 +221,13 @@
       "components": [
         { "sku": "RAW-TEAK-01", "quantity": 8, "unit": "feet", "scrapPercentage": 5 },
         { "sku": "PIN-DWL-01", "quantity": 16, "unit": "pins", "scrapPercentage": 0 },
-        { "sku": "HDW-SCR-02", "quantity": 32, "unit": "pcs", "scrapPercentage": 2 },
-        { "sku": "CHM-GLUE-01", "quantity": 350, "unit": "grams", "scrapPercentage": 5 },
-        { "sku": "PNT-VAR-01", "quantity": 2, "unit": "liters", "scrapPercentage": 2 }
+        { "sku": "HDW-SCR-01", "quantity": 32, "unit": "pcs", "scrapPercentage": 2 },
+        { "sku": "CHM-GLUE-01", "quantity": 350, "unit": "grams", "scrapPercentage": 5 }
       ],
       "operations": [
-        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Wood Sizing & Dowel Hole Drilling", "durationMinutes": 45 },
-        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Dowel Glue Injection & Table Assembly", "durationMinutes": 60 },
-        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Sanding, Polish & Teak Varnish", "durationMinutes": 45 }
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Wood Sizing & Planing", "durationMinutes": 45 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Dowel Glue Injection & Assembly", "durationMinutes": 60 },
+        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Sanding & Clear Coat Polish", "durationMinutes": 45 }
       ]
     },
     {
@@ -403,35 +235,15 @@
       "name": "BoM - Ergonomic Executive Chair",
       "baseQuantity": 1,
       "components": [
-        { "sku": "RAW-PLY-01", "quantity": 1, "unit": "sheets", "scrapPercentage": 5 },
-        { "sku": "FAB-FOAM-01", "quantity": 1, "unit": "slabs", "scrapPercentage": 0 },
-        { "sku": "FAB-VEL-01", "quantity": 2, "unit": "meters", "scrapPercentage": 3 },
-        { "sku": "PIN-STP-01", "quantity": 120, "unit": "pins", "scrapPercentage": 5 },
-        { "sku": "NDL-UPH-01", "quantity": 1, "unit": "pcs", "scrapPercentage": 0 },
-        { "sku": "HDW-SCR-02", "quantity": 16, "unit": "pcs", "scrapPercentage": 0 },
-        { "sku": "CHM-GLUE-01", "quantity": 150, "unit": "grams", "scrapPercentage": 5 }
-      ],
-      "operations": [
-        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Frame CNC Cutting", "durationMinutes": 20 },
-        { "sequence": 20, "workCenterCode": "WC-UPH-01", "operationName": "Needle Stitching & Staple Pin Fastening", "durationMinutes": 40 },
-        { "sequence": 30, "workCenterCode": "WC-ASSY-01", "operationName": "Final Chair Assembly & QC", "durationMinutes": 30 }
-      ]
-    },
-    {
-      "productSku": "TBL-COF-01",
-      "name": "BoM - Classic Coffee Table",
-      "baseQuantity": 1,
-      "components": [
-        { "sku": "RAW-TEAK-01", "quantity": 4, "unit": "feet", "scrapPercentage": 5 },
+        { "sku": "RAW-TEAK-01", "quantity": 3, "unit": "feet", "scrapPercentage": 5 },
         { "sku": "PIN-DWL-01", "quantity": 8, "unit": "pins", "scrapPercentage": 0 },
-        { "sku": "HDW-SCR-02", "quantity": 12, "unit": "pcs", "scrapPercentage": 0 },
-        { "sku": "CHM-GLUE-01", "quantity": 180, "unit": "grams", "scrapPercentage": 5 },
-        { "sku": "PNT-VAR-01", "quantity": 1, "unit": "liters", "scrapPercentage": 2 }
+        { "sku": "HDW-SCR-01", "quantity": 16, "unit": "pcs", "scrapPercentage": 0 },
+        { "sku": "CHM-GLUE-01", "quantity": 120, "unit": "grams", "scrapPercentage": 5 }
       ],
       "operations": [
-        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Cutting & Shaping", "durationMinutes": 30 },
-        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Dowel & Screw Assembly", "durationMinutes": 35 },
-        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Clear Lacquer Finish", "durationMinutes": 25 }
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Chair Leg CNC Shaping", "durationMinutes": 30 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Frame Assembly & Screw Fastening", "durationMinutes": 40 },
+        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Finishing & QC Inspection", "durationMinutes": 20 }
       ]
     }
   ]

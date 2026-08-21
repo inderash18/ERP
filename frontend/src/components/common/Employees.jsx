@@ -1,139 +1,155 @@
 import React, { useState } from "react";
 import { useErp } from "../../context/ErpContext";
 import { usersApi } from "../../lib/api";
-import { User, Shield, Briefcase, Mail, Phone, Power } from "lucide-react";
-import { TextShuffle } from "../common/AnimatedText";
+import { User, Shield, Briefcase, Mail, Phone, Search, Power } from "lucide-react";
 
 export default function Employees() {
-  const { employees, refreshData } = useErp();
+  const { employees = [], refreshData } = useErp();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredEmployees = (employees || []).filter((emp) =>
-    (emp.employeeName || emp.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (emp.employeeId || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (emp.department || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (emp.role || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = (employees || []).filter((emp) => {
+    const q = searchTerm.toLowerCase();
+    const name = (emp.employeeName || emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`).toLowerCase();
+    const id = (emp.employeeId || "").toLowerCase();
+    const dept = (emp.department || "").toLowerCase();
+    const roleName = (typeof emp.role === 'object' && emp.role ? emp.role.name : (emp.role || "")).toLowerCase();
+    return name.includes(q) || id.includes(q) || dept.includes(q) || roleName.includes(q);
+  });
 
   const toggleStatus = async (emp) => {
     try {
-      const nextStatus = emp.status === "Active" || emp.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+      const isCurrentlyActive = emp.status === "Active" || emp.status === "ACTIVE";
+      const nextStatus = isCurrentlyActive ? "INACTIVE" : "ACTIVE";
       await usersApi.update(emp.id || emp._id, { status: nextStatus });
-      if (refreshData) await refreshData();
+      if (refreshData) await refreshData(true);
     } catch (err) {
       alert(`Error updating employee status: ${err.message}`);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      
+      {/* ── Page Header ──────────────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            <TextShuffle text="Employee Master" duration={600} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            Team Directory & Access Roles
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Manage company employees, departments, and roles.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0' }}>
+            Enterprise staff accounts, role designations, assigned departments, and system privileges.
           </p>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm border border-slate-200">
-        <div className="relative flex-1 max-w-sm">
+      {/* ── Search Toolbar ───────────────────────────────────── */}
+      <div className="erp-card" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+          {filteredEmployees.length} Team Members Configured
+        </div>
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: '#ffffff', padding: '5px 10px',
+          borderRadius: 6, border: '1px solid #cbd5e1', width: 280
+        }}>
+          <Search size={14} color="#64748b" />
           <input
             type="text"
-            placeholder="Search employees..."
+            placeholder="Search by name, employee ID, role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            style={{
+              border: 'none', background: 'transparent', outline: 'none',
+              fontSize: 12.5, color: '#0f172a', width: '100%'
+            }}
           />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+      {/* ── Employee Table ───────────────────────────────────── */}
+      <div className="erp-card" style={{ overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="erp-table">
+            <thead>
               <tr>
-                <th className="px-6 py-4">Employee</th>
-                <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4">Role & Dept</th>
-                <th className="px-6 py-4">Account Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th style={{ textAlign: 'left', width: '110px' }}>Staff ID</th>
+                <th style={{ textAlign: 'left' }}>Full Name</th>
+                <th style={{ textAlign: 'left' }}>Department</th>
+                <th style={{ textAlign: 'left' }}>Assigned Role</th>
+                <th style={{ textAlign: 'left' }}>Status</th>
+                <th style={{ textAlign: 'right', width: '110px' }}>Account Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredEmployees.map((emp) => {
-                const isActive = emp.status === "Active" || emp.status === "ACTIVE";
-                return (
-                  <tr key={emp.id || emp._id} className="transition-colors hover:bg-slate-50/50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                          <User size={18} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-900">{emp.employeeName || emp.name}</p>
-                          <p className="text-xs text-slate-500">{emp.employeeId || emp.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1 text-xs">
-                        <span className="flex items-center gap-1.5"><Mail size={12} className="text-slate-400" /> {emp.email}</span>
-                        {emp.phone && <span className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400" /> {emp.phone}</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1 text-xs">
-                        <span className="flex items-center gap-1.5 font-medium text-emerald-700">
-                          <Shield size={12} /> {emp.role}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-slate-500">
-                          <Briefcase size={12} /> {emp.department || "General"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-2">
-                        <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          isActive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-                        }`}>
-                          {isActive ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => toggleStatus(emp)}
-                        className={`inline-flex items-center justify-center rounded-lg p-2 transition ${
-                          isActive
-                            ? "bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600"
-                            : "bg-red-50 text-red-600 hover:bg-emerald-100 hover:text-emerald-600"
-                        }`}
-                        title={isActive ? "Deactivate Employee" : "Activate Employee"}
-                      >
-                        <Power size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              
-              {filteredEmployees.length === 0 && (
+            <tbody>
+              {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500">
-                    No employees found matching your search.
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    No team members found.
                   </td>
                 </tr>
+              ) : (
+                filteredEmployees.map((emp) => {
+                  const roleTitle = typeof emp.role === 'object' && emp.role ? emp.role.name : (emp.role || 'Staff');
+                  const isActive = emp.status === 'Active' || emp.status === 'ACTIVE';
+
+                  return (
+                    <tr key={emp.id || emp._id}>
+                      <td>
+                        <span className="font-mono" style={{ fontSize: 12, fontWeight: 600, color: '#2563eb' }}>
+                          {emp.employeeId || 'EMP-01'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                          {emp.employeeName || emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`}
+                        </div>
+                        <div style={{ fontSize: 11.5, color: '#64748b' }}>{emp.email || 'staff@shivfurniture.in'}</div>
+                      </td>
+                      <td style={{ color: '#475569', fontSize: 12.5 }}>
+                        {emp.department || 'Operations'}
+                      </td>
+                      <td>
+                        <span style={{
+                          fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                          background: '#eff6ff', color: '#2563eb'
+                        }}>
+                          {roleTitle}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                          background: isActive ? '#ecfdf5' : '#fef2f2',
+                          color: isActive ? '#059669' : '#dc2626'
+                        }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
+                          {isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => toggleStatus(emp)}
+                          style={{
+                            border: '1px solid #cbd5e1', background: '#ffffff',
+                            borderRadius: 4, padding: '4px 8px', fontSize: 11.5,
+                            fontWeight: 600, cursor: 'pointer',
+                            color: isActive ? '#dc2626' : '#16a34a'
+                          }}
+                        >
+                          {isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
   );
 }

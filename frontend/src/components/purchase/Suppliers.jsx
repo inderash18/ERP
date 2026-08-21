@@ -1,210 +1,304 @@
 import { useState, useMemo } from 'react';
-import { Truck, Plus, Search, Edit2, Trash2, X } from 'lucide-react';
+import {
+  Truck, Plus, Search, Edit2, Trash2, X, MapPin, Mail, Phone
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { TextShuffle } from '../common/AnimatedText';
-
-const CARD_STYLE = {
-  background: '#ffffff',
-  borderRadius: '16px',
-  border: '1px solid #e1ebe4',
-  boxShadow: '0 4px 18px -2px rgba(28, 48, 38, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
-};
 
 export default function Suppliers() {
-  const { suppliers, addSupplier, updateSupplier, deleteSupplier } = useErp();
-  
-  const [search, setSearch] = useState('');
+  const {
+    suppliers = [],
+    addSupplier,
+    updateSupplier,
+    deleteSupplier
+  } = useErp();
 
-  // Modal States
+  const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
-    code: '',
-    contactPerson: '',
     email: '',
     phone: '',
-    address: '',
-    paymentTerms: 'Net 30',
-    status: 'Active'
+    address: ''
   });
 
   const handleOpenAdd = () => {
     setEditingItem(null);
     setFormData({
-      name: '', code: `VEND-${Math.floor(1000 + Math.random() * 9000)}`,
-      contactPerson: '', email: '', phone: '', address: '',
-      paymentTerms: 'Net 30', status: 'Active'
+      name: '',
+      email: '',
+      phone: '',
+      address: 'Mumbai, MH'
     });
     setShowAddModal(true);
   };
 
   const handleOpenEdit = (item) => {
     setEditingItem(item);
-    setFormData({ ...item });
+    setFormData({
+      name: item.name || '',
+      email: item.email || '',
+      phone: item.phone || '',
+      address: item.address || ''
+    });
     setShowAddModal(true);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.code.trim()) {
-      alert("Name and Code are required");
-      return;
-    }
+    if (!formData.name.trim()) return alert("Vendor name required");
 
     if (editingItem) {
-      updateSupplier(editingItem.id, formData);
+      await updateSupplier(editingItem.id || editingItem._id, formData);
     } else {
-      addSupplier(formData);
+      await addSupplier(formData);
     }
     setShowAddModal(false);
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm("Delete this vendor record?")) {
+      await deleteSupplier(id);
+    }
+  };
+
+  // Filtered Suppliers
   const filteredSuppliers = useMemo(() => {
-    return suppliers.filter(item => {
+    return suppliers.filter(s => {
       const q = search.toLowerCase();
-      return item.name.toLowerCase().includes(q) || item.code.toLowerCase().includes(q);
+      const name = (s.name || '').toLowerCase();
+      const email = (s.email || '').toLowerCase();
+      return name.includes(q) || email.includes(q);
     });
   }, [suppliers, search]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      
+      {/* ── Page Header ──────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
-            <TextShuffle text="Supplier Directory" duration={700} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            Vendor & Supplier Directory
           </h1>
-          <p style={{ color: '#64748b', margin: '4px 0 0', fontSize: '13px' }}>
-            Manage vendors, procurement contacts, and payment terms.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0' }}>
+            Approved raw material timber merchants, hardware suppliers, and chemical finishes depots.
           </p>
         </div>
+
         <button
           onClick={handleOpenAdd}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '9px 16px', borderRadius: '10px',
-            background: '#2d5a45', border: 'none', color: '#ffffff',
-            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(45,90,69,0.25)', transition: 'transform 0.15s'
+            padding: '7px 14px', borderRadius: 6,
+            background: '#2563eb', color: '#ffffff',
+            fontSize: 12.5, fontWeight: 600, border: 'none', cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
           }}
         >
-          <Plus size={16} /> New Supplier
+          <Plus size={14} /> New Vendor
         </button>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ffffff', padding: '7px 14px', borderRadius: '10px', border: '1px solid #d4ddd6', width: '280px' }}>
-          <Search size={15} color="#94a3b8" />
+      {/* ── Toolbar ──────────────────────────────────────────── */}
+      <div className="erp-card" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+          {filteredSuppliers.length} Registered Suppliers
+        </div>
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: '#ffffff', padding: '5px 10px',
+          borderRadius: 6, border: '1px solid #cbd5e1', width: 280
+        }}>
+          <Search size={14} color="#64748b" />
           <input
-            type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search suppliers..."
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%' }}
+            type="text"
+            placeholder="Search suppliers by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              border: 'none', background: 'transparent', outline: 'none',
+              fontSize: 12.5, color: '#0f172a', width: '100%'
+            }}
           />
         </div>
       </div>
 
-      <div style={{ ...CARD_STYLE, overflow: 'hidden' }}>
+      {/* ── Suppliers Data Table ─────────────────────────────── */}
+      <div className="erp-card" style={{ overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="erp-table">
             <thead>
-              <tr style={{ background: '#f8faf9', borderBottom: '1px solid #e1ebe4' }}>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>SUPPLIER & CODE</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>CONTACT</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>PAYMENT TERMS</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>STATUS</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b', textAlign: 'right' }}>ACTIONS</th>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Vendor Name</th>
+                <th style={{ textAlign: 'left' }}>Email Address</th>
+                <th style={{ textAlign: 'left' }}>Phone</th>
+                <th style={{ textAlign: 'left' }}>Address</th>
+                <th style={{ textAlign: 'left' }}>Status</th>
+                <th style={{ textAlign: 'right', width: '90px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredSuppliers.map(item => (
-                <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f8faf9', border: '1px solid #e1ebe4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                        <Truck size={18} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}>{item.name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: 2 }}>{item.code}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 18px' }}>
-                    <div style={{ fontSize: '13px', color: '#0f172a' }}>{item.contactPerson}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: 2 }}>{item.email}</div>
-                  </td>
-                  <td style={{ padding: '14px 18px', fontSize: '13px', color: '#0f172a' }}>{item.paymentTerms}</td>
-                  <td style={{ padding: '14px 18px' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: item.status === 'Active' ? '#dcfce7' : '#f1f5f9', color: item.status === 'Active' ? '#166534' : '#475569' }}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                    <button onClick={() => handleOpenEdit(item)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 6 }}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => { if(window.confirm('Delete this supplier?')) deleteSupplier(item.id); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 6, marginLeft: 6 }}>
-                      <Trash2 size={16} />
-                    </button>
+              {filteredSuppliers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    No vendor records found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredSuppliers.map(item => (
+                  <tr key={item.id || item._id}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.name}</div>
+                    </td>
+                    <td style={{ color: '#475569', fontSize: 12.5 }}>
+                      {item.email || 'vendor@example.com'}
+                    </td>
+                    <td className="font-mono" style={{ color: '#475569', fontSize: 12 }}>
+                      {item.phone || '+91 98000 00000'}
+                    </td>
+                    <td style={{ color: '#64748b', fontSize: 12.5 }}>
+                      {item.address || 'Mumbai, MH'}
+                    </td>
+                    <td>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                        background: '#ecfdf5', color: '#059669'
+                      }}>
+                        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
+                        Active
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: 4 }}>
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          title="Edit"
+                          style={{
+                            border: '1px solid #cbd5e1', background: '#ffffff',
+                            borderRadius: 4, padding: '4px 6px', cursor: 'pointer', color: '#475569'
+                          }}
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id || item._id)}
+                          title="Delete"
+                          style={{
+                            border: '1px solid #fecaca', background: '#fef2f2',
+                            borderRadius: 4, padding: '4px 6px', cursor: 'pointer', color: '#dc2626'
+                          }}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* ── Add / Edit Modal ─────────────────────────────────── */}
       <AnimatePresence>
         {showAddModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(2px)' }} onClick={() => setShowAddModal(false)} />
-            
-            <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              style={{ position: 'relative', background: '#ffffff', borderRadius: '16px', width: '100%', maxWidth: '600px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              style={{
+                width: '100%', maxWidth: 440, background: '#ffffff',
+                borderRadius: 8, border: '1px solid #cbd5e1',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
+              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0f172a' }}>
-                  {editingItem ? 'Edit Supplier' : 'Add New Supplier'}
-                </h3>
-                <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                  <X size={20} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                  {editingItem ? 'Edit Vendor' : 'New Vendor Account'}
+                </span>
+                <button onClick={() => setShowAddModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                  <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Supplier Name *</label>
-                    <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Supplier Code *</label>
-                    <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} required style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} />
-                  </div>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Contact Person</label>
-                    <input type="text" value={formData.contactPerson} onChange={e => setFormData({ ...formData, contactPerson: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Email</label>
-                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} />
-                  </div>
+              <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Vendor / Company Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. National Timber Suppliers"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>
-                  <button type="button" onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #d4ddd6', background: '#ffffff', color: '#475569', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                  <button type="submit" style={{ padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#2d5a45', color: '#ffffff', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer' }}>Save Changes</button>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="e.g. orders@nationaltimber.in"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Phone Number</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+91 98201 11223"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Address</label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="e.g. Timber Yard Plot 4, Mumbai"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 6, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    {editingItem ? 'Save Changes' : 'Create Vendor'}
+                  </button>
                 </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

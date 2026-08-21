@@ -1,332 +1,435 @@
 import { useState, useMemo } from 'react';
-import { ShoppingCart, Plus, Search, CheckCircle, Clock, Trash2, Eye, Box } from 'lucide-react';
+import {
+  FileText, Plus, Search, CheckCircle2, Clock, Trash2,
+  X, AlertCircle, ArrowRight, PackageCheck, Eye
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { TextShuffle } from '../common/AnimatedText';
 
-const CARD_STYLE = {
-  background: '#ffffff',
-  borderRadius: '16px',
-  border: '1px solid #e1ebe4',
-  boxShadow: '0 4px 18px -2px rgba(28, 48, 38, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
-};
+const STATUS_FILTERS = ['All POs', 'Draft', 'Confirmed', 'Received'];
 
 export default function Purchase() {
-  const { purchaseOrders, suppliers, products, createPurchaseOrder, receivePurchaseOrder, updatePurchaseOrderStatus, formatCurrency } = useErp();
-  
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
-  
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(null); // holds PO object
+  const {
+    purchaseOrders = [],
+    suppliers = [],
+    products = [],
+    createPurchaseOrder,
+    receivePurchaseOrder,
+    formatCurrency
+  } = useErp();
 
-  const [formData, setFormData] = useState({
-    supplierId: '',
-    expectedDate: '',
-    items: [] // { productId, quantity, unitPrice }
-  });
+  const [search, setSearch] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('All POs');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form State
+  const [selectedVendorId, setSelectedVendorId] = useState('');
+  const [items, setItems] = useState([
+    { productId: '', quantity: 10, unitPrice: 0 }
+  ]);
 
   const handleOpenAdd = () => {
-    setFormData({
-      supplierId: '',
-      expectedDate: '',
-      items: []
-    });
+    const defaultVendor = suppliers[0]?.id || suppliers[0]?._id || '';
+    const rawProds = products.filter(p => p.type !== 'Finished Good');
+    const defaultProd = (rawProds[0] || products[0])?.id || (rawProds[0] || products[0])?._id || '';
+    const defaultCost = (rawProds[0] || products[0])?.costPrice || 1200;
+
+    setSelectedVendorId(defaultVendor);
+    setItems([{ productId: defaultProd, quantity: 50, unitPrice: defaultCost }]);
     setShowAddModal(true);
   };
 
-  const addItemRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      items: [...prev.items, { productId: '', quantity: 1, unitPrice: 0 }]
-    }));
+  const handleProductChange = (index, prodId) => {
+    const prod = products.find(p => (p.id || p._id) === prodId);
+    const updated = [...items];
+    updated[index] = {
+      ...updated[index],
+      productId: prodId,
+      unitPrice: prod ? (prod.costPrice || prod.purchasePrice || 0) : 0
+    };
+    setItems(updated);
   };
 
-  const updateItemRow = (index, field, value) => {
-    const newItems = [...formData.items];
-    newItems[index][field] = value;
-    
-    // Auto fill price
-    if (field === 'productId') {
-      const p = products.find(x => x.id === value);
-      if (p) newItems[index].unitPrice = p.purchasePrice || 0;
+  const handleQtyChange = (index, qty) => {
+    const updated = [...items];
+    updated[index] = {
+      ...updated[index],
+      quantity: Math.max(1, Number(qty) || 1)
+    };
+    setItems(updated);
+  };
+
+  const handleAddLine = () => {
+    const rawProds = products.filter(p => p.type !== 'Finished Good');
+    const defaultProd = (rawProds[0] || products[0])?.id || '';
+    const defaultCost = (rawProds[0] || products[0])?.costPrice || 0;
+    setItems([...items, { productId: defaultProd, quantity: 10, unitPrice: defaultCost }]);
+  };
+
+  const handleRemoveLine = (idx) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== idx));
     }
-    
-    setFormData({ ...formData, items: newItems });
   };
 
-  const removeItemRow = (index) => {
-    const newItems = [...formData.items];
-    newItems.splice(index, 1);
-    setFormData({ ...formData, items: newItems });
-  };
+  const calculateTotal = useMemo(() => {
+    return items.reduce((acc, it) => acc + ((Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)), 0);
+  }, [items]);
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.supplierId) return alert("Select a supplier");
-    if (formData.items.length === 0) return alert("Add at least one item");
-    if (formData.items.some(i => !i.productId || i.quantity <= 0)) return alert("Invalid items in the order");
+    if (!selectedVendorId) return alert("Please select a vendor");
 
-    const sup = suppliers.find(s => s.id === formData.supplierId);
-    
-    const mappedItems = formData.items.map(i => {
-      const p = products.find(x => x.id === i.productId);
-      return {
-        productId: i.productId,
-        productName: p ? p.name : 'Unknown',
-        quantity: Number(i.quantity),
-        unitPrice: Number(i.unitPrice),
-      };
-    });
+    const payload = {
+      vendorId: selectedVendorId,
+      items: items.map(it => ({
+        productId: it.productId,
+        quantity: Number(it.quantity) || 1,
+        unitPrice: Number(it.unitPrice) || 0
+      }))
+    };
 
-    createPurchaseOrder({
-      supplierId: sup.id,
-      supplierName: sup.name,
-      expectedDate: formData.expectedDate,
-      items: mappedItems
-    });
-
+    await createPurchaseOrder(payload);
     setShowAddModal(false);
   };
 
+  const handleReceive = async (poId) => {
+    if (window.confirm("Receive goods and increase on-hand inventory balances?")) {
+      await receivePurchaseOrder(poId);
+    }
+  };
+
+  // Filtered Orders
   const filteredPOs = useMemo(() => {
     return purchaseOrders.filter(po => {
       const q = search.toLowerCase();
-      const matchesSearch = po.id.toLowerCase().includes(q) || po.supplierName.toLowerCase().includes(q);
-      const matchesStatus = filterStatus === 'All' || po.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-  }, [purchaseOrders, search, filterStatus]);
+      const poNum = (po.poNumber || po.id || po._id || '').toLowerCase();
+      const vendorName = (po.vendorName || po.vendor?.name || '').toLowerCase();
+      const matchesSearch = poNum.includes(q) || vendorName.includes(q);
 
-  const totalPoCount = purchaseOrders.length;
-  const pendingCount = purchaseOrders.filter(p => p.status === 'Ordered' || p.status === 'Draft').length;
-  const receivedCount = purchaseOrders.filter(p => p.status === 'Received').length;
+      const status = (po.status || 'DRAFT').toUpperCase();
+      if (selectedFilter === 'Draft') return matchesSearch && status === 'DRAFT';
+      if (selectedFilter === 'Confirmed') return matchesSearch && (status === 'CONFIRMED' || status === 'PENDING');
+      if (selectedFilter === 'Received') return matchesSearch && (status === 'RECEIVED' || status === 'COMPLETED');
+
+      return matchesSearch;
+    });
+  }, [purchaseOrders, search, selectedFilter]);
+
+  const totalSpent = useMemo(() => purchaseOrders.filter(po => po.status !== 'CANCELLED').reduce((acc, po) => acc + (Number(po.totalAmount) || 0), 0), [purchaseOrders]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      
+      {/* ── Page Header ──────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
-            <TextShuffle text="Purchase Orders" duration={700} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            Procurement & Purchase Orders
           </h1>
-          <p style={{ color: '#64748b', margin: '4px 0 0', fontSize: '13px' }}>
-            Manage POs, receive raw materials, and track supplier deliveries.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0' }}>
+            Vendor purchase requisitions, automated replenishment triggers, and idempotent goods receipt.
           </p>
         </div>
+
         <button
           onClick={handleOpenAdd}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '9px 16px', borderRadius: '10px',
-            background: '#2d5a45', border: 'none', color: '#ffffff',
-            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(45,90,69,0.25)', transition: 'transform 0.15s'
+            padding: '7px 14px', borderRadius: 6,
+            background: '#2563eb', color: '#ffffff',
+            fontSize: 12.5, fontWeight: 600, border: 'none', cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
           }}
         >
-          <Plus size={16} /> Create PO
+          <Plus size={14} /> New Purchase Order
         </button>
       </div>
 
-      {/* KPI */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Purchase Orders</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginTop: 4 }}>{totalPoCount}</div>
+      {/* ── Summary Tiles ────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <div className="erp-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Total Procurement Cost
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', marginTop: 4 }}>
+            {formatCurrency ? formatCurrency(totalSpent) : `₹${totalSpent.toLocaleString()}`}
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            Across {purchaseOrders.length} purchase orders
+          </div>
         </div>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Pending Receipt</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#d97706', marginTop: 4 }}>{pendingCount}</div>
-        </div>
-        <div style={{ ...CARD_STYLE, padding: '16px 18px' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Fully Received</span>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#059669', marginTop: 4 }}>{receivedCount}</div>
+
+        <div className="erp-card" style={{ padding: '14px 18px' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Active Vendors
+          </div>
+          <div className="tabular-nums" style={{ fontSize: 22, fontWeight: 700, color: '#2563eb', marginTop: 4 }}>
+            {suppliers.length} Registered Suppliers
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            Timber, hardware, and chemical depots
+          </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['All', 'Draft', 'Ordered', 'Received', 'Cancelled'].map(s => (
-            <button
-              key={s} onClick={() => setFilterStatus(s)}
-              style={{
-                padding: '6px 14px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 600,
-                border: '1px solid', borderColor: filterStatus === s ? '#2d5a45' : '#d4ddd6',
-                background: filterStatus === s ? '#2d5a45' : '#ffffff',
-                color: filterStatus === s ? '#ffffff' : '#475569', cursor: 'pointer',
-              }}
-            >
-              {s}
-            </button>
-          ))}
+      {/* ── Filter Toolbar ───────────────────────────────────── */}
+      <div className="erp-card" style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: '3px', borderRadius: 6 }}>
+          {STATUS_FILTERS.map(tab => {
+            const active = selectedFilter === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setSelectedFilter(tab)}
+                style={{
+                  border: 'none',
+                  background: active ? '#ffffff' : 'transparent',
+                  color: active ? '#0f172a' : '#64748b',
+                  fontSize: 12,
+                  fontWeight: active ? 600 : 500,
+                  padding: '4px 10px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                  transition: 'all 0.1s ease'
+                }}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ffffff', padding: '7px 14px', borderRadius: '10px', border: '1px solid #d4ddd6', width: '280px' }}>
-          <Search size={15} color="#94a3b8" />
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: '#ffffff', padding: '5px 10px',
+          borderRadius: 6, border: '1px solid #cbd5e1', width: 280
+        }}>
+          <Search size={14} color="#64748b" />
           <input
-            type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search POs..."
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', width: '100%' }}
+            type="text"
+            placeholder="Search by PO # or vendor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              border: 'none', background: 'transparent', outline: 'none',
+              fontSize: 12.5, color: '#0f172a', width: '100%'
+            }}
           />
         </div>
       </div>
 
-      {/* Table */}
-      <div style={{ ...CARD_STYLE, overflow: 'hidden' }}>
+      {/* ── Purchase Orders Table ────────────────────────────── */}
+      <div className="erp-card" style={{ overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="erp-table">
             <thead>
-              <tr style={{ background: '#f8faf9', borderBottom: '1px solid #e1ebe4' }}>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>PO NUMBER & DATE</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>SUPPLIER</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>TOTAL AMOUNT</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b' }}>STATUS</th>
-                <th style={{ padding: '14px 18px', fontSize: '12px', fontWeight: 600, color: '#64748b', textAlign: 'right' }}>ACTIONS</th>
+              <tr>
+                <th style={{ textAlign: 'left', width: '130px' }}>PO Number</th>
+                <th style={{ textAlign: 'left' }}>Vendor / Supplier</th>
+                <th style={{ textAlign: 'left' }}>Items Requisitioned</th>
+                <th style={{ textAlign: 'left' }}>Status</th>
+                <th style={{ textAlign: 'right' }}>Total Amount</th>
+                <th style={{ textAlign: 'right', width: '130px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredPOs.map(po => (
-                <tr key={po.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                        <ShoppingCart size={18} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}>{po.id}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: 2 }}>{po.date}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '14px 18px', fontSize: '13px', color: '#0f172a' }}>{po.supplierName}</td>
-                  <td style={{ padding: '14px 18px', fontSize: '13px', color: '#0f172a', fontWeight: 600 }}>{formatCurrency(po.totalAmount)}</td>
-                  <td style={{ padding: '14px 18px' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                      background: po.status === 'Received' ? '#dcfce7' : po.status === 'Draft' ? '#f1f5f9' : '#fef3c7',
-                      color: po.status === 'Received' ? '#166534' : po.status === 'Draft' ? '#475569' : '#92400e' }}>
-                      {po.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                    <button onClick={() => setShowViewModal(po)} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', padding: 6 }}>
-                      <Eye size={16} />
-                    </button>
-                    {po.status !== 'Received' && (
-                      <button onClick={() => { if(window.confirm('Receive goods and increase stock?')) receivePurchaseOrder(po.id); }} style={{ background: 'none', border: 'none', color: '#059669', cursor: 'pointer', padding: 6, marginLeft: 6 }} title="Receive Goods">
-                        <Box size={16} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {filteredPOs.length === 0 && (
+              {filteredPOs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '13.5px' }}>
-                    No purchase orders found.
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    No purchase orders recorded yet.
                   </td>
                 </tr>
+              ) : (
+                filteredPOs.map(po => {
+                  const status = (po.status || 'DRAFT').toUpperCase();
+                  const isReceived = status === 'RECEIVED' || status === 'COMPLETED';
+                  const isConfirmed = status === 'CONFIRMED' || status === 'PENDING';
+
+                  return (
+                    <tr key={po.id || po._id}>
+                      <td>
+                        <span className="font-mono" style={{ fontSize: 12, fontWeight: 600, color: '#2563eb' }}>
+                          {po.poNumber || po.id || 'PO-001'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                          {po.vendorName || po.vendor?.name || 'Timber Vendor'}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: 12.5, color: '#334155' }}>
+                          {(po.items || []).map((it, idx) => (
+                            <span key={idx}>
+                              {it.quantity}x {it.productName || it.product?.name || 'Raw Material'}
+                              {idx < (po.items || []).length - 1 ? ', ' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                          background: isReceived ? '#ecfdf5' : isConfirmed ? '#eff6ff' : '#fef3c7',
+                          color: isReceived ? '#059669' : isConfirmed ? '#2563eb' : '#b45309'
+                        }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }} />
+                          {status}
+                        </span>
+                      </td>
+                      <td className="tabular-nums" style={{ textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
+                        {formatCurrency ? formatCurrency(po.totalAmount || 0) : `₹${(po.totalAmount || 0).toLocaleString()}`}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        {isConfirmed && (
+                          <button
+                            onClick={() => handleReceive(po.id || po._id)}
+                            style={{
+                              border: 'none', background: '#16a34a', color: '#fff',
+                              borderRadius: 4, padding: '4px 8px', fontSize: 11.5,
+                              fontWeight: 600, cursor: 'pointer'
+                            }}
+                          >
+                            Receive Goods
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* View PO Modal */}
-      <AnimatePresence>
-        {showViewModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(2px)' }} onClick={() => setShowViewModal(null)} />
-            
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              style={{ position: 'relative', background: '#ffffff', borderRadius: '16px', width: '100%', maxWidth: '600px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
-            >
-              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 600, color: '#0f172a' }}>PO Details: {showViewModal.id}</h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Supplier:</strong> {showViewModal.supplierName}</p>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Status:</strong> {showViewModal.status}</p>
-              
-              <table style={{ width: '100%', marginTop: 20, borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f8faf9', borderBottom: '1px solid #e1ebe4' }}>
-                    <th style={{ padding: '10px', fontSize: '12px', textAlign: 'left' }}>Item</th>
-                    <th style={{ padding: '10px', fontSize: '12px', textAlign: 'right' }}>Qty</th>
-                    <th style={{ padding: '10px', fontSize: '12px', textAlign: 'right' }}>Price</th>
-                    <th style={{ padding: '10px', fontSize: '12px', textAlign: 'right' }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {showViewModal.items.map((it, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '10px', fontSize: '13px' }}>{it.productName}</td>
-                      <td style={{ padding: '10px', fontSize: '13px', textAlign: 'right' }}>{it.quantity}</td>
-                      <td style={{ padding: '10px', fontSize: '13px', textAlign: 'right' }}>{formatCurrency(it.unitPrice)}</td>
-                      <td style={{ padding: '10px', fontSize: '13px', textAlign: 'right' }}>{formatCurrency(it.quantity * it.unitPrice)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ marginTop: 20, textAlign: 'right', fontWeight: 700 }}>
-                Total: {formatCurrency(showViewModal.totalAmount)}
-              </div>
-              <div style={{ marginTop: 20, textAlign: 'right' }}>
-                <button onClick={() => setShowViewModal(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #d4ddd6', background: '#fff', cursor: 'pointer' }}>Close</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Create PO Modal */}
+      {/* ── Create PO Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showAddModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(2px)' }} onClick={() => setShowAddModal(false)} />
-            
-            <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              style={{ position: 'relative', background: '#ffffff', borderRadius: '16px', width: '100%', maxWidth: '700px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', maxHeight: '90vh', overflowY: 'auto' }}
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              style={{
+                width: '100%', maxWidth: 560, background: '#ffffff',
+                borderRadius: 8, border: '1px solid #cbd5e1',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
+              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0f172a' }}>Create Purchase Order</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                  Create Purchase Order
+                </span>
+                <button onClick={() => setShowAddModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                  <X size={16} />
+                </button>
               </div>
 
-              <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Supplier *</label>
-                    <select value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })} required style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }}>
-                      <option value="">-- Select Supplier --</option>
-                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
+              <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Select Vendor</label>
+                  <select
+                    required
+                    value={selectedVendorId}
+                    onChange={e => setSelectedVendorId(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
+                  >
+                    <option value="" disabled>Choose vendor...</option>
+                    {suppliers.map(s => (
+                      <option key={s.id || s._id} value={s.id || s._id}>
+                        {s.name} ({s.email || 'Supplier'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: '#475569' }}>Items to Order</span>
+                    <button
+                      type="button"
+                      onClick={handleAddLine}
+                      style={{ border: 'none', background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      + Add Item
+                    </button>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Expected Date</label>
-                    <input type="date" value={formData.expectedDate} onChange={e => setFormData({ ...formData, expectedDate: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} />
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {items.map((item, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                        <select
+                          value={item.productId}
+                          onChange={e => handleProductChange(idx, e.target.value)}
+                          style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5, background: '#fff' }}
+                        >
+                          {products.map(p => (
+                            <option key={p.id || p._id} value={p.id || p._id}>
+                              {p.name} ({p.sku})
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={e => handleQtyChange(idx, e.target.value)}
+                          placeholder="Qty"
+                          style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5 }}
+                        />
+                        <div className="tabular-nums" style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a', textAlign: 'right' }}>
+                          ₹{(item.quantity * item.unitPrice).toLocaleString()}
+                        </div>
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLine(idx)}
+                            style={{ border: 'none', background: 'transparent', color: '#dc2626', cursor: 'pointer' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div style={{ marginTop: 10 }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Order Items *</label>
-                  {formData.items.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'center' }}>
-                      <select value={item.productId} onChange={e => updateItemRow(idx, 'productId', e.target.value)} required style={{ flex: 2, padding: '8px', borderRadius: '6px', border: '1px solid #d4ddd6' }}>
-                        <option value="">-- Select Product/Material --</option>
-                        {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-                      </select>
-                      <input type="number" value={item.quantity} onChange={e => updateItemRow(idx, 'quantity', e.target.value)} required min="1" placeholder="Qty" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d4ddd6' }} />
-                      <input type="number" value={item.unitPrice} onChange={e => updateItemRow(idx, 'unitPrice', e.target.value)} required min="0" placeholder="Price" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d4ddd6' }} />
-                      <button type="button" onClick={() => removeItemRow(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={addItemRow} style={{ marginTop: 8, padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>+ Add Row</button>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
-                  <button type="button" onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #d4ddd6', background: '#ffffff', color: '#475569', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                  <button type="submit" style={{ padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#2d5a45', color: '#ffffff', fontSize: '13.5px', fontWeight: 600, cursor: 'pointer' }}>Create Order</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                  <div>
+                    <span style={{ fontSize: 12, color: '#64748b' }}>Total Purchase Cost: </span>
+                    <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
+                      ₹{calculateTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddModal(false)}
+                      style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Issue Purchase Order
+                    </button>
+                  </div>
                 </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

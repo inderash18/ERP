@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { 
   Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, 
-  Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield, 
-  Box, Truck, FileText, ChevronRight, Search, Moon, Sun, HelpCircle,
-  Plus, Sparkles, Command, SlidersHorizontal, User, Key, ExternalLink,
-  Check
+  Factory, Bell, AlertTriangle, CheckCircle2, X, Shield, 
+  Box, Truck, FileText, ChevronRight, Search, Moon, Sun,
+  Layers, ArrowUpRight, Check, Activity, Sliders, Warehouse
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useErp } from "../../context/ErpContext";
@@ -45,27 +44,36 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const rawNavItems = [
-    { name: "Dashboard",       path: "/layout",            icon: LayoutDashboard, count: null,                      perm: 'all' },
-    { name: "Sales & POS",     path: "/layout/sales",      icon: ShoppingCart,    count: metrics?.pendingDeliveries > 0 ? `${metrics.pendingDeliveries}` : null, perm: 'sales.view' },
-    { name: "Products",        path: "/layout/products",   icon: Box,             count: null,                      perm: 'inventory.view' },
-    { name: "Inventory",       path: "/layout/inventory",  icon: Package,         count: metrics?.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics?.lowStockCount > 0, perm: 'inventory.view' },
-    { name: "Purchases",       path: "/layout/purchase",   icon: FileText,        count: metrics?.pendingReceipts > 0 ? `${metrics.pendingReceipts}` : null, perm: 'purchase.view' },
-    { name: "Manufacturing",   path: "/layout/production", icon: Factory,         count: metrics?.activeManufacturing > 0 ? `${metrics.activeManufacturing}` : null, perm: 'manufacturing.view' },
-    { name: "Suppliers",       path: "/layout/suppliers",  icon: Truck,           count: null,                      perm: 'suppliers.view' },
-    { name: "Customers & CRM", path: "/layout/customers",  icon: Users,           count: null,                      perm: 'customers.view' },
-    { name: "Users & RBAC",    path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
-    { name: "Settings",        path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
+  const navSections = [
+    {
+      title: "OPERATIONS",
+      items: [
+        { name: "Executive Dashboard", path: "/layout",            icon: LayoutDashboard, count: null,                      perm: 'all' },
+        { name: "Sales & POS",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics?.pendingDeliveries > 0 ? `${metrics.pendingDeliveries}` : null, perm: 'sales.view' },
+        { name: "Product Catalog",    path: "/layout/products",   icon: Box,             count: null,                      perm: 'inventory.view' },
+        { name: "Inventory & Stock",  path: "/layout/inventory",  icon: Warehouse,       count: metrics?.lowStockCount > 0 ? `${metrics.lowStockCount}` : null, alert: metrics?.lowStockCount > 0, perm: 'inventory.view' },
+      ]
+    },
+    {
+      title: "SUPPLY CHAIN & PRODUCTION",
+      items: [
+        { name: "Procurement & POs",  path: "/layout/purchase",   icon: FileText,        count: metrics?.pendingReceipts > 0 ? `${metrics.pendingReceipts}` : null, perm: 'purchase.view' },
+        { name: "Manufacturing & MOs", path: "/layout/production", icon: Factory,         count: metrics?.activeManufacturing > 0 ? `${metrics.activeManufacturing}` : null, perm: 'manufacturing.view' },
+        { name: "Vendor Directory",   path: "/layout/suppliers",  icon: Truck,           count: null,                      perm: 'suppliers.view' },
+        { name: "Customer CRM",       path: "/layout/customers",  icon: Users,           count: null,                      perm: 'customers.view' },
+      ]
+    },
+    {
+      title: "ADMINISTRATION",
+      items: [
+        { name: "Access & RBAC",      path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
+        { name: "System Settings",    path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
+      ]
+    }
   ];
 
   const currentRole = (authUser?.role || user?.role || 'User').toUpperCase();
   const isAdmin = currentRole === 'ADMIN' || currentRole === 'SYSTEM ADMINISTRATOR' || currentRole === 'BUSINESS OWNER' || (authUser?.permissions || []).includes('*');
-
-  const navItems = rawNavItems.filter(item => {
-    if (item.perm === 'all') return true;
-    if (item.perm === 'admin') return isAdmin;
-    return hasPermission(item.perm);
-  });
 
   const isActive = (path) => {
     if (path === "/layout")
@@ -84,23 +92,20 @@ export default function Layout() {
   const userEmail = authUser?.email || user?.email || 'admin@shivfurniture.in';
   const employeeId = authUser?.employeeId || user?.employeeId || 'ADMIN01';
 
-  // Dynamic Theme Colors
-  const theme = {
-    bg: darkMode ? "#0f1115" : "#f8fafd",
-    canvas: darkMode ? "#14171d" : "#f8fafd",
-    headerBg: darkMode ? "#181b20" : "#ffffff",
-    headerBorder: darkMode ? "rgba(255, 255, 255, 0.08)" : "#e1e3e1",
-    sidebarBg: darkMode ? "rgba(20, 23, 29, 0.95)" : "rgba(242, 246, 252, 0.85)",
-    sidebarBorder: darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
-    cardBg: darkMode ? "#1e2229" : "#ffffff",
-    cardBorder: darkMode ? "rgba(255, 255, 255, 0.08)" : "#e1e3e1",
-    textPrimary: darkMode ? "#f1f3f4" : "#1f1f1f",
-    textSecondary: darkMode ? "#9aa0a6" : "#5f6368",
-    searchBg: darkMode ? "#22262d" : "#edf2fa",
-    searchBorder: darkMode ? "#333842" : "#dadce0",
-    navActiveBg: darkMode ? "#1e3a5f" : "#d3e3fd",
-    navActiveText: darkMode ? "#7cb342" : "#0b57d0",
-    navHoverBg: darkMode ? "#1c2027" : "#e9eef6",
+  // Get Current Page Breadcrumb Title
+  const getBreadcrumbTitle = () => {
+    const path = location.pathname;
+    if (path === "/layout" || path === "/layout/") return "Executive Dashboard";
+    if (path.includes("/sales")) return "Sales & Commercial";
+    if (path.includes("/products")) return "Product Master";
+    if (path.includes("/inventory")) return "Stock & Inventory Control";
+    if (path.includes("/purchase")) return "Procurement & Purchase Orders";
+    if (path.includes("/production")) return "Shop Floor & Manufacturing";
+    if (path.includes("/suppliers")) return "Vendor Management";
+    if (path.includes("/customers")) return "Customer CRM";
+    if (path.includes("/users")) return "Roles & Team Permissions";
+    if (path.includes("/settings")) return "System Configuration";
+    return "Operations";
   };
 
   return (
@@ -108,257 +113,236 @@ export default function Layout() {
       display: "flex",
       height: "100vh",
       overflow: "hidden",
-      background: theme.bg,
-      color: theme.textPrimary,
-      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-      transition: "background 0.2s ease, color 0.2s ease"
+      background: darkMode ? "#0b0d11" : "#f8fafc",
+      color: darkMode ? "#f1f5f9" : "#0f172a",
+      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
 
-      {/* ── macOS Frosted Acrylic Sidebar ──────────────────────── */}
+      {/* ── Human-Crafted Minimalist Sidebar ──────────────────────── */}
       <aside style={{
-        width: 255, flexShrink: 0,
+        width: 250, flexShrink: 0,
         display: "flex", flexDirection: "column",
-        background: theme.sidebarBg,
-        backdropFilter: "blur(30px) saturate(190%)",
-        borderRight: `1px solid ${theme.sidebarBorder}`,
-        padding: "16px 14px 14px",
+        background: darkMode ? "#11141a" : "#ffffff",
+        borderRight: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+        padding: "16px 12px 14px",
         position: "relative",
-        zIndex: 20,
-        transition: "background 0.2s ease, border-color 0.2s ease"
+        zIndex: 20
       }}>
 
-        {/* macOS Window Controls (Traffic Lights) */}
-        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "2px 8px 16px" }}>
-          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ff5f56", border: "1px solid #e0443e", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
-          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ffbd2e", border: "1px solid #dea123", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
-          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#27c93f", border: "1px solid #1aab29", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
-        </div>
-
-        {/* Google Workspace Brand Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 16px" }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 10,
-            background: "linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#ffffff",
-            boxShadow: "0 2px 8px rgba(26, 115, 232, 0.3)"
+        {/* Workspace Organization Switcher */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "8px 10px",
+          borderRadius: "8px",
+          background: darkMode ? "#171b22" : "#f1f5f9",
+          marginBottom: 16
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 6,
+              background: "#2563eb",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#ffffff", fontSize: 13, fontWeight: 800
+            }}>
+              SF
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: darkMode ? "#f8fafc" : "#0f172a", lineHeight: 1.1 }}>
+                Shiv Furniture
+              </div>
+              <div style={{ fontSize: 10.5, color: "#64748b", fontWeight: 500 }}>
+                Enterprise SaaS
+              </div>
+            </div>
+          </div>
+          <span style={{
+            fontSize: 9.5, fontWeight: 700,
+            background: darkMode ? "#1e293b" : "#e2e8f0",
+            color: "#64748b",
+            padding: "2px 5px",
+            borderRadius: 4
           }}>
-            <span style={{ fontSize: 13, fontWeight: 900 }}>SF</span>
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: theme.textPrimary, letterSpacing: "-0.2px", lineHeight: 1.2 }}>
-              Shiv Furniture
-            </div>
-            <div style={{ fontSize: 11, color: theme.textSecondary, fontWeight: 500 }}>
-              Enterprise ERP
-            </div>
-          </div>
+            v2.4
+          </span>
         </div>
 
-        {/* Google Material 3 Navigation Items */}
-        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, overflowY: "auto" }}>
-          {navItems.map((item) => {
-            const active = isActive(item.path);
+        {/* Navigation Sections */}
+        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+          {navSections.map((section, sIdx) => {
+            const visibleItems = section.items.filter(item => {
+              if (item.perm === 'all') return true;
+              if (item.perm === 'admin') return isAdmin;
+              return hasPermission(item.perm);
+            });
+
+            if (visibleItems.length === 0) return null;
 
             return (
-              <Link
-                key={item.name}
-                to={item.path}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "9px 14px",
-                  borderRadius: "9999px",
-                  textDecoration: "none",
-                  color: active ? (darkMode ? "#93c5fd" : "#0b57d0") : theme.textSecondary,
-                  background: active ? (darkMode ? "#1e3a5f" : "#d3e3fd") : "transparent",
-                  fontWeight: active ? 600 : 500,
-                  fontSize: 13.5,
-                  transition: "all 0.15s ease",
-                  position: "relative"
-                }}
-                onMouseEnter={e => {
-                  if (!active) e.currentTarget.style.background = theme.navHoverBg;
-                }}
-                onMouseLeave={e => {
-                  if (!active) e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {/* Icon */}
-                <motion.span
-                  key={`${item.path}-${active}`}
-                  initial={active ? { scale: 0.85 } : { scale: 1 }}
-                  animate={{ scale: 1 }}
-                  style={{ display: "flex", flexShrink: 0, color: active ? (darkMode ? "#93c5fd" : "#0b57d0") : theme.textSecondary }}
-                >
-                  <item.icon size={18} strokeWidth={active ? 2.3 : 1.8} />
-                </motion.span>
+              <div key={section.title || sIdx}>
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: "#94a3b8",
+                  letterSpacing: "0.06em",
+                  padding: "0 10px 6px",
+                  textTransform: "uppercase"
+                }}>
+                  {section.title}
+                </div>
 
-                {/* Text */}
-                <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {item.name}
-                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {visibleItems.map(item => {
+                    const active = isActive(item.path);
 
-                {/* Badge */}
-                {item.count && (
-                  <span style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    padding: "2px 8px",
-                    borderRadius: "9999px",
-                    background: item.alert ? (darkMode ? "#451a03" : "#fef3c7") : (darkMode ? "#2c313a" : "#e0e3e7"),
-                    color: item.alert ? "#f59e0b" : theme.textSecondary
-                  }}>
-                    {item.count}
-                  </span>
-                )}
-              </Link>
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "7px 10px",
+                          borderRadius: "6px",
+                          textDecoration: "none",
+                          color: active ? (darkMode ? "#60a5fa" : "#2563eb") : (darkMode ? "#94a3b8" : "#475569"),
+                          background: active ? (darkMode ? "#172554" : "#eff6ff") : "transparent",
+                          fontWeight: active ? 600 : 500,
+                          fontSize: 13,
+                          transition: "all 0.1s ease"
+                        }}
+                        onMouseEnter={e => {
+                          if (!active) e.currentTarget.style.background = darkMode ? "#171b22" : "#f8fafc";
+                        }}
+                        onMouseLeave={e => {
+                          if (!active) e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                          <item.icon size={16} strokeWidth={active ? 2.2 : 1.8} />
+                          <span>{item.name}</span>
+                        </div>
+
+                        {item.count && (
+                          <span style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: "1px 6px",
+                            borderRadius: "4px",
+                            background: item.alert ? "#fef3c7" : (darkMode ? "#1e293b" : "#e2e8f0"),
+                            color: item.alert ? "#b45309" : "#475569"
+                          }}>
+                            {item.count}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
 
-        {/* User Card & Logout */}
-        <div style={{ marginTop: "auto", borderTop: `1px solid ${theme.sidebarBorder}`, paddingTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+        {/* User Footer Profile Card */}
+        <div style={{
+          marginTop: "auto",
+          borderTop: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+          paddingTop: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
           <div
             onClick={() => setShowProfile(true)}
             style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "6px 8px",
-              borderRadius: "12px", cursor: "pointer", transition: "background 0.15s ease"
+              display: "flex", alignItems: "center", gap: 9,
+              padding: "4px 6px", borderRadius: 6, cursor: "pointer",
+              flex: 1, minWidth: 0
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = theme.navHoverBg; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
           >
             <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "#1a73e8", color: "#ffffff",
+              width: 28, height: 28, borderRadius: "50%",
+              background: "#2563eb", color: "#fff",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 700
+              fontSize: 12, fontWeight: 700, flexShrink: 0
             }}>
               {getUserFirstName()[0]}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: theme.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: darkMode ? "#f1f5f9" : "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {user?.name || getUserFirstName()}
               </div>
-              <div style={{ fontSize: 11, color: theme.textSecondary }}>
-                {currentRole}
+              <div style={{ fontSize: 10.5, color: "#64748b" }}>
+                {employeeId} • {currentRole}
               </div>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
+            title="Sign Out"
             style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 12px", borderRadius: "9999px", border: "none",
-              background: "transparent", color: "#d93025",
-              fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-              transition: "all 0.15s ease"
+              background: "transparent", border: "none", color: "#64748b",
+              cursor: "pointer", padding: "6px", borderRadius: 6
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = darkMode ? "#3b1717" : "#fce8e6"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+            onMouseEnter={e => { e.currentTarget.style.color = "#ef4444"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "#64748b"; }}
           >
             <LogOut size={15} />
-            <span>Sign out</span>
           </button>
         </div>
       </aside>
 
-      {/* ── Main Workspace ─────────────────────────────────────── */}
+      {/* ── Main Workspace Area ─────────────────────────────────── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh", overflow: "hidden" }}>
         
-        {/* Google / macOS Top App Bar */}
+        {/* Crisp Enterprise Header Bar */}
         <header style={{
-          height: 64,
-          background: theme.headerBg,
-          borderBottom: `1px solid ${theme.headerBorder}`,
-          padding: "0 28px",
+          height: 52,
+          background: darkMode ? "#11141a" : "#ffffff",
+          borderBottom: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+          padding: "0 24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          flexShrink: 0,
-          boxShadow: darkMode ? "0 1px 3px rgba(0,0,0,0.3)" : "0 1px 3px rgba(60,64,67,0.08)",
-          transition: "background 0.2s ease, border-color 0.2s ease"
+          flexShrink: 0
         }}>
-          {/* Google-Style Global Search Capsule */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            background: theme.searchBg,
-            borderRadius: "9999px",
-            padding: "8px 18px",
-            width: 440,
-            transition: "all 0.2s ease"
-          }}>
-            <Search size={17} color={theme.textSecondary} />
-            <input
-              type="text"
-              placeholder="Search orders, products, inventory, customers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                border: "none",
-                background: "transparent",
-                outline: "none",
-                fontSize: 13,
-                color: theme.textPrimary,
-                width: "100%"
-              }}
-            />
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              background: theme.cardBg,
-              color: theme.textSecondary,
-              padding: "2px 6px",
-              borderRadius: 6,
-              border: `1px solid ${theme.searchBorder}`
-            }}>
-              ⌘K
+          {/* Breadcrumbs Navigation */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#64748b" }}>
+            <span style={{ fontWeight: 500 }}>Shiv Furniture</span>
+            <ChevronRight size={14} />
+            <span style={{ fontWeight: 600, color: darkMode ? "#f8fafc" : "#0f172a" }}>
+              {getBreadcrumbTitle()}
             </span>
           </div>
 
-          {/* Right Action Icons & Status */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+          {/* Right Action Tools */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
             
-            {/* Live Database Sync Badge */}
+            {/* Live Database Sync Dot */}
             <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#137333",
-              background: darkMode ? "#14331d" : "#e6f4ea",
-              padding: "4px 12px",
-              borderRadius: "9999px",
-              border: darkMode ? "1px solid #1e4627" : "1px solid #ceead6"
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 11.5, fontWeight: 500, color: "#16a34a",
+              background: darkMode ? "#052e16" : "#f0fdf4",
+              border: darkMode ? "1px solid #14532d" : "1px solid #bbf7d0",
+              padding: "3px 8px", borderRadius: 6
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34a853" }} />
-              MongoDB Connected
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+              Live Sync
             </div>
 
-            {/* Dark Mode Toggle Switch Button */}
+            {/* Dark Mode Switch */}
             <button
               onClick={toggleDarkMode}
               title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: "50%",
-                border: "none",
-                background: darkMode ? "#262b33" : "#f1f3f4",
-                color: darkMode ? "#fbbc04" : "#444746",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease"
+                width: 32, height: 32, borderRadius: 6, border: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+                background: darkMode ? "#171b22" : "#f8fafc", color: darkMode ? "#fbbf24" : "#64748b",
+                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
             >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+              {darkMode ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
             {/* Notification Bell */}
@@ -367,176 +351,87 @@ export default function Layout() {
                 setShowNotifications(!showNotifications);
                 setShowProfile(false);
               }}
-              title="System Alerts & Notifications"
+              title="Notifications"
               style={{
                 position: "relative",
-                width: 38,
-                height: 38,
-                borderRadius: "50%",
-                border: "none",
-                background: showNotifications ? (darkMode ? "#1e3a5f" : "#e8f0fe") : "transparent",
-                color: theme.textSecondary,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease"
+                width: 32, height: 32, borderRadius: 6,
+                border: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+                background: showNotifications ? (darkMode ? "#172554" : "#eff6ff") : (darkMode ? "#171b22" : "#f8fafc"),
+                color: "#64748b",
+                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = theme.navHoverBg; }}
-              onMouseLeave={e => { if (!showNotifications) e.currentTarget.style.background = "transparent"; }}
             >
-              <Bell size={18} />
+              <Bell size={15} />
               {alertsList.length > 0 && (
                 <span style={{
-                  position: "absolute",
-                  top: 2,
-                  right: 2,
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  background: "#ea4335",
-                  color: "#fff",
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `2px solid ${theme.headerBg}`
-                }}>
-                  {alertsList.length}
-                </span>
+                  position: "absolute", top: -2, right: -2,
+                  width: 8, height: 8, borderRadius: "50%", background: "#ef4444"
+                }} />
               )}
             </button>
 
-            {/* Google Multi-Color Profile Avatar Trigger */}
+            {/* User Avatar Circle */}
             <div
               onClick={() => {
                 setShowProfile(!showProfile);
                 setShowNotifications(false);
               }}
-              title="Account & Profile Menu"
               style={{
-                width: 36, height: 36,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #ea4335 0%, #fbbc04 50%, #34a853 100%)",
-                padding: 2.5,
-                cursor: "pointer",
-                transition: "transform 0.15s ease",
-                boxShadow: showProfile ? "0 0 0 3px rgba(66, 133, 244, 0.35)" : "none"
+                width: 30, height: 30, borderRadius: "50%",
+                background: "#2563eb", color: "#fff",
+                fontSize: 12, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer"
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.06)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
             >
-              <div style={{
-                width: "100%", height: "100%",
-                borderRadius: "50%",
-                background: theme.cardBg,
-                color: "#1a73e8",
-                fontSize: 14,
-                fontWeight: 900,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}>
-                {getUserFirstName()[0]}
-              </div>
+              {getUserFirstName()[0]}
             </div>
 
-            {/* ── Interactive Profile Dropdown Modal ──────────── */}
+            {/* Profile Dropdown Modal */}
             <AnimatePresence>
               {showProfile && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   style={{
-                    position: "absolute",
-                    top: 52,
-                    right: 0,
-                    width: 320,
-                    background: theme.cardBg,
-                    borderRadius: 20,
-                    border: `1px solid ${theme.cardBorder}`,
-                    boxShadow: darkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 12px 32px rgba(60,64,67,0.18)",
-                    padding: "20px 18px 16px",
-                    zIndex: 60
+                    position: "absolute", top: 42, right: 0, width: 280,
+                    background: darkMode ? "#11141a" : "#ffffff",
+                    borderRadius: 10, border: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
+                    padding: "16px", zIndex: 60
                   }}
                 >
-                  {/* Profile Header */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingBottom: 16, borderBottom: `1px solid ${theme.cardBorder}` }}>
-                    <div style={{
-                      width: 58, height: 58, borderRadius: "50%",
-                      background: "linear-gradient(135deg, #4285f4 0%, #34a853 100%)",
-                      color: "#fff", fontSize: 24, fontWeight: 800,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      marginBottom: 10,
-                      boxShadow: "0 4px 14px rgba(66, 133, 244, 0.3)"
-                    }}>
-                      {getUserFirstName()[0]}
+                  <div style={{ paddingBottom: 12, borderBottom: darkMode ? "1px solid #1e2430" : "1px solid #f1f5f9" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: darkMode ? "#f8fafc" : "#0f172a" }}>
+                      {user?.name || getUserFirstName()}
                     </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: theme.textPrimary }}>
-                      {user?.name || `${user?.firstName || 'Admin'} ${user?.lastName || 'User'}`}
-                    </div>
-                    <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>
+                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 1 }}>
                       {userEmail}
                     </div>
-
-                    {/* Role & ID Badges */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: "9999px",
-                        background: darkMode ? "#1e3a5f" : "#e8f0fe", color: "#1a73e8"
-                      }}>
+                    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: "#eff6ff", color: "#2563eb" }}>
                         {currentRole}
                       </span>
-                      <span style={{
-                        fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: "9999px",
-                        background: theme.searchBg, color: theme.textSecondary
-                      }}>
-                        ID: {employeeId}
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: darkMode ? "#1e293b" : "#f1f5f9", color: "#64748b" }}>
+                        {employeeId}
                       </span>
                     </div>
                   </div>
 
-                  {/* Organization & Quick Options */}
-                  <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 10 }}>
-                      <span style={{ fontSize: 12, color: theme.textSecondary, fontWeight: 500 }}>Organization</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: theme.textPrimary }}>Shiv Furniture Works</span>
-                    </div>
-
-                    {/* Quick Dark Mode Toggle */}
-                    <div
-                      onClick={toggleDarkMode}
-                      style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "10px", borderRadius: 12, cursor: "pointer",
-                        background: theme.searchBg, transition: "all 0.15s ease"
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {darkMode ? <Sun size={16} color="#fbbc04" /> : <Moon size={16} color="#5f6368" />}
-                        <span style={{ fontSize: 13, fontWeight: 600, color: theme.textPrimary }}>
-                          {darkMode ? "Dark Theme Active" : "Light Theme Active"}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#1a73e8" }}>Toggle</span>
-                    </div>
-
-                    {/* Settings Navigation */}
+                  <div style={{ padding: "8px 0", display: "flex", flexDirection: "column", gap: 2 }}>
                     <Link
                       to="/layout/settings"
                       onClick={() => setShowProfile(false)}
                       style={{
-                        display: "flex", alignItems: "center", gap: 10,
-                        padding: "10px", borderRadius: 12, textDecoration: "none",
-                        color: theme.textPrimary, fontSize: 13, fontWeight: 500,
-                        transition: "background 0.15s ease"
+                        padding: "8px 10px", borderRadius: 6, textDecoration: "none",
+                        color: darkMode ? "#cbd5e1" : "#334155", fontSize: 12.5, fontWeight: 500,
+                        display: "flex", alignItems: "center", gap: 8
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = theme.searchBg; }}
+                      onMouseEnter={e => { e.currentTarget.style.background = darkMode ? "#171b22" : "#f8fafc"; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      <Settings size={16} color={theme.textSecondary} />
+                      <Settings size={14} color="#64748b" />
                       <span>Account Settings</span>
                     </Link>
 
@@ -545,96 +440,72 @@ export default function Layout() {
                         to="/layout/users"
                         onClick={() => setShowProfile(false)}
                         style={{
-                          display: "flex", alignItems: "center", gap: 10,
-                          padding: "10px", borderRadius: 12, textDecoration: "none",
-                          color: theme.textPrimary, fontSize: 13, fontWeight: 500,
-                          transition: "background 0.15s ease"
+                          padding: "8px 10px", borderRadius: 6, textDecoration: "none",
+                          color: darkMode ? "#cbd5e1" : "#334155", fontSize: 12.5, fontWeight: 500,
+                          display: "flex", alignItems: "center", gap: 8
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = theme.searchBg; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = darkMode ? "#171b22" : "#f8fafc"; }}
                         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                       >
-                        <Shield size={16} color={theme.textSecondary} />
-                        <span>Manage Team & Access</span>
+                        <Shield size={14} color="#64748b" />
+                        <span>Team & Access Control</span>
                       </Link>
                     )}
                   </div>
 
-                  {/* Sign Out Button */}
-                  <div style={{ borderTop: `1px solid ${theme.cardBorder}`, paddingTop: 10 }}>
+                  <div style={{ borderTop: darkMode ? "1px solid #1e2430" : "1px solid #f1f5f9", paddingTop: 8 }}>
                     <button
                       onClick={handleLogout}
                       style={{
-                        width: "100%",
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        padding: "10px", borderRadius: "9999px", border: "none",
-                        background: darkMode ? "#3b1717" : "#fce8e6",
-                        color: "#d93025", fontSize: 13, fontWeight: 700,
-                        cursor: "pointer", transition: "all 0.15s ease"
+                        width: "100%", padding: "8px 10px", borderRadius: 6, border: "none",
+                        background: "#fef2f2", color: "#dc2626", fontSize: 12.5, fontWeight: 600,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer"
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
                     >
-                      <LogOut size={15} />
-                      <span>Sign out of Shiv Furniture</span>
+                      <LogOut size={13} />
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* ── Notification Dropdown Modal ──────────────────── */}
+            {/* Notification Dropdown */}
             <AnimatePresence>
               {showNotifications && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   style={{
-                    position: "absolute",
-                    top: 52,
-                    right: 48,
-                    width: 340,
-                    background: theme.cardBg,
-                    borderRadius: 18,
-                    border: `1px solid ${theme.cardBorder}`,
-                    boxShadow: darkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 8px 24px rgba(60,64,67,0.15)",
-                    padding: 16,
-                    zIndex: 60
+                    position: "absolute", top: 42, right: 36, width: 320,
+                    background: darkMode ? "#11141a" : "#ffffff",
+                    borderRadius: 10, border: darkMode ? "1px solid #1e2430" : "1px solid #e2e8f0",
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
+                    padding: "14px", zIndex: 60
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: `1px solid ${theme.cardBorder}`, paddingBottom: 8 }}>
-                    <h4 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: theme.textPrimary }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, paddingBottom: 6, borderBottom: darkMode ? "1px solid #1e2430" : "1px solid #f1f5f9" }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: darkMode ? "#f8fafc" : "#0f172a" }}>
                       System Alerts ({alertsList.length})
-                    </h4>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      {alertsList.length > 0 && (
-                        <button
-                          onClick={() => setClearedAlerts(true)}
-                          style={{ border: "none", background: "transparent", color: "#1a73e8", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
-                        >
-                          Clear all
-                        </button>
-                      )}
-                      <button onClick={() => setShowNotifications(false)} style={{ border: "none", background: "transparent", color: theme.textSecondary, cursor: "pointer" }}>
-                        <X size={15} />
-                      </button>
-                    </div>
+                    </span>
+                    <button onClick={() => setShowNotifications(false)} style={{ border: "none", background: "transparent", color: "#64748b", cursor: "pointer" }}>
+                      <X size={14} />
+                    </button>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 240, overflowY: "auto" }}>
                     {alertsList.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "24px 0", color: theme.textSecondary, fontSize: 12 }}>
-                        <CheckCircle2 size={24} color="#34a853" style={{ margin: "0 auto 8px" }} />
-                        <div>No active alerts.</div>
-                        <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>All stock and order streams are healthy.</div>
+                      <div style={{ textAlign: "center", padding: "20px 0", color: "#64748b", fontSize: 12 }}>
+                        No active alerts. All operations nominal.
                       </div>
                     ) : (
                       alertsList.map((alt, aIdx) => (
-                        <div key={alt.id || aIdx} style={{ padding: "10px 12px", borderRadius: 12, background: darkMode ? "#2a2215" : "#fef7e0", border: darkMode ? "1px solid #4a3b1a" : "1px solid #feefc3", display: "flex", gap: 8 }}>
-                          <AlertTriangle size={15} color="#b06000" style={{ marginTop: 2, flexShrink: 0 }} />
+                        <div key={alt.id || aIdx} style={{ padding: "8px 10px", borderRadius: 6, background: darkMode ? "#1e293b" : "#fef3c7", border: darkMode ? "1px solid #334155" : "1px solid #fde68a", display: "flex", gap: 8 }}>
+                          <AlertTriangle size={14} color="#b45309" style={{ marginTop: 2, flexShrink: 0 }} />
                           <div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: theme.textPrimary }}>{alt.title || alt.productName || 'Low Stock Alert'}</div>
-                            <div style={{ fontSize: 11, color: theme.textSecondary }}>{alt.message || `${alt.productName || 'Product'}: ${alt.onHand ?? 0} in stock`}</div>
+                            <div style={{ fontSize: 11.5, fontWeight: 700, color: darkMode ? "#f1f5f9" : "#0f172a" }}>{alt.title || alt.productName || 'Low Stock Alert'}</div>
+                            <div style={{ fontSize: 11, color: "#64748b" }}>{alt.message || `${alt.productName || 'Product'}: ${alt.onHand ?? 0} remaining`}</div>
                           </div>
                         </div>
                       ))
@@ -643,6 +514,7 @@ export default function Layout() {
                 </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </header>
 
@@ -650,11 +522,10 @@ export default function Layout() {
         <main style={{
           flex: 1,
           overflowY: "auto",
-          padding: "24px 28px",
-          background: theme.canvas,
-          transition: "background 0.2s ease"
+          padding: "20px 24px",
+          background: darkMode ? "#0b0d11" : "#f8fafc"
         }}>
-          <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ maxWidth: 1440, margin: "0 auto" }}>
             <RouteTransition>
               <Outlet />
             </RouteTransition>

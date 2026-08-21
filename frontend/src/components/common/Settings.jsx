@@ -1,18 +1,10 @@
 import { useState } from 'react';
 import {
   Settings as SettingsIcon, Shield, Bell, Key, Database, Globe,
-  Save, RotateCcw, Trash2, Download, Check, AlertTriangle, UserCheck
+  Save, RotateCcw, Check, CheckCircle2, UserCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { TextShuffle } from '../common/AnimatedText';
-
-const CARD_STYLE = {
-  background: '#ffffff',
-  borderRadius: '16px',
-  border: '1px solid #e1ebe4',
-  boxShadow: '0 4px 18px -2px rgba(28, 48, 38, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
-};
 
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', label: 'INR (₹) - Indian Rupee' },
@@ -24,363 +16,138 @@ const CURRENCIES = [
 export default function Settings() {
   const {
     settings,
-    user,
-    refreshData,
-    inventory,
-    orders,
-    customers,
-    batches
+    authUser,
+    user
   } = useErp();
 
   const [formSettings, setFormSettings] = useState({
-    orgName: settings?.orgName || '',
-    orgEmail: settings?.orgEmail || '',
-    orgPhone: settings?.orgPhone || '',
-    currency: settings?.currency || 'INR',
-    currencySymbol: settings?.currencySymbol || '₹',
-    taxRate: settings?.taxRate || 18,
-    lowStockThresholdPercent: settings?.lowStockThresholdPercent || 20,
-    twoFactorAuth: settings?.twoFactorAuth !== false,
-    autoReorderAlerts: settings?.autoReorderAlerts !== false,
-    emailNotifications: settings?.emailNotifications !== false,
-  });
-
-  const [formUser, setFormUser] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    role: user?.role || 'Operations Director',
-    avatar: user?.avatar || 'AR',
+    orgName: 'Shiv Furniture Works',
+    orgEmail: 'admin@shivfurniture.in',
+    currency: 'INR',
+    taxRate: 18,
+    lowStockThresholdPercent: 20
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const handleCurrencyChange = (currCode) => {
-    const found = CURRENCIES.find(c => c.code === currCode);
-    if (found) {
-      setFormSettings(prev => ({
-        ...prev,
-        currency: found.code,
-        currencySymbol: found.symbol
-      }));
-    }
-  };
-
   const handleSave = (e) => {
     e.preventDefault();
     setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
-
-  const handleExportBackup = () => {
-    const backupObj = {
-      timestamp: new Date().toISOString(),
-      version: '2.4.0',
-      settings: formSettings,
-      user: formUser,
-      inventory,
-      orders,
-      customers,
-      batches
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `mini_erp_backup_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
+    setTimeout(() => setSavedSuccess(false), 2500);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 840 }}>
+      
+      {/* ── Page Header ──────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ color: '#0f172a', fontSize: '26px', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
-            <TextShuffle text="System Settings & Preferences" duration={700} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            System Settings & Enterprise Preferences
           </h1>
-          <p style={{ color: '#64748b', margin: '4px 0 0', fontSize: '13px' }}>
-            Organization legal parameters, currency formats, multi-factor security, and system database backups.
+          <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0' }}>
+            Organization parameters, currency symbols, standard tax rates, and security preferences.
           </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {savedSuccess && (
-            <span style={{ fontSize: '13px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Check size={16} /> Preferences Saved
-            </span>
-          )}
-          <button
-            onClick={handleSave}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '9px 18px',
-              borderRadius: '10px',
-              background: '#2d5a45',
-              border: 'none',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(45,90,69,0.25)',
-              transition: 'transform 0.15s'
-            }}
-          >
-            <Save size={15} /> Save Changes
-          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 18 }}>
-        {/* Organization Config */}
-        <div style={{ ...CARD_STYLE, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '9px', background: '#e7f1eb', color: '#2d5a45', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Globe size={18} />
+      {/* ── Settings Form ────────────────────────────────────── */}
+      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        
+        {/* Organization Information */}
+        <div className="erp-card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+            Organization Profile
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
+            Company name and primary domain registered in tenancy.
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                Company Legal Name
+              </label>
+              <input
+                type="text"
+                value={formSettings.orgName}
+                onChange={e => setFormSettings({ ...formSettings, orgName: e.target.value })}
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+              />
             </div>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Organization Profile</h3>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Entity legal branding & currencies</span>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                Primary Email
+              </label>
+              <input
+                type="email"
+                value={formSettings.orgEmail}
+                onChange={e => setFormSettings({ ...formSettings, orgEmail: e.target.value })}
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+              />
             </div>
           </div>
+        </div>
 
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Legal Entity Name</label>
-            <input
-              type="text"
-              value={formSettings.orgName}
-              onChange={(e) => setFormSettings({ ...formSettings, orgName: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-            />
+        {/* Currency & Financial Standards */}
+        <div className="erp-card" style={{ padding: '20px' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+            Financial & Tax Localization
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
+            Ledger currency symbol and default GST tax calculation.
           </div>
 
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Corporate Email</label>
-            <input
-              type="email"
-              value={formSettings.orgEmail}
-              onChange={(e) => setFormSettings({ ...formSettings, orgEmail: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-            />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Operating Currency</label>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                Operating Currency
+              </label>
               <select
                 value={formSettings.currency}
-                onChange={(e) => handleCurrencyChange(e.target.value)}
-                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none', background: '#fff' }}
+                onChange={e => setFormSettings({ ...formSettings, currency: e.target.value })}
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
               >
                 {CURRENCIES.map(c => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
               </select>
             </div>
-
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Default Tax %</label>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                Default GST Rate (%)
+              </label>
               <input
                 type="number"
                 value={formSettings.taxRate}
-                onChange={(e) => setFormSettings({ ...formSettings, taxRate: Number(e.target.value) || 0 })}
-                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
+                onChange={e => setFormSettings({ ...formSettings, taxRate: Number(e.target.value) })}
+                style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
               />
             </div>
           </div>
         </div>
 
-        {/* User Profile Config */}
-        <div style={{ ...CARD_STYLE, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '9px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserCheck size={18} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Active User Profile</h3>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Current operator session credentials</span>
-            </div>
-          </div>
-
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Display Name</label>
-            <input
-              type="text"
-              value={formUser.name}
-              onChange={(e) => {
-                const name = e.target.value;
-                const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                setFormUser({ ...formUser, name, avatar: initials || 'US' });
-              }}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-            />
-          </div>
-
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Operator Email</label>
-            <input
-              type="email"
-              value={formUser.email}
-              onChange={(e) => setFormUser({ ...formUser, email: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-            />
-          </div>
-
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Assigned Role</label>
-            <input
-              type="text"
-              value={formUser.role}
-              onChange={(e) => setFormUser({ ...formUser, role: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1ded5', fontSize: '13px', outline: 'none' }}
-            />
-          </div>
+        {/* Save Bar */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
+          {savedSuccess && (
+            <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <CheckCircle2 size={14} /> Preferences saved
+            </span>
+          )}
+          <button
+            type="submit"
+            style={{
+              padding: '7px 16px', borderRadius: 6, border: 'none',
+              background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(37, 99, 235, 0.2)'
+            }}
+          >
+            Save Changes
+          </button>
         </div>
 
-        {/* Security & Access */}
-        <div style={{ ...CARD_STYLE, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '9px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Shield size={18} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Security & Notifications</h3>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Automated alerts & 2FA</span>
-            </div>
-          </div>
+      </form>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f1f5f3' }}>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>Two-Factor Authentication</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>Enforce TOTP on login</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={formSettings.twoFactorAuth}
-              onChange={(e) => setFormSettings({ ...formSettings, twoFactorAuth: e.target.checked })}
-              style={{ width: 18, height: 18, cursor: 'pointer' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f1f5f3' }}>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>Auto-Reorder Triggers</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>Emit alert when stock hits threshold</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={formSettings.autoReorderAlerts}
-              onChange={(e) => setFormSettings({ ...formSettings, autoReorderAlerts: e.target.checked })}
-              style={{ width: 18, height: 18, cursor: 'pointer' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>Email Dispatch Webhooks</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>Send email on dispatch readiness</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={formSettings.emailNotifications}
-              onChange={(e) => setFormSettings({ ...formSettings, emailNotifications: e.target.checked })}
-              style={{ width: 18, height: 18, cursor: 'pointer' }}
-            />
-          </div>
-        </div>
-
-        {/* Database & Data Management */}
-        <div style={{ ...CARD_STYLE, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '9px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Database size={18} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Data & Backup Tools</h3>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Export, reset, or wipe system state</span>
-            </div>
-          </div>
-
-          <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
-            Mini-ERP stores all operational data locally in high-performance reactive persistent storage.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-            <button
-              onClick={handleExportBackup}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: '1px solid #d1ded5',
-                background: '#ffffff',
-                color: '#334155',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <Download size={15} /> Export Complete JSON Backup
-            </button>
-
-            <button
-              onClick={() => {
-                if (window.confirm("Reset all inventory, orders, and clients back to default demo dataset?")) {
-                  resetToDefaultData();
-                  alert("ERP reset to demo dataset successfully!");
-                }
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: '1px solid #d1ded5',
-                background: '#f8faf9',
-                color: '#2d5a45',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <RotateCcw size={15} /> Reset to Demo Dataset
-            </button>
-
-            <button
-              onClick={() => {
-                if (window.confirm("CAUTION: Are you sure you want to wipe ALL products, orders, batches, and clients? This action cannot be undone.")) {
-                  clearAllData();
-                  alert("All ERP operational data has been wiped.");
-                }
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: '1px solid #fecaca',
-                background: '#fff5f5',
-                color: '#dc2626',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <Trash2 size={15} /> Wipe All Datasets (Clean Slate)
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
