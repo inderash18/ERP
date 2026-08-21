@@ -81,6 +81,18 @@ export function ErpProvider({ children }) {
     return false;
   }, [authUser]);
 
+  // Multi-tab / Multi-page Sync Channel
+  const syncChannelRef = useRef(null);
+
+  const broadcastMutation = useCallback(() => {
+    try {
+      if (syncChannelRef.current) {
+        syncChannelRef.current.postMessage({ type: 'ERP_MUTATION', timestamp: Date.now() });
+      }
+      window.dispatchEvent(new CustomEvent('erp:mutation', { detail: { timestamp: Date.now() } }));
+    } catch {}
+  }, []);
+
   // ----------------------------------------------------
   // REFRESH ALL ERP DATA FROM BACKEND (PERMISSION-AWARE + DEDUPLICATED)
   // ----------------------------------------------------
@@ -88,13 +100,13 @@ export function ErpProvider({ children }) {
     if (!authUser && !token) return;
 
     const now = Date.now();
-    // Throttle duplicate background fetches within 3 seconds unless explicitly forced
-    if (!force && (now - lastFetchTimeRef.current < 3000)) {
-      return;
+    // Throttle duplicate background fetches within 1.5 seconds unless explicitly forced
+    if (!force && (now - lastFetchTimeRef.current < 1500)) {
+      return inFlightPromiseRef.current;
     }
 
     // If an identical fetch is already in-flight, reuse it
-    if (inFlightPromiseRef.current) {
+    if (inFlightPromiseRef.current && !force) {
       return inFlightPromiseRef.current;
     }
 
@@ -217,7 +229,7 @@ export function ErpProvider({ children }) {
     return inFlightPromiseRef.current;
   }, [authUser, token, hasPermission]);
 
-  // Initial Auth Check
+  // Initial Auth Check & Multi-Tab Broadcast Sync Setup
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -236,14 +248,48 @@ export function ErpProvider({ children }) {
       }
     };
     initAuth();
-  }, []);
 
-  // Sync data when auth user is ready
-  useEffect(() => {
-    if (authUser) {
-      refreshData();
-    }
-  }, [authUser, refreshData]);
+    // BroadcastChannel for instant cross-tab sync
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const channel = new BroadcastChannel('ERP_SYNC_BUS');
+        syncChannelRef.current = channel;
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'ERP_MUTATION') {
+            refreshData(true);
+          }
+        };
+      }
+    } catch {}
+
+    const handleCustomMutation = () => refreshData(true);
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        refreshData(true);
+      }
+    };
+
+    window.addEventListener('erp:mutation', handleCustomMutation);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    // Heartbeat auto-poll every 2.5s
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshData(false);
+      }
+    }, 2500);
+
+    return () => {
+      if (syncChannelRef.current) {
+        try { syncChannelRef.current.close(); } catch {}
+      }
+      window.removeEventListener('erp:mutation', handleCustomMutation);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      clearInterval(pollInterval);
+    };
+  }, [refreshData]);
 
   // ----------------------------------------------------
   // AUTH ACTIONS
@@ -304,25 +350,29 @@ export function ErpProvider({ children }) {
   // ----------------------------------------------------
   const addProduct = useCallback(async (productData) => {
     const res = await productsApi.create(productData);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const updateProduct = useCallback(async (id, updates) => {
     const res = await productsApi.update(id, updates);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const deleteProduct = useCallback(async (id) => {
     const res = await productsApi.delete(id);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const adjustStock = useCallback(async (productId, delta) => {
     const res = await inventoryApi.adjustStock({ productId, delta });
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res;
   }, [refreshData]);
 
@@ -346,19 +396,22 @@ export function ErpProvider({ children }) {
         console.warn('Auto-confirm warning:', err.message);
       }
     }
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const confirmSalesOrder = useCallback(async (orderId) => {
     const res = await salesApi.confirm(orderId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const fulfillSalesOrder = useCallback(async (orderId) => {
     const res = await salesApi.deliver(orderId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
@@ -366,7 +419,8 @@ export function ErpProvider({ children }) {
 
   const deleteSalesOrder = useCallback(async (orderId) => {
     const res = await salesApi.cancel(orderId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
@@ -374,7 +428,8 @@ export function ErpProvider({ children }) {
     if (fulfillmentStatus === 'Ready for Delivery' || fulfillmentStatus === 'Completed') {
       return fulfillSalesOrder(orderId);
     }
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
   }, [fulfillSalesOrder, refreshData]);
 
   // ----------------------------------------------------
@@ -382,19 +437,22 @@ export function ErpProvider({ children }) {
   // ----------------------------------------------------
   const createPurchaseOrder = useCallback(async (poData) => {
     const res = await purchaseApi.create(poData);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const confirmPurchaseOrder = useCallback(async (orderId) => {
     const res = await purchaseApi.confirm(orderId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const receivePurchaseOrder = useCallback(async (orderId) => {
     const res = await purchaseApi.receive(orderId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
@@ -403,7 +461,8 @@ export function ErpProvider({ children }) {
       return receivePurchaseOrder(orderId);
     } else {
       const res = await purchaseApi.confirm(orderId);
-      await refreshData();
+      await refreshData(true);
+      broadcastMutation();
       return res.data;
     }
   }, [receivePurchaseOrder, refreshData]);
@@ -418,25 +477,29 @@ export function ErpProvider({ children }) {
       line: batchData.line,
       targetDate: batchData.targetDate
     });
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const updateBatchProgress = useCallback(async (batchId, progress) => {
     const res = await manufacturingApi.updateProgress(batchId, { progress });
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const completeBatch = useCallback(async (batchId) => {
     const res = await manufacturingApi.complete(batchId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const deleteBatch = useCallback(async (batchId) => {
     const res = await manufacturingApi.delete(batchId);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
@@ -452,19 +515,22 @@ export function ErpProvider({ children }) {
       phone: supplierData.phone,
       address: { street: supplierData.address || '', city: 'Mumbai', state: 'MH', country: 'India' }
     });
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const updateSupplier = useCallback(async (id, updates) => {
     const res = await masterApi.updateVendor(id, updates);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const deleteSupplier = useCallback(async (id) => {
     const res = await masterApi.deleteVendor(id);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
@@ -475,19 +541,22 @@ export function ErpProvider({ children }) {
       phone: custData.phone,
       address: { street: custData.address || custData.city || '', city: custData.city || 'Mumbai', state: 'MH', country: 'India' }
     });
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const updateCustomer = useCallback(async (id, updates) => {
     const res = await masterApi.updateCustomer(id, updates);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 
   const deleteCustomer = useCallback(async (id) => {
     const res = await masterApi.deleteCustomer(id);
-    await refreshData();
+    await refreshData(true);
+    broadcastMutation();
     return res.data;
   }, [refreshData]);
 

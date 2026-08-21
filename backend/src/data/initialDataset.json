@@ -108,7 +108,7 @@
   "categories": [
     { "name": "Finished Furniture", "description": "Finished custom and batch furniture ready for dispatch" },
     { "name": "Raw Wood & Timber", "description": "Teak, Sheesham, Oak logs and sawn timber planks" },
-    { "name": "Hardware & Fasteners", "description": "Screws, bolts, hinges, drawer channels and metal fittings" },
+    { "name": "Hardware & Fasteners", "description": "Screws, bolts, dowel pins, staple pins, needles and fittings" },
     { "name": "Fabrics & Upholstery", "description": "Foam cushions, velvet fabrics, leatherette and padding" },
     { "name": "Paints & Finishes", "description": "Wood stains, varnishes, sealers, and protective lacquers" }
   ],
@@ -260,19 +260,79 @@
       "initialStock": 80
     },
     {
-      "name": "Heavy Duty Steel Screws & Bolts (Pack 50)",
-      "sku": "HDW-SCR-01",
+      "name": "Hardwood Fluted Joinery Dowel Pins (8x40mm)",
+      "sku": "PIN-DWL-01",
       "categoryName": "Hardware & Fasteners",
       "type": "Component",
-      "unit": "packs",
+      "unit": "pins",
       "salesPrice": 0,
-      "costPrice": 250,
+      "costPrice": 4,
       "procurementStrategy": "MTS",
       "procurementType": "PURCHASE",
       "defaultVendorName": "Apex Hardware & Screws Ltd",
-      "reorderLevel": 50,
-      "targetStock": 300,
-      "initialStock": 250
+      "reorderLevel": 200,
+      "targetStock": 2000,
+      "initialStock": 1500
+    },
+    {
+      "name": "Upholstery Heavy-Duty Steel Staple Pins (10mm)",
+      "sku": "PIN-STP-01",
+      "categoryName": "Hardware & Fasteners",
+      "type": "Component",
+      "unit": "pins",
+      "salesPrice": 0,
+      "costPrice": 0.5,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Apex Hardware & Screws Ltd",
+      "reorderLevel": 1000,
+      "targetStock": 10000,
+      "initialStock": 8000
+    },
+    {
+      "name": "Precision Upholstery Curved Needles",
+      "sku": "NDL-UPH-01",
+      "categoryName": "Hardware & Fasteners",
+      "type": "Component",
+      "unit": "pcs",
+      "salesPrice": 0,
+      "costPrice": 35,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Apex Hardware & Screws Ltd",
+      "reorderLevel": 10,
+      "targetStock": 100,
+      "initialStock": 60
+    },
+    {
+      "name": "Zinc-Plated Self-Tapping Fastener Screws (3.5x25mm)",
+      "sku": "HDW-SCR-02",
+      "categoryName": "Hardware & Fasteners",
+      "type": "Component",
+      "unit": "pcs",
+      "salesPrice": 0,
+      "costPrice": 1.5,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Apex Hardware & Screws Ltd",
+      "reorderLevel": 500,
+      "targetStock": 5000,
+      "initialStock": 4500
+    },
+    {
+      "name": "PVA Industrial Wood Adhesive Glue (Grams)",
+      "sku": "CHM-GLUE-01",
+      "categoryName": "Hardware & Fasteners",
+      "type": "Raw Material",
+      "unit": "grams",
+      "salesPrice": 0,
+      "costPrice": 0.4,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Asian Paints & Coatings Depot",
+      "reorderLevel": 1000,
+      "targetStock": 15000,
+      "initialStock": 10000
     },
     {
       "name": "High Density Foam Cushion (Slab)",
@@ -327,12 +387,14 @@
       "baseQuantity": 1,
       "components": [
         { "sku": "RAW-TEAK-01", "quantity": 8, "unit": "feet", "scrapPercentage": 5 },
-        { "sku": "HDW-SCR-01", "quantity": 2, "unit": "packs", "scrapPercentage": 0 },
+        { "sku": "PIN-DWL-01", "quantity": 16, "unit": "pins", "scrapPercentage": 0 },
+        { "sku": "HDW-SCR-02", "quantity": 32, "unit": "pcs", "scrapPercentage": 2 },
+        { "sku": "CHM-GLUE-01", "quantity": 350, "unit": "grams", "scrapPercentage": 5 },
         { "sku": "PNT-VAR-01", "quantity": 2, "unit": "liters", "scrapPercentage": 2 }
       ],
       "operations": [
-        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Wood Sizing & Planing", "durationMinutes": 45 },
-        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Joinery & Table Assembly", "durationMinutes": 60 },
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Wood Sizing & Dowel Hole Drilling", "durationMinutes": 45 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Dowel Glue Injection & Table Assembly", "durationMinutes": 60 },
         { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Sanding, Polish & Teak Varnish", "durationMinutes": 45 }
       ]
     },
@@ -344,11 +406,14 @@
         { "sku": "RAW-PLY-01", "quantity": 1, "unit": "sheets", "scrapPercentage": 5 },
         { "sku": "FAB-FOAM-01", "quantity": 1, "unit": "slabs", "scrapPercentage": 0 },
         { "sku": "FAB-VEL-01", "quantity": 2, "unit": "meters", "scrapPercentage": 3 },
-        { "sku": "HDW-SCR-01", "quantity": 1, "unit": "packs", "scrapPercentage": 0 }
+        { "sku": "PIN-STP-01", "quantity": 120, "unit": "pins", "scrapPercentage": 5 },
+        { "sku": "NDL-UPH-01", "quantity": 1, "unit": "pcs", "scrapPercentage": 0 },
+        { "sku": "HDW-SCR-02", "quantity": 16, "unit": "pcs", "scrapPercentage": 0 },
+        { "sku": "CHM-GLUE-01", "quantity": 150, "unit": "grams", "scrapPercentage": 5 }
       ],
       "operations": [
         { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Frame CNC Cutting", "durationMinutes": 20 },
-        { "sequence": 20, "workCenterCode": "WC-UPH-01", "operationName": "Cushioning & Velvet Stitching", "durationMinutes": 40 },
+        { "sequence": 20, "workCenterCode": "WC-UPH-01", "operationName": "Needle Stitching & Staple Pin Fastening", "durationMinutes": 40 },
         { "sequence": 30, "workCenterCode": "WC-ASSY-01", "operationName": "Final Chair Assembly & QC", "durationMinutes": 30 }
       ]
     },
@@ -358,12 +423,14 @@
       "baseQuantity": 1,
       "components": [
         { "sku": "RAW-TEAK-01", "quantity": 4, "unit": "feet", "scrapPercentage": 5 },
-        { "sku": "HDW-SCR-01", "quantity": 1, "unit": "packs", "scrapPercentage": 0 },
+        { "sku": "PIN-DWL-01", "quantity": 8, "unit": "pins", "scrapPercentage": 0 },
+        { "sku": "HDW-SCR-02", "quantity": 12, "unit": "pcs", "scrapPercentage": 0 },
+        { "sku": "CHM-GLUE-01", "quantity": 180, "unit": "grams", "scrapPercentage": 5 },
         { "sku": "PNT-VAR-01", "quantity": 1, "unit": "liters", "scrapPercentage": 2 }
       ],
       "operations": [
         { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Cutting & Shaping", "durationMinutes": 30 },
-        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Legs & Top Assembly", "durationMinutes": 35 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Dowel & Screw Assembly", "durationMinutes": 35 },
         { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Clear Lacquer Finish", "durationMinutes": 25 }
       ]
     }
