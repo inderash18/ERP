@@ -32,8 +32,8 @@ export default function Login() {
             </div>
 
             {/* MAIN CARD */}
-           <div
-    className="
+            <div
+                className="
         absolute
         left-1/2
         top-1/2
@@ -45,11 +45,11 @@ export default function Login() {
         rounded-[38px]
         bg-white
     "
-    style={{
-    boxShadow:
-        "0 20px 40px rgba(0, 0, 0, 0.25), 0 40px 100px rgba(30, 50, 40, 0.35)",
-}}
->
+                style={{
+                    boxShadow:
+                        "0 20px 40px rgba(0, 0, 0, 0.25), 0 40px 100px rgba(30, 50, 40, 0.35)",
+                }}
+            >
                 {/* IMAGE */}
                 <div className="absolute left-0 top-0 z-0 h-full w-[60%]">
                     <img
@@ -168,7 +168,7 @@ export default function Login() {
                                 h-[43px]
                                 w-full
                                 rounded-full
-                                bg-[#405b4d]
+                                bg-[#8B4513]
                                 text-[13px]
                                 font-medium
                                 text-white
