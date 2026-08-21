@@ -312,7 +312,7 @@ export default function AdminLogin() {
                     <svg
                         className="
                             absolute
-                            right-[calc(100%-2px)]
+                            -left-[153px]
                             top-0
                             z-20
                             h-full
