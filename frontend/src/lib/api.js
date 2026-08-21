@@ -1,7 +1,9 @@
+const BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') : '';
+
 export const apiCall = async (endpoint, options = {}) => {
-  const url = `/api/v1${endpoint}`;
+  const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${BASE_URL}/api/v1${formattedEndpoint}`;
   
-  // Try to use auth token from localStorage if available, otherwise rely on HTTP-only cookies
   const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
@@ -14,11 +16,13 @@ export const apiCall = async (endpoint, options = {}) => {
     headers
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Something went wrong');
+    throw new Error(data.error?.message || data.message || 'Something went wrong');
   }
 
   return data;
 };
+
+export { BASE_URL };
