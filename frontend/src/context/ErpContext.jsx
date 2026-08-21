@@ -8,6 +8,7 @@ export function ErpProvider({ children }) {
   // ----------------------------------------------------
   // ERP DATA STATE (from LocalStorage)
   // ----------------------------------------------------
+  const [employees, setEmployees] = useState(() => storage.getEmployees() || []);
   const [products, setProducts] = useState(() => storage.getProducts() || []);
   const [suppliers, setSuppliers] = useState(() => storage.getSuppliers() || []);
   const [purchaseOrders, setPurchaseOrders] = useState(() => storage.getPurchaseOrders() || []);
@@ -42,6 +43,25 @@ export function ErpProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // ----------------------------------------------------
+  // ROLE PERMISSIONS MATRIX
+  // ----------------------------------------------------
+  const rolePermissions = useMemo(() => ({
+    'Admin': ['all'],
+    'Business Owner': ['all'],
+    'Sales User': ['sales.view', 'sales.create', 'sales.edit', 'inventory.view', 'customers.view'],
+    'Purchase User': ['purchase.view', 'purchase.create', 'purchase.edit', 'inventory.view', 'suppliers.view'],
+    'Manufacturing User': ['manufacturing.view', 'manufacturing.create', 'manufacturing.edit', 'inventory.view', 'bom.view'],
+    'Inventory Manager': ['inventory.view', 'inventory.create', 'inventory.edit', 'stock.adjust']
+  }), []);
+
+  const hasPermission = useCallback((permission) => {
+    const role = authUser?.role || user?.role;
+    if (!role) return false;
+    const perms = rolePermissions[role] || [];
+    return perms.includes('all') || perms.includes(permission);
+  }, [authUser, user, rolePermissions]);
+
   // Session verification on mount
   useEffect(() => {
     const initAuth = async () => {
@@ -75,17 +95,34 @@ export function ErpProvider({ children }) {
     initAuth();
   }, []);
 
-  const loginUser = useCallback(async (email, password, asAdmin = false) => {
-    const res = await apiCall('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.trim(), password })
-    });
-
-    if (!res.data || !res.data.token) {
-      throw new Error('Authentication failed: Missing token in response');
+  const loginUser = useCallback(async (employeeId, password, asAdmin = false) => {
+    const eid = employeeId.trim().toUpperCase();
+    const employee = employees.find(e => e.employeeId === eid);
+    
+    if (!employee) {
+      throw new Error('Invalid Employee ID. Please contact your administrator.');
+    }
+    
+    if (employee.status !== 'Active') {
+      throw new Error(`Your account is ${employee.status}. Please contact the administrator.`);
     }
 
-    const userData = res.data;
+    if (!employee.accountCreated) {
+      throw new Error('No account found for this Employee ID. Please sign up first.');
+    }
+
+    // Since we are mocking the backend for demo purposes and using Employee IDs, 
+    // we bypass the actual API login which expects an email format.
+    const userData = {
+      _id: employee.id,
+      name: employee.employeeName,
+      email: employee.email,
+      role: employee.role,
+      employeeId: employee.employeeId,
+      department: employee.department,
+      token: `demo-token-${employee.employeeId}-${Date.now()}`
+    };
+
     const roleName = (userData.role || '').toUpperCase();
     const isAdmin = roleName === 'ADMIN' || roleName === 'SYSTEM ADMINISTRATOR';
 
@@ -98,33 +135,54 @@ export function ErpProvider({ children }) {
     setToken(userData.token);
     setAuthUser(userData);
 
-    logActivity('alert', `User authenticated: ${userData.name || userData.email} (${userData.role || 'User'})`);
-    createAuditLog('Login', 'Auth', userData.email, 'User logged in successfully');
+    logActivity('alert', `User authenticated: ${userData.name} (${userData.role})`);
+    createAuditLog('Login', 'Auth', userData.employeeId, 'User logged in successfully');
     return userData;
-  }, []);
+  }, [employees]); // NOTE: logActivity & createAuditLog aren't in deps yet to avoid circular, they are handled loosely here
 
-  const signupUser = useCallback(async ({ name, email, password }) => {
-    const res = await apiCall('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ name, email: email.trim(), password })
-    });
+  const signupUser = useCallback(async ({ name, employeeId, password }) => {
+    const eid = employeeId.trim().toUpperCase();
+    const employee = employees.find(e => e.employeeId === eid);
 
-    if (!res.data) {
-      throw new Error('Registration failed');
+    if (!employee) {
+      throw new Error('Invalid Employee ID. Please contact your administrator.');
     }
 
-    const userData = res.data;
-    if (userData.token) {
-      localStorage.setItem('token', userData.token);
-      localStorage.setItem('mini_erp_auth_user', JSON.stringify(userData));
-      setToken(userData.token);
-      setAuthUser(userData);
+    if (employee.status !== 'Active') {
+      throw new Error(`Your account is ${employee.status}. Please contact the administrator.`);
     }
 
-    logActivity('alert', `New user registered: ${userData.name || userData.email}`);
-    createAuditLog('Signup', 'Auth', userData.email, 'New user registered');
+    if (employee.accountCreated) {
+      throw new Error('An account already exists for this Employee ID.');
+    }
+
+    // Create the account locally
+    const userData = {
+      _id: employee.id,
+      name: employee.employeeName,
+      email: employee.email,
+      role: employee.role,
+      employeeId: employee.employeeId,
+      department: employee.department,
+      token: `demo-token-${employee.employeeId}-${Date.now()}`
+    };
+
+    // Update the employee master
+    setEmployees(prev => prev.map(e => e.employeeId === eid ? { ...e, accountCreated: true } : e));
+
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('mini_erp_auth_user', JSON.stringify(userData));
+    setToken(userData.token);
+    setAuthUser(userData);
+
+    // Using setTimeout to defer to next tick so createAuditLog/logActivity are initialized
+    setTimeout(() => {
+      logActivity('alert', `New Employee Account Created: ${userData.name} (${userData.role})`);
+      createAuditLog('Signup', 'Auth', userData.employeeId, 'New user registered via Employee ID');
+    }, 100);
+
     return userData;
-  }, []);
+  }, [employees]);
 
   const logoutUser = useCallback(async () => {
     try {
@@ -137,6 +195,7 @@ export function ErpProvider({ children }) {
   }, []);
 
   // Save to storage on state change
+  useEffect(() => { storage.setEmployees(employees); }, [employees]);
   useEffect(() => { storage.setProducts(products); }, [products]);
   useEffect(() => { storage.setSuppliers(suppliers); }, [suppliers]);
   useEffect(() => { storage.setPurchaseOrders(purchaseOrders); }, [purchaseOrders]);
@@ -833,6 +892,9 @@ export function ErpProvider({ children }) {
     completeBatch,
     deleteBatch,
     // Users & Permissions (RBAC)
+    employees,
+    setEmployees,
+    hasPermission,
     addManagedUser,
     updateManagedUser,
     deleteManagedUser,

@@ -2,7 +2,7 @@ import 'dotenv/config';
 import dns from 'dns';
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import Organization from './models/Organization.js';
 import Role from './models/Role.js';

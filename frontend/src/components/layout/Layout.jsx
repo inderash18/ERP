@@ -24,7 +24,7 @@ const NAV_ANIM = [
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, metrics, resetToDefaultData, logoutUser } = useErp();
+  const { user, authUser, metrics, resetToDefaultData, logoutUser, hasPermission } = useErp();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const handleLogout = async () => {
@@ -32,18 +32,27 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const navItems = [
-    { name: "Dashboard",    path: "/layout",            icon: LayoutDashboard, count: null },
-    { name: "Products",     path: "/layout/products",   icon: Box,             count: null },
-    { name: "Inventory",    path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0 },
-    { name: "Suppliers",    path: "/layout/suppliers",  icon: Truck,           count: null },
-    { name: "Purchases",    path: "/layout/purchase",   icon: FileText,        count: null },
-    { name: "Sales",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null },
-    { name: "Production",   path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null },
-    { name: "Customers",    path: "/layout/customers",  icon: Users,           count: null },
-    { name: "Users & RBAC", path: "/layout/users",      icon: Shield,          count: null },
-    { name: "Settings",     path: "/layout/settings",   icon: Settings,        count: null },
+  const rawNavItems = [
+    { name: "Dashboard",    path: "/layout",            icon: LayoutDashboard, count: null,                      perm: 'all' },
+    { name: "Products",     path: "/layout/products",   icon: Box,             count: null,                      perm: 'inventory.view' },
+    { name: "Inventory",    path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0, perm: 'inventory.view' },
+    { name: "Suppliers",    path: "/layout/suppliers",  icon: Truck,           count: null,                      perm: 'suppliers.view' },
+    { name: "Purchases",    path: "/layout/purchase",   icon: FileText,        count: null,                      perm: 'purchase.view' },
+    { name: "Sales",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null, perm: 'sales.view' },
+    { name: "Production",   path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null, perm: 'manufacturing.view' },
+    { name: "Customers",    path: "/layout/customers",  icon: Users,           count: null,                      perm: 'customers.view' },
+    { name: "Users & RBAC", path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
+    { name: "Settings",     path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
   ];
+
+  const currentRole = authUser?.role || user?.role || '';
+  const isAdmin = currentRole.toUpperCase() === 'ADMIN' || currentRole.toUpperCase() === 'SYSTEM ADMINISTRATOR';
+
+  const navItems = rawNavItems.filter(item => {
+    if (item.perm === 'all') return true;
+    if (item.perm === 'admin') return isAdmin;
+    return hasPermission(item.perm);
+  });
 
   const isActive = (path) => {
     if (path === "/layout")

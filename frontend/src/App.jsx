@@ -10,12 +10,13 @@ import Sales from "./components/sales/Sales";
 import Production from "./components/manufacturing/Production";
 import Customers from "./components/sales/Customers";
 import Settings from "./components/common/Settings";
-import UserManagement from "./components/common/UserManagement";
+import Employees from "./components/common/Employees";
 import Products from "./components/inventory/Products";
 import Suppliers from "./components/purchase/Suppliers";
 import Purchase from "./components/purchase/Purchase";
 import PageTransition from "./components/layout/PageTransition";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import RoleRoute from "./components/common/RoleRoute";
 import AdminRoute from "./components/common/AdminRoute";
 
 function AnimatedRoutes() {
@@ -68,19 +69,25 @@ function AnimatedRoutes() {
       >
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="inventory" element={<Inventory />} />
-        <Route path="sales" element={<Sales />} />
-        <Route path="production" element={<Production />} />
-        <Route path="customers" element={<Customers />} />
-        <Route path="products" element={<Products />} />
-        <Route path="suppliers" element={<Suppliers />} />
-        <Route path="purchase" element={<Purchase />} />
+        
+        {/* Role-Protected Routes */}
+        <Route path="inventory" element={<RoleRoute permission="inventory.view"><Inventory /></RoleRoute>} />
+        <Route path="products" element={<RoleRoute permission="inventory.view"><Products /></RoleRoute>} />
+        
+        <Route path="sales" element={<RoleRoute permission="sales.view"><Sales /></RoleRoute>} />
+        <Route path="customers" element={<RoleRoute permission="customers.view"><Customers /></RoleRoute>} />
+        
+        <Route path="production" element={<RoleRoute permission="manufacturing.view"><Production /></RoleRoute>} />
+        
+        <Route path="purchase" element={<RoleRoute permission="purchase.view"><Purchase /></RoleRoute>} />
+        <Route path="suppliers" element={<RoleRoute permission="suppliers.view"><Suppliers /></RoleRoute>} />
+        
         {/* Admin-only Protected Route */}
         <Route
           path="users"
           element={
             <AdminRoute>
-              <UserManagement />
+              <Employees />
             </AdminRoute>
           }
         />

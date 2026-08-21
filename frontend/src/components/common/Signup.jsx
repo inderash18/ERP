@@ -9,6 +9,7 @@ export default function Signup() {
     const navigate = useNavigate();
     const { signupUser } = useErp();
 
+    const [employeeId, setEmployeeId] = useState("");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -25,11 +26,16 @@ export default function Signup() {
 
     const validateForm = () => {
         const newErrors = {};
+        const trimmedEmployeeId = employeeId.trim();
         const trimmedName = name.trim();
         const trimmedEmail = email.trim();
 
+        if (!trimmedEmployeeId) {
+            newErrors.employeeId = "Employee ID / Login ID is required";
+        }
+
         if (!trimmedName) {
-            newErrors.name = "Full name / Login ID is required";
+            newErrors.name = "Full name is required";
         }
 
         if (!trimmedEmail) {
@@ -65,7 +71,7 @@ export default function Signup() {
 
         setIsLoading(true);
         try {
-            await signupUser({ name, email, password });
+            await signupUser({ employeeId, name, email, password });
             setSuccessMsg("Account registered successfully! Redirecting...");
             setTimeout(() => {
                 navigate("/layout");
@@ -168,10 +174,34 @@ export default function Signup() {
                         )}
 
                         <form onSubmit={handleSignup} noValidate>
-                            {/* FULL NAME */}
+                            {/* EMPLOYEE ID */}
                             <div className="mt-5">
                                 <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
-                                    Full Name or Login ID
+                                    Employee ID / Login ID
+                                </label>
+                                <input
+                                    type="text"
+                                    value={employeeId}
+                                    onChange={(e) => {
+                                        setEmployeeId(e.target.value);
+                                        if (errors.employeeId) setErrors(prev => ({ ...prev, employeeId: "" }));
+                                    }}
+                                    placeholder="e.g. SALE04"
+                                    className={`
+                                        h-[40px] w-full rounded-full border
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                        bg-white px-5 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                    `}
+                                />
+                                {errors.employeeId && (
+                                    <p className="mt-1 ml-3 text-[11px] font-medium text-red-500">{errors.employeeId}</p>
+                                )}
+                            </div>
+
+                            {/* FULL NAME */}
+                            <div className="mt-3">
+                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                    Full Name
                                 </label>
                                 <input
                                     type="text"

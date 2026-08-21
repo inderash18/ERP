@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
   USER_SESSION: 'mini_erp_user_v2',
   MANAGED_USERS: 'mini_erp_managed_users_v2',
   ROLE_MATRIX: 'mini_erp_role_matrix_v2',
+  EMPLOYEE_MASTER: 'mini_erp_employee_master_v2',
 };
 
 export const DEFAULT_PRODUCTS = [
@@ -123,6 +124,16 @@ export const DEFAULT_USER = {
 export const DEFAULT_ROLE_MATRIX = [];
 export const DEFAULT_MANAGED_USERS = [];
 
+export const DEFAULT_EMPLOYEE_MASTER = [
+  { id: "EMP-001", employeeId: "OWNER01", employeeName: "Arjun Shiv", department: "Executive", role: "Business Owner", status: "Active", email: "arjun@shivfurniture.in", phone: "9876543210", accountCreated: false, createdAt: new Date().toISOString() },
+  { id: "EMP-002", employeeId: "ADMIN01", employeeName: "System Admin", department: "IT", role: "Admin", status: "Active", email: "admin@shivfurniture.in", phone: "9876543211", accountCreated: false, createdAt: new Date().toISOString() },
+  { id: "EMP-003", employeeId: "ADMIN02", employeeName: "IT Support", department: "IT", role: "Admin", status: "Active", email: "support@shivfurniture.in", phone: "9876543212", accountCreated: false, createdAt: new Date().toISOString() },
+  ...Array.from({length: 10}).map((_, i) => ({ id: `EMP-1${String(i).padStart(2,'0')}`, employeeId: `SALE${String(i+1).padStart(2,'0')}`, employeeName: `Sales Rep ${i+1}`, department: "Sales", role: "Sales User", status: "Active", email: `sale${i+1}@shivfurniture.in`, phone: `98765431${i}0`, accountCreated: false, createdAt: new Date().toISOString() })),
+  ...Array.from({length: 10}).map((_, i) => ({ id: `EMP-2${String(i).padStart(2,'0')}`, employeeId: `PUR${String(i+1).padStart(2,'0')}`, employeeName: `Purchase Agent ${i+1}`, department: "Procurement", role: "Purchase User", status: "Active", email: `pur${i+1}@shivfurniture.in`, phone: `98765432${i}0`, accountCreated: false, createdAt: new Date().toISOString() })),
+  ...Array.from({length: 10}).map((_, i) => ({ id: `EMP-3${String(i).padStart(2,'0')}`, employeeId: `MFG${String(i+1).padStart(2,'0')}`, employeeName: `Mfg Engineer ${i+1}`, department: "Manufacturing", role: "Manufacturing User", status: "Active", email: `mfg${i+1}@shivfurniture.in`, phone: `98765433${i}0`, accountCreated: false, createdAt: new Date().toISOString() })),
+  ...Array.from({length: 5}).map((_, i) => ({ id: `EMP-4${String(i).padStart(2,'0')}`, employeeId: `INV${String(i+1).padStart(2,'0')}`, employeeName: `Inventory Mgr ${i+1}`, department: "Warehouse", role: "Inventory Manager", status: "Active", email: `inv${i+1}@shivfurniture.in`, phone: `98765434${i}0`, accountCreated: false, createdAt: new Date().toISOString() })),
+];
+
 // Safe LocalStorage helpers
 export const loadData = (key, fallback) => {
   try {
@@ -144,6 +155,9 @@ export const saveData = (key, value) => {
 };
 
 export const storage = {
+  getEmployees: () => loadData(STORAGE_KEYS.EMPLOYEE_MASTER, DEFAULT_EMPLOYEE_MASTER),
+  setEmployees: (data) => saveData(STORAGE_KEYS.EMPLOYEE_MASTER, data),
+
   getProducts: () => loadData(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS),
   setProducts: (data) => saveData(STORAGE_KEYS.PRODUCTS, data),
 
@@ -197,6 +211,10 @@ export const storage = {
   setRoleMatrix: (data) => saveData(STORAGE_KEYS.ROLE_MATRIX, data),
 
   seedShivFurnitureDemoData: () => {
+    // Only seed employees if none exist
+    if (!localStorage.getItem(STORAGE_KEYS.EMPLOYEE_MASTER)) {
+      saveData(STORAGE_KEYS.EMPLOYEE_MASTER, DEFAULT_EMPLOYEE_MASTER);
+    }
     saveData(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS);
     saveData(STORAGE_KEYS.INVENTORY, DEFAULT_INVENTORY);
     saveData(STORAGE_KEYS.SUPPLIERS, DEFAULT_SUPPLIERS);
@@ -222,6 +240,7 @@ export const storage = {
   },
 
   clearAll: () => {
+    saveData(STORAGE_KEYS.EMPLOYEE_MASTER, []);
     saveData(STORAGE_KEYS.PRODUCTS, []);
     saveData(STORAGE_KEYS.INVENTORY, []);
     saveData(STORAGE_KEYS.SUPPLIERS, []);

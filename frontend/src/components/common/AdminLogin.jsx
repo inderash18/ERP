@@ -9,7 +9,7 @@ export default function AdminLogin() {
     const navigate = useNavigate();
     const { loginUser } = useErp();
 
-    const [email, setEmail] = useState("");
+    const [employeeId, setEmployeeId] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
@@ -20,12 +20,10 @@ export default function AdminLogin() {
 
     const validateForm = () => {
         const newErrors = {};
-        const trimmedEmail = email.trim();
+        const trimmedEmployeeId = employeeId.trim();
 
-        if (!trimmedEmail) {
-            newErrors.email = "Admin email is required";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-            newErrors.email = "Please enter a valid email address";
+        if (!trimmedEmployeeId) {
+            newErrors.employeeId = "Admin Employee ID is required";
         }
 
         if (!password) {
@@ -46,10 +44,10 @@ export default function AdminLogin() {
 
         setIsLoading(true);
         try {
-            await loginUser(email, password, true);
+            await loginUser(employeeId, password, true);
             navigate("/layout");
         } catch (err) {
-            setApiError(err.message || "Invalid admin credentials or access denied.");
+            setApiError(err.message || "Invalid Employee ID or password.");
         } finally {
             setIsLoading(false);
         }
@@ -145,47 +143,39 @@ export default function AdminLogin() {
                         )}
 
                         <form onSubmit={handleAdminLogin} noValidate>
-                            {/* EMAIL */}
+                            {/* EMPLOYEE ID */}
                             <div className="mt-6">
-                                <label
-                                    className="
-                    mb-2
-                    block
-                    text-[12px]
-                    font-medium
-                    text-[#3f4943]
-                  "
-                                >
-                                    Admin email or Admin ID
+                                <label className="mb-2 block text-[12px] font-medium text-[#3f4943]">
+                                    Admin Employee ID
                                 </label>
-
                                 <input
-                                    type="email"
-                                    value={email}
+                                    type="text"
+                                    value={employeeId}
                                     onChange={(e) => {
-                                        setEmail(e.target.value);
-                                        if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                                        setEmployeeId(e.target.value);
+                                        if (errors.employeeId) setErrors(prev => ({ ...prev, employeeId: "" }));
                                     }}
-                                    placeholder="admin@minierp.io"
+                                    placeholder="e.g. ADMIN01"
                                     className={`
                                         h-[43px]
                                         w-full
                                         rounded-full
                                         border
-                                        ${errors.email ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
                                         bg-white
                                         px-5
                                         text-sm
                                         outline-none
+                                        shadow-[0_3px_10px_rgba(25,53,43,0.08)]
                                         transition
                                         focus:border-[#405b4d]
                                         focus:ring-2
                                         focus:ring-[#405b4d]/20
                                     `}
                                 />
-                                {errors.email && (
+                                {errors.employeeId && (
                                     <p className="mt-1.5 ml-3 text-[11px] font-medium text-red-500">
-                                        {errors.email}
+                                        {errors.employeeId}
                                     </p>
                                 )}
                             </div>

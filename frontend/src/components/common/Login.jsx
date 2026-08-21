@@ -9,7 +9,7 @@ export default function Login() {
     const navigate = useNavigate();
     const { loginUser } = useErp();
 
-    const [email, setEmail] = useState("");
+    const [employeeId, setEmployeeId] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
@@ -20,12 +20,10 @@ export default function Login() {
 
     const validateForm = () => {
         const newErrors = {};
-        const trimmedEmail = email.trim();
+        const trimmedEmployeeId = employeeId.trim();
 
-        if (!trimmedEmail) {
-            newErrors.email = "Email is required";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-            newErrors.email = "Please enter a valid email address";
+        if (!trimmedEmployeeId) {
+            newErrors.employeeId = "Employee ID / Login ID is required";
         }
 
         if (!password) {
@@ -46,10 +44,10 @@ export default function Login() {
 
         setIsLoading(true);
         try {
-            await loginUser(email, password, false);
+            await loginUser(employeeId, password, false);
             navigate("/layout");
         } catch (err) {
-            setApiError(err.message || "Invalid email or password.");
+            setApiError(err.message || "Invalid Employee ID or password.");
         } finally {
             setIsLoading(false);
         }
@@ -140,23 +138,23 @@ export default function Login() {
                             {/* LOGIN ID / EMAIL */}
                             <div className="mt-6">
                                 <label className="mb-2 block text-[12px] font-medium text-[#3f4943]">
-                                    Login email or Login ID
+                                    Employee ID / Login ID
                                 </label>
 
                                 <input
-                                    type="email"
-                                    value={email}
+                                    type="text"
+                                    value={employeeId}
                                     onChange={(e) => {
-                                        setEmail(e.target.value);
-                                        if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                                        setEmployeeId(e.target.value);
+                                        if (errors.employeeId) setErrors(prev => ({ ...prev, employeeId: "" }));
                                     }}
-                                    placeholder="admin@minierp.io"
+                                    placeholder="SALE04"
                                     className={`
                                         h-[43px]
                                         w-full
                                         rounded-full
                                         border
-                                        ${errors.email ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
                                         bg-white
                                         px-5
                                         text-sm
@@ -168,9 +166,9 @@ export default function Login() {
                                         focus:ring-[#405b4d]/20
                                     `}
                                 />
-                                {errors.email && (
+                                {errors.employeeId && (
                                     <p className="mt-1.5 ml-3 text-[11px] font-medium text-red-500">
-                                        {errors.email}
+                                        {errors.employeeId}
                                     </p>
                                 )}
                             </div>
