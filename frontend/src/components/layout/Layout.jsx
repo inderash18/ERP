@@ -385,17 +385,9 @@ export default function Layout() {
 
         {/* Main page content scroll area */}
         <main className="scroll-container" style={{ flex: 1, overflowY: "auto", background: "#e8eee9" }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.22, ease: "easeOut" } }}
-              exit={{   opacity: 0, transition: { duration: 0.15, ease: "easeIn"  } }}
-              style={{ padding: 28, maxWidth: 1360, margin: "0 auto" }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <div style={{ padding: 28, maxWidth: 1360, margin: "0 auto", minHeight: "100%" }}>
+            <Outlet />
+          </div>
         </main>
       </div>
 
