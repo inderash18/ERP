@@ -2,15 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import loginImage from "../../assets/login1.jpg";
-
+import backgroundImage from "../../assets/background image.jpg";
 export default function Signup() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden bg-[#e8eee9]">
-
+        <div
+            className="relative min-h-screen w-full overflow-hidden bg-cover bg-center"
+            style={{
+                backgroundImage: `url("${backgroundImage}")`,
+            }}
+        >
             {/* Background */}
             <div className="absolute inset-0">
                 <div className="
@@ -160,13 +164,13 @@ export default function Signup() {
     h-[43px]
     w-full
     rounded-full
-    bg-[#405b4d]
+    bg-[#8B4513]
     text-[13px]
     font-medium
     text-white
     shadow-sm
     transition
-    hover:bg-[#314b3e]
+    hover:bg-[#8B4513]
   "
                         >
                             Sign up
@@ -183,7 +187,7 @@ export default function Signup() {
                                     className="
                 font-semibold
                 text-[#405b4d]
-                hover:text-[#314b3e]
+                hover:text-[#8B4513]
                 hover:underline
             "
                                 >
