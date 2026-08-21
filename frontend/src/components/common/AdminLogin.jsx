@@ -307,35 +307,35 @@ export default function AdminLogin() {
                             </button>
                         </div>
                     </div>
-                </div>
 
-                {/* WAVE */}
-                <svg
-                    className="
-            absolute
-            right-[calc(100%-2px)]
-            top-0
-            z-20
-            h-full
-            w-[155px]
-          "
-                    viewBox="0 0 155 680"
-                    preserveAspectRatio="none"
-                >
-                    <path
-                        d="
-              M0 0
-              C115 55 125 105 55 170
-              C5 220 15 275 82 335
-              C140 385 120 440 55 500
-              C5 550 20 615 105 680
-              L155 680
-              L155 0
-              Z
-            "
-                        fill="white"
-                    />
-                </svg>
+                    {/* WAVE */}
+                    <svg
+                        className="
+                            absolute
+                            right-[calc(100%-2px)]
+                            top-0
+                            z-20
+                            h-full
+                            w-[155px]
+                        "
+                        viewBox="0 0 155 680"
+                        preserveAspectRatio="none"
+                    >
+                        <path
+                            d="
+                                M0 0
+                                C115 55 125 105 55 170
+                                C5 220 15 275 82 335
+                                C140 385 120 440 55 500
+                                C5 550 20 615 105 680
+                                L155 680
+                                L155 0
+                                Z
+                            "
+                            fill="white"
+                        />
+                    </svg>
+                </div>
             </div>
         </div>
     );
