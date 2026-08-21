@@ -9,33 +9,59 @@ const generateToken = (id) => {
   });
 };
 
-export const registerDemo = async (req, res) => {
+export const register = async (req, res) => {
   try {
-    // For demo purposes, we automatically create an organization and an admin user
-    const { firstName, lastName, email, password, companyName } = req.body;
+    const { name, firstName, lastName, email, password, companyName } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, error: { message: 'User already exists' } });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: { message: 'Email and password are required' } });
     }
 
-    const org = await Organization.create({ name: companyName || 'Demo Corp' });
-    const adminRole = await Role.create({
-      organizationId: org._id,
-      name: 'ADMIN',
-      permissions: ['*'], // Simplification for demo
-      isSystem: true
-    });
+    const cleanEmail = email.toLowerCase().trim();
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: { message: 'Email already registered' } });
+    }
+
+    // Determine first/last name
+    let fName = firstName;
+    let lName = lastName;
+    if (!fName && name) {
+      const parts = name.trim().split(' ');
+      fName = parts[0];
+      lName = parts.slice(1).join(' ') || 'User';
+    }
+    fName = fName || 'New';
+    lName = lName || 'User';
+
+    // Find default organization or create one
+    let org = await Organization.findOne();
+    if (!org) {
+      org = await Organization.create({ name: companyName || 'Mini-ERP Industrial Solutions' });
+    }
+
+    // Find default role or create one
+    let defaultRole = await Role.findOne({ organizationId: org._id, name: 'USER' });
+    if (!defaultRole) {
+      defaultRole = await Role.create({
+        organizationId: org._id,
+        name: 'USER',
+        permissions: ['READ_PRODUCTS', 'READ_ORDERS', 'CREATE_ORDERS'],
+        isSystem: false
+      });
+    }
 
     const user = await User.create({
       organizationId: org._id,
-      firstName,
-      lastName,
-      email,
+      firstName: fName,
+      lastName: lName,
+      email: cleanEmail,
       password,
-      role: adminRole._id
+      role: defaultRole._id,
+      status: 'ACTIVE'
     });
 
+    const populatedUser = await User.findById(user._id).populate('role');
     const token = generateToken(user._id);
 
     res.cookie('jwt', token, {
@@ -51,8 +77,11 @@ export const registerDemo = async (req, res) => {
         _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        name: `${user.firstName} ${user.lastName}`.trim(),
         email: user.email,
-        organizationId: user.organizationId
+        role: populatedUser?.role?.name || 'USER',
+        organizationId: user.organizationId,
+        token
       }
     });
   } catch (error) {
@@ -60,13 +89,20 @@ export const registerDemo = async (req, res) => {
   }
 };
 
+export const registerDemo = register;
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: { message: 'Email and password are required' } });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail }).select('+password').populate('role');
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, error: { message: 'Invalid credentials' } });
+      return res.status(401).json({ success: false, error: { message: 'Invalid email or password' } });
     }
 
     if (user.status !== 'ACTIVE') {
@@ -88,9 +124,11 @@ export const login = async (req, res) => {
         _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        name: `${user.firstName} ${user.lastName}`.trim(),
         email: user.email,
+        role: user.role?.name || 'USER',
         organizationId: user.organizationId,
-        token // Return token for clients not using cookies
+        token
       }
     });
   } catch (error) {

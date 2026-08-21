@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-
 import { ErpProvider } from "./context/ErpContext";
 import Login from "./components/common/Login";
 import AdminLogin from "./components/common/AdminLogin";
@@ -14,76 +12,87 @@ import Customers from "./components/sales/Customers";
 import Settings from "./components/common/Settings";
 import UserManagement from "./components/common/UserManagement";
 import PageTransition from "./components/layout/PageTransition";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import AdminRoute from "./components/common/AdminRoute";
 
 function AnimatedRoutes() {
   const location = useLocation();
-  const baseKey = location.pathname.startsWith("/layout") ? "/layout" : location.pathname;
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={baseKey}>
-        {/* Default → Login */}
-        <Route
-          path="/"
-          element={<Navigate to="/login" replace />}
-        />
+    <Routes location={location}>
+      {/* Public Authentication Routes */}
+      <Route
+        path="/"
+        element={<Navigate to="/login" replace />}
+      />
+      <Route
+        path="/login"
+        element={
+          <PageTransition>
+            <Login />
+          </PageTransition>
+        }
+      />
+      <Route
+        path="/admin-login"
+        element={
+          <PageTransition>
+            <AdminLogin />
+          </PageTransition>
+        }
+      />
+      <Route
+        path="/admin/login"
+        element={<Navigate to="/admin-login" replace />}
+      />
+      <Route
+        path="/signup"
+        element={
+          <PageTransition>
+            <Signup />
+          </PageTransition>
+        }
+      />
 
-        {/* Login Page */}
+      {/* Protected ERP App Layout */}
+      <Route
+        path="/layout"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="inventory" element={<Inventory />} />
+        <Route path="sales" element={<Sales />} />
+        <Route path="production" element={<Production />} />
+        <Route path="customers" element={<Customers />} />
+        {/* Admin-only Protected Route */}
         <Route
-          path="/login"
+          path="users"
           element={
-            <PageTransition>
-              <Login />
-            </PageTransition>
+            <AdminRoute>
+              <UserManagement />
+            </AdminRoute>
           }
         />
+        <Route path="settings" element={<Settings />} />
+      </Route>
 
-        {/* Admin Login Page */}
-        <Route
-          path="/admin-login"
-          element={
-            <PageTransition>
-              <AdminLogin />
-            </PageTransition>
-          }
-        />
+      {/* Top-Level Route Aliases Protected by Redirect */}
+      <Route path="/dashboard" element={<Navigate to="/layout/dashboard" replace />} />
+      <Route path="/inventory" element={<Navigate to="/layout/inventory" replace />} />
+      <Route path="/sales" element={<Navigate to="/layout/sales" replace />} />
+      <Route path="/production" element={<Navigate to="/layout/production" replace />} />
+      <Route path="/customers" element={<Navigate to="/layout/customers" replace />} />
+      <Route path="/users" element={<Navigate to="/layout/users" replace />} />
+      <Route path="/settings" element={<Navigate to="/layout/settings" replace />} />
 
-        {/* Signup Page */}
-        <Route
-          path="/signup"
-          element={
-            <PageTransition>
-              <Signup />
-            </PageTransition>
-          }
-        />
-
-        {/* Main Layout with nested routes */}
-        <Route
-          path="/layout"
-          element={
-            <PageTransition>
-              <Layout />
-            </PageTransition>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="sales" element={<Sales />} />
-          <Route path="production" element={<Production />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-
-        {/* Any unknown URL → Login */}
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
-      </Routes>
-    </AnimatePresence>
+      {/* Catch-all unknown routes → Redirect to Login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 

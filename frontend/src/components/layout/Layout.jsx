@@ -24,11 +24,11 @@ const NAV_ANIM = [
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, metrics, resetToDefaultData } = useErp();
+  const { user, metrics, resetToDefaultData, logoutUser } = useErp();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    await logoutUser();
     navigate("/login");
   };
 

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { storage, DEFAULT_SETTINGS, DEFAULT_USER, DEFAULT_MANAGED_USERS, DEFAULT_ROLE_MATRIX } from '../services/erpStorage';
+import { apiCall } from '../lib/api';
 
 const ErpContext = createContext(null);
 
@@ -13,6 +14,112 @@ export function ErpProvider({ children }) {
   const [user, setUser] = useState(() => storage.getUser() || {});
   const [managedUsers, setManagedUsers] = useState(() => storage.getManagedUsers() || DEFAULT_MANAGED_USERS);
   const [roleMatrix, setRoleMatrix] = useState(() => storage.getRoleMatrix() || DEFAULT_ROLE_MATRIX);
+
+  // ----------------------------------------------------
+  // REAL BACKEND AUTHENTICATION STATE
+  // ----------------------------------------------------
+  const [authUser, setAuthUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('mini_erp_auth_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  // Session verification on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      const savedToken = localStorage.getItem('token');
+      if (savedToken) {
+        try {
+          const res = await apiCall('/auth/me');
+          if (res?.data) {
+            const uData = {
+              _id: res.data._id,
+              firstName: res.data.firstName,
+              lastName: res.data.lastName,
+              name: `${res.data.firstName || ''} ${res.data.lastName || ''}`.trim(),
+              email: res.data.email,
+              role: res.data.role?.name || res.data.role || 'USER',
+              organizationId: res.data.organizationId
+            };
+            setAuthUser(uData);
+            localStorage.setItem('mini_erp_auth_user', JSON.stringify(uData));
+          }
+        } catch (err) {
+          console.warn('Authentication token expired or invalid:', err.message);
+          localStorage.removeItem('token');
+          localStorage.removeItem('mini_erp_auth_user');
+          setAuthUser(null);
+          setToken(null);
+        }
+      }
+      setIsAuthLoading(false);
+    };
+    initAuth();
+  }, []);
+
+  const loginUser = useCallback(async (email, password, asAdmin = false) => {
+    const res = await apiCall('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), password })
+    });
+
+    if (!res.data || !res.data.token) {
+      throw new Error('Authentication failed: Missing token in response');
+    }
+
+    const userData = res.data;
+    const roleName = (userData.role || '').toUpperCase();
+    const isAdmin = roleName === 'ADMIN' || roleName === 'SYSTEM ADMINISTRATOR';
+
+    if (asAdmin && !isAdmin) {
+      throw new Error('Access denied. Administrator privileges required to access Admin portal.');
+    }
+
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('mini_erp_auth_user', JSON.stringify(userData));
+    setToken(userData.token);
+    setAuthUser(userData);
+
+    logActivity('alert', `User authenticated: ${userData.name || userData.email} (${userData.role || 'User'})`);
+    return userData;
+  }, []);
+
+  const signupUser = useCallback(async ({ name, email, password }) => {
+    const res = await apiCall('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email: email.trim(), password })
+    });
+
+    if (!res.data) {
+      throw new Error('Registration failed');
+    }
+
+    const userData = res.data;
+    if (userData.token) {
+      localStorage.setItem('token', userData.token);
+      localStorage.setItem('mini_erp_auth_user', JSON.stringify(userData));
+      setToken(userData.token);
+      setAuthUser(userData);
+    }
+
+    logActivity('alert', `New user registered: ${userData.name || userData.email}`);
+    return userData;
+  }, []);
+
+  const logoutUser = useCallback(async () => {
+    try {
+      await apiCall('/auth/logout', { method: 'POST' });
+    } catch {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('mini_erp_auth_user');
+    setToken(null);
+    setAuthUser(null);
+  }, []);
 
   // Save to storage on state change
   useEffect(() => { storage.setInventory(inventory); }, [inventory]);
@@ -137,7 +244,6 @@ export function ErpProvider({ children }) {
     const seq = Math.floor(1000 + Math.random() * 9000);
     const id = `SO-${year}-${seq}`;
 
-    // Calculate total amount
     const items = orderData.items || [];
     const totalAmount = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
 
@@ -152,7 +258,6 @@ export function ErpProvider({ children }) {
       fulfillmentStatus: orderData.fulfillmentStatus || 'Processing',
     };
 
-    // Deduct stock for inventory items included in order
     setInventory(prev => prev.map(invItem => {
       const orderItem = items.find(it => it.productId === invItem.id);
       if (orderItem) {
@@ -237,7 +342,6 @@ export function ErpProvider({ children }) {
       return b;
     }));
 
-    // Increment inventory product stock if matching
     if (target.productId) {
       setInventory(prev => prev.map(invItem => {
         if (invItem.id === target.productId) {
@@ -373,7 +477,6 @@ export function ErpProvider({ children }) {
     const activeBatches = batches.filter(b => b.status !== 'Completed');
     const totalCatalogItems = inventory.length;
 
-    // Customer spend map
     const customerSpendMap = {};
     const customerOrderCountMap = {};
     orders.forEach(ord => {
@@ -384,7 +487,6 @@ export function ErpProvider({ children }) {
       }
     });
 
-    // Dynamic monthly chart data
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthMap = {};
     monthNames.forEach(m => { monthMap[m] = { name: m, revenue: 0, profit: 0, orders: 0 }; });
@@ -462,13 +564,24 @@ export function ErpProvider({ children }) {
   }, [orders, inventory, batches]);
 
   const value = {
+    // Authentication
+    authUser,
+    token,
+    isAuthenticated: Boolean(token && authUser),
+    isAdmin: Boolean(authUser && ((authUser.role || '').toUpperCase() === 'ADMIN' || (authUser.role || '').toUpperCase() === 'SYSTEM ADMINISTRATOR')),
+    isAuthLoading,
+    loginUser,
+    signupUser,
+    logoutUser,
+
+    // Data
     inventory,
     customers,
     orders,
     batches,
     activities,
     settings,
-    user,
+    user: authUser || user,
     managedUsers,
     roleMatrix,
     metrics,
