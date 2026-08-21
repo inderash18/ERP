@@ -18,6 +18,7 @@ const NAV_ANIM = [
   (t) => <ElasticText     text={t} stagger={0.04}  />,
   (t) => <PerspectiveText text={t} stagger={0.05}  />,
   (t) => <ClipReveal      text={t} stagger={0.04}  />,
+  (t) => <TextShuffle     text={t} duration={500}  />,
 ];
 
 export default function Layout() {
@@ -32,12 +33,13 @@ export default function Layout() {
   };
 
   const navItems = [
-    { name: "Dashboard",  path: "/layout",            icon: LayoutDashboard, count: null },
-    { name: "Inventory",  path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0 },
-    { name: "Sales",      path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null },
-    { name: "Production", path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null },
-    { name: "Customers",  path: "/layout/customers",  icon: Users,           count: null },
-    { name: "Settings",   path: "/layout/settings",   icon: Settings,        count: null },
+    { name: "Dashboard",    path: "/layout",            icon: LayoutDashboard, count: null },
+    { name: "Inventory",    path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0 },
+    { name: "Sales",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null },
+    { name: "Production",   path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null },
+    { name: "Customers",    path: "/layout/customers",  icon: Users,           count: null },
+    { name: "Users & RBAC", path: "/layout/users",      icon: Shield,          count: null },
+    { name: "Settings",     path: "/layout/settings",   icon: Settings,        count: null },
   ];
 
   const isActive = (path) => {

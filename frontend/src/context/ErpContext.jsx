@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { storage, DEFAULT_SETTINGS, DEFAULT_USER } from '../services/erpStorage';
+import { storage, DEFAULT_SETTINGS, DEFAULT_USER, DEFAULT_MANAGED_USERS, DEFAULT_ROLE_MATRIX } from '../services/erpStorage';
 
 const ErpContext = createContext(null);
 
@@ -11,6 +11,8 @@ export function ErpProvider({ children }) {
   const [activities, setActivities] = useState(() => storage.getActivities() || []);
   const [settings, setSettings] = useState(() => storage.getSettings() || {});
   const [user, setUser] = useState(() => storage.getUser() || {});
+  const [managedUsers, setManagedUsers] = useState(() => storage.getManagedUsers() || DEFAULT_MANAGED_USERS);
+  const [roleMatrix, setRoleMatrix] = useState(() => storage.getRoleMatrix() || DEFAULT_ROLE_MATRIX);
 
   // Save to storage on state change
   useEffect(() => { storage.setInventory(inventory); }, [inventory]);
@@ -20,6 +22,8 @@ export function ErpProvider({ children }) {
   useEffect(() => { storage.setActivities(activities); }, [activities]);
   useEffect(() => { storage.setSettings(settings); }, [settings]);
   useEffect(() => { storage.setUser(user); }, [user]);
+  useEffect(() => { storage.setManagedUsers(managedUsers); }, [managedUsers]);
+  useEffect(() => { storage.setRoleMatrix(roleMatrix); }, [roleMatrix]);
 
   // Helper to log activities
   const logActivity = useCallback((type, text) => {
@@ -257,6 +261,74 @@ export function ErpProvider({ children }) {
   }, [logActivity]);
 
   // ----------------------------------------------------
+  // MANAGED USERS & RBAC PERMISSIONS ACTIONS
+  // ----------------------------------------------------
+  const addManagedUser = useCallback((userData) => {
+    const id = `USR-${String(managedUsers.length + 1).padStart(3, '0')}`;
+    const initials = userData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'US';
+    const newUser = {
+      ...userData,
+      id,
+      avatar: initials,
+      role: userData.role || 'User',
+      permissions: userData.permissions || null
+    };
+    setManagedUsers(prev => [newUser, ...prev]);
+    logActivity('alert', `System Administrator created user account for ${newUser.name} (${newUser.position || newUser.role})`);
+    return newUser;
+  }, [managedUsers.length, logActivity]);
+
+  const updateManagedUser = useCallback((id, updates) => {
+    setManagedUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
+    logActivity('alert', `Updated user credentials for ${updates.name || id}`);
+  }, [logActivity]);
+
+  const deleteManagedUser = useCallback((id) => {
+    const target = managedUsers.find(u => u.id === id);
+    setManagedUsers(prev => prev.filter(u => u.id !== id));
+    if (target) {
+      logActivity('alert', `Revoked system access and deleted user ${target.name}`);
+    }
+  }, [managedUsers, logActivity]);
+
+  const updateUserPermissions = useCallback((userId, moduleKey, fieldName, permType, value) => {
+    setManagedUsers(prev => prev.map(u => {
+      if (u.id === userId) {
+        const currentPerms = u.permissions || {};
+        const modulePerms = currentPerms[moduleKey] || {};
+        const fieldPerms = modulePerms[fieldName] || { create: true, view: true, edit: true, delete: true };
+        
+        const updatedModule = {
+          ...modulePerms,
+          [fieldName]: {
+            ...fieldPerms,
+            [permType]: value
+          }
+        };
+
+        return {
+          ...u,
+          permissions: {
+            ...currentPerms,
+            [moduleKey]: updatedModule
+          }
+        };
+      }
+      return u;
+    }));
+  }, []);
+
+  const updateRoleMatrixItem = useCallback((index, field, value) => {
+    setRoleMatrix(prev => {
+      const copy = [...prev];
+      if (copy[index]) {
+        copy[index] = { ...copy[index], [field]: value };
+      }
+      return copy;
+    });
+  }, []);
+
+  // ----------------------------------------------------
   // SETTINGS & SYSTEM ACTIONS
   // ----------------------------------------------------
   const updateSettings = useCallback((newSettings) => {
@@ -273,6 +345,8 @@ export function ErpProvider({ children }) {
     setActivities(storage.getActivities());
     setSettings(storage.getSettings());
     setUser(storage.getUser());
+    setManagedUsers(storage.getManagedUsers());
+    setRoleMatrix(storage.getRoleMatrix());
     logActivity('alert', 'ERP system reset to demo dataset successfully');
   }, [logActivity]);
 
@@ -321,12 +395,11 @@ export function ErpProvider({ children }) {
         const m = monthNames[d.getMonth()] || "Aug";
         const amt = Number(ord.totalAmount) || 0;
         monthMap[m].revenue += amt;
-        monthMap[m].profit += Math.round(amt * 0.45); // 45% margin estimate
+        monthMap[m].profit += Math.round(amt * 0.45);
         monthMap[m].orders += 1;
       }
     });
 
-    // Fallback baseline trend so charts are attractive
     const baseline = [
       { name: "Mar", revenue: 42000, profit: 18900 },
       { name: "Apr", revenue: 58000, profit: 26100 },
@@ -336,7 +409,6 @@ export function ErpProvider({ children }) {
       { name: "Aug", revenue: Math.max(160000, totalRevenue), profit: Math.round(Math.max(160000, totalRevenue) * 0.45) },
     ];
 
-    // Category breakdown
     const catMap = {};
     inventory.forEach(item => {
       const cat = item.category || 'Other';
@@ -352,7 +424,6 @@ export function ErpProvider({ children }) {
       };
     });
 
-    // Dynamic alerts
     const alerts = [];
     lowStockItems.forEach(item => {
       alerts.push({
@@ -398,6 +469,8 @@ export function ErpProvider({ children }) {
     activities,
     settings,
     user,
+    managedUsers,
+    roleMatrix,
     metrics,
     formatCurrency,
     // Inventory
@@ -418,6 +491,12 @@ export function ErpProvider({ children }) {
     updateBatchProgress,
     completeBatch,
     deleteBatch,
+    // Users & Permissions (RBAC)
+    addManagedUser,
+    updateManagedUser,
+    deleteManagedUser,
+    updateUserPermissions,
+    updateRoleMatrixItem,
     // System
     updateSettings,
     setUser,

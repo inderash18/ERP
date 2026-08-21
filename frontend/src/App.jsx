@@ -12,6 +12,7 @@ import Sales from "./components/sales/Sales";
 import Production from "./components/manufacturing/Production";
 import Customers from "./components/sales/Customers";
 import Settings from "./components/common/Settings";
+import UserManagement from "./components/common/UserManagement";
 import PageTransition from "./components/layout/PageTransition";
 
 function AnimatedRoutes() {
@@ -72,6 +73,7 @@ function AnimatedRoutes() {
           <Route path="sales" element={<Sales />} />
           <Route path="production" element={<Production />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="users" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

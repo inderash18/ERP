@@ -7,6 +7,8 @@ const STORAGE_KEYS = {
   ACTIVITIES: 'mini_erp_activities_v1',
   SETTINGS: 'mini_erp_settings_v1',
   USER_SESSION: 'mini_erp_user_v1',
+  MANAGED_USERS: 'mini_erp_managed_users_v1',
+  ROLE_MATRIX: 'mini_erp_role_matrix_v1',
 };
 
 // Default seed data for initial load
@@ -162,6 +164,127 @@ export const DEFAULT_USER = {
   avatar: "AR",
 };
 
+// ----------------------------------------------------
+// RBAC / USER MANAGEMENT REFERENCE DATA
+// ----------------------------------------------------
+export const DEFAULT_ROLE_MATRIX = [
+  { module: "Sales", action: "View", admin: true, user: true, none: "Optional" },
+  { module: "Sales", action: "Create", admin: true, user: true, none: false },
+  { module: "Sales", action: "Edit", admin: true, user: "Limited", none: false },
+  { module: "Sales", action: "Delete", admin: true, user: false, none: false },
+  { module: "Sales", action: "Approve (Confirm)", admin: true, user: false, none: false },
+  { module: "Purchase", action: "View", admin: true, user: true, none: "Optional" },
+  { module: "Purchase", action: "Approve", admin: true, user: false, none: false },
+  { module: "Purchase", action: "Edit", admin: true, user: "Limited", none: false },
+  { module: "Purchase", action: "Create", admin: true, user: true, none: false },
+  { module: "Manufacturing", action: "Production Entry", admin: true, user: true, none: false },
+  { module: "Manufacturing", action: "Edit BOM", admin: true, user: false, none: false },
+  { module: "Manufacturing", action: "View", admin: true, user: true, none: "Optional" },
+  { module: "Product", action: "View", admin: true, user: true, none: "Optional" },
+  { module: "Product", action: "Create", admin: true, user: true, none: false },
+  { module: "Product", action: "Edit", admin: true, user: "Limited", none: false },
+];
+
+export const DEFAULT_MANAGED_USERS = [
+  {
+    id: "USR-001",
+    name: "Mahesh Gupta",
+    address: "Colaba, Mumbai, 400001",
+    phone: "+91 80000 00000",
+    email: "xyz@xyx.com",
+    position: "Sales Manager",
+    role: "User",
+    avatar: "MG",
+    permissions: {
+      product: {
+        "Product": { create: true, view: true, edit: true, delete: true },
+        "Sales Price": { create: true, view: true, edit: true, delete: true },
+        "Cost Price": { create: true, view: true, edit: true, delete: true },
+        "On Hand Qty": { create: true, view: true, edit: true, delete: false },
+        "Free To Use Qty": { create: true, view: "System Computed", edit: false, delete: false },
+        "Procure On Demand": { create: "Not possible", view: true, edit: true, delete: true },
+        "Procurement Method": { create: "Not possible", view: true, edit: true, delete: true },
+        "Vendor": { create: true, view: true, edit: true, delete: true },
+        "Bill of Materials (BoM)": { create: true, view: true, edit: true, delete: true },
+      },
+      manufacturing: {
+        "Product to Manufacture": { create: true, view: true, edit: true, delete: true },
+        "Product Quantity": { create: true, view: true, edit: true, delete: true },
+        "BoM": { create: true, view: true, edit: true, delete: true },
+        "Responsible Person": { create: true, view: true, edit: true, delete: true },
+        "Finished Quantity": { create: true, view: true, edit: true, delete: true },
+        "Creation Date": { create: "Auto Compute", view: true, edit: false, delete: false },
+      },
+      purchase: {
+        "Vendor": { create: true, view: true, edit: true, delete: true },
+        "Vendor Address": { create: true, view: true, edit: true, delete: true },
+        "Responsible Person": { create: true, view: true, edit: true, delete: true },
+        "Product": { create: true, view: true, edit: true, delete: true },
+        "Ordered Quantity": { create: true, view: true, edit: true, delete: true },
+        "Received Quantity": { create: true, view: true, edit: true, delete: true },
+        "Cost Price": { create: true, view: true, edit: true, delete: true },
+        "Total": { create: true, view: true, edit: "Auto Recomputed", delete: true },
+        "Creation Date": { create: "Auto Compute", view: true, edit: false, delete: false },
+      },
+      sales: {
+        "Customer": { create: true, view: true, edit: true, delete: false },
+        "Order Number": { create: "Auto Compute", view: true, edit: false, delete: false },
+        "Delivery Address": { create: true, view: true, edit: true, delete: false },
+        "Items & Quantities": { create: true, view: true, edit: true, delete: true },
+        "Unit Price": { create: true, view: true, edit: true, delete: false },
+        "Total Amount": { create: true, view: true, edit: "Auto Recomputed", delete: false },
+        "Payment Status": { create: true, view: true, edit: true, delete: false },
+        "Fulfillment Status": { create: true, view: true, edit: true, delete: false },
+        "Order Approval": { create: false, view: true, edit: false, delete: false },
+      }
+    }
+  },
+  {
+    id: "USR-002",
+    name: "Nisarg Verma",
+    address: "Andheri East, Mumbai, 400069",
+    phone: "+91 98765 43210",
+    email: "nisarg.verma@minierp.io",
+    position: "Procurement Lead",
+    role: "User",
+    avatar: "NV",
+    permissions: null
+  },
+  {
+    id: "USR-003",
+    name: "Sweta Kediva",
+    address: "Kothrud, Pune, 411038",
+    phone: "+91 91234 56789",
+    email: "sweta.k@minierp.io",
+    position: "Plant Supervisor",
+    role: "User",
+    avatar: "SK",
+    permissions: null
+  },
+  {
+    id: "USR-004",
+    name: "Dinesh Patel",
+    address: "Navrangpura, Ahmedabad, 380009",
+    phone: "+91 98223 34455",
+    email: "dinesh.p@minierp.io",
+    position: "Inventory Controller",
+    role: "User",
+    avatar: "DP",
+    permissions: null
+  },
+  {
+    id: "USR-005",
+    name: "Trisha K.",
+    address: "Indiranagar, Bengaluru, 560038",
+    phone: "+91 94477 88990",
+    email: "trisha.k@minierp.io",
+    position: "System Administrator",
+    role: "Admin",
+    avatar: "TK",
+    permissions: null
+  }
+];
+
 // Safe LocalStorage helpers
 export const loadData = (key, fallback) => {
   try {
@@ -204,6 +327,12 @@ export const storage = {
   getUser: () => loadData(STORAGE_KEYS.USER_SESSION, DEFAULT_USER),
   setUser: (data) => saveData(STORAGE_KEYS.USER_SESSION, data),
 
+  getManagedUsers: () => loadData(STORAGE_KEYS.MANAGED_USERS, DEFAULT_MANAGED_USERS),
+  setManagedUsers: (data) => saveData(STORAGE_KEYS.MANAGED_USERS, data),
+
+  getRoleMatrix: () => loadData(STORAGE_KEYS.ROLE_MATRIX, DEFAULT_ROLE_MATRIX),
+  setRoleMatrix: (data) => saveData(STORAGE_KEYS.ROLE_MATRIX, data),
+
   resetAll: () => {
     saveData(STORAGE_KEYS.INVENTORY, DEFAULT_INVENTORY);
     saveData(STORAGE_KEYS.CUSTOMERS, DEFAULT_CUSTOMERS);
@@ -212,6 +341,8 @@ export const storage = {
     saveData(STORAGE_KEYS.ACTIVITIES, DEFAULT_ACTIVITIES);
     saveData(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
     saveData(STORAGE_KEYS.USER_SESSION, DEFAULT_USER);
+    saveData(STORAGE_KEYS.MANAGED_USERS, DEFAULT_MANAGED_USERS);
+    saveData(STORAGE_KEYS.ROLE_MATRIX, DEFAULT_ROLE_MATRIX);
   },
 
   clearAll: () => {
@@ -221,5 +352,6 @@ export const storage = {
     saveData(STORAGE_KEYS.BATCHES, []);
     saveData(STORAGE_KEYS.ACTIVITIES, []);
     saveData(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    saveData(STORAGE_KEYS.MANAGED_USERS, DEFAULT_MANAGED_USERS);
   }
 };
