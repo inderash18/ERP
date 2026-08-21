@@ -43,16 +43,68 @@
       "isSystem": false
     }
   ],
-  "user": {
-    "firstName": "Super",
-    "lastName": "Admin",
-    "employeeId": "ADMIN01",
-    "email": "admin@shivfurniture.in",
-    "password": "password123",
-    "department": "Executive",
-    "roleName": "Admin",
-    "status": "ACTIVE"
-  },
+  "users": [
+    {
+      "firstName": "Super",
+      "lastName": "Admin",
+      "employeeId": "ADMIN01",
+      "email": "admin@shivfurniture.in",
+      "password": "password123",
+      "department": "Executive",
+      "roleName": "Admin",
+      "status": "ACTIVE"
+    },
+    {
+      "firstName": "Shiv",
+      "lastName": "Sharma",
+      "employeeId": "OWNER01",
+      "email": "owner@shivfurniture.in",
+      "password": "password123",
+      "department": "Management",
+      "roleName": "Business Owner",
+      "status": "ACTIVE"
+    },
+    {
+      "firstName": "Rahul",
+      "lastName": "Verma",
+      "employeeId": "SALE01",
+      "email": "sales@shivfurniture.in",
+      "password": "password123",
+      "department": "Sales & Commercial",
+      "roleName": "Sales User",
+      "status": "ACTIVE"
+    },
+    {
+      "firstName": "Pooja",
+      "lastName": "Nair",
+      "employeeId": "PUR01",
+      "email": "purchase@shivfurniture.in",
+      "password": "password123",
+      "department": "Procurement & Sourcing",
+      "roleName": "Purchase User",
+      "status": "ACTIVE"
+    },
+    {
+      "firstName": "Manoj",
+      "lastName": "Kumar",
+      "employeeId": "MFG01",
+      "email": "mfg@shivfurniture.in",
+      "password": "password123",
+      "department": "Shop Floor & Production",
+      "roleName": "Manufacturing User",
+      "status": "ACTIVE"
+    },
+    {
+      "firstName": "Kavita",
+      "lastName": "Patel",
+      "employeeId": "INV01",
+      "email": "inventory@shivfurniture.in",
+      "password": "password123",
+      "department": "Warehouse & Logistics",
+      "roleName": "Inventory Manager",
+      "status": "ACTIVE"
+    }
+  ],
   "categories": [
     { "name": "Finished Furniture", "description": "Finished custom and batch furniture ready for dispatch" },
     { "name": "Raw Wood & Timber", "description": "Teak, Sheesham, Oak logs and sawn timber planks" },

@@ -78,22 +78,28 @@ async function seedDatabase() {
     }
     console.log(`Created ${roleMap.size} roles.`);
 
-    // 3. Create Only ONE User
-    console.log(`Creating single master Super Admin user...`);
-    const adminRole = roleMap.get(dataset.user.roleName || 'Admin') || roleMap.get('Admin');
-    const singleUser = await User.create({
-      organizationId: org._id,
-      firstName: dataset.user.firstName,
-      lastName: dataset.user.lastName,
-      name: dataset.user.name,
-      employeeId: dataset.user.employeeId,
-      email: dataset.user.email,
-      password: dataset.user.password,
-      department: dataset.user.department,
-      role: adminRole._id,
-      status: dataset.user.status || 'ACTIVE'
-    });
-    console.log(`User created: ${singleUser.name} (${singleUser.employeeId} / ${singleUser.email}) with Role: ${adminRole.name}`);
+    // 3. Create Users
+    console.log(`Creating user accounts for all system roles...`);
+    const usersList = dataset.users || [dataset.user];
+    const createdUsers = [];
+
+    for (const u of usersList) {
+      const assignedRole = roleMap.get(u.roleName) || roleMap.get('Admin');
+      const createdUser = await User.create({
+        organizationId: org._id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        employeeId: u.employeeId,
+        email: u.email,
+        password: u.password,
+        department: u.department,
+        role: assignedRole._id,
+        status: u.status || 'ACTIVE'
+      });
+      createdUsers.push(createdUser);
+      console.log(`  ✔ [${assignedRole.name}] User created: ${createdUser.firstName} ${createdUser.lastName} (${createdUser.employeeId} / ${createdUser.email})`);
+    }
+    const singleUser = createdUsers[0];
 
     // 4. Create Categories
     console.log(`Creating product categories...`);
@@ -258,9 +264,8 @@ async function seedDatabase() {
     console.log(`✔ DATABASE SEEDING COMPLETED SUCCESSFULLY`);
     console.log(`------------------------------------------------------`);
     console.log(`Organization : ${org.name}`);
-    console.log(`Master User  : ${singleUser.employeeId} / ${singleUser.email}`);
-    console.log(`Password     : password123`);
-    console.log(`Role         : ${adminRole.name} (Permissions: *)`);
+    console.log(`Users Created: ${createdUsers.length} active role accounts`);
+    console.log(`Master Admin : ADMIN01 / admin@shivfurniture.in (password123)`);
     console.log(`Products     : ${productMap.size} loaded with initial inventory`);
     console.log(`Categories   : ${categoryMap.size}`);
     console.log(`Vendors      : ${vendorMap.size}`);
