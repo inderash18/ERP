@@ -181,6 +181,7 @@ export default function Signup() {
                                 </label>
                                 <input
                                     type="text"
+                                    autoComplete="username"
                                     value={employeeId}
                                     onChange={(e) => {
                                         setEmployeeId(e.target.value);
@@ -205,6 +206,7 @@ export default function Signup() {
                                 </label>
                                 <input
                                     type="text"
+                                    autoComplete="name"
                                     value={name}
                                     onChange={(e) => {
                                         setName(e.target.value);
@@ -229,6 +231,7 @@ export default function Signup() {
                                 </label>
                                 <input
                                     type="email"
+                                    autoComplete="email"
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);
@@ -254,6 +257,7 @@ export default function Signup() {
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
+                                        autoComplete="new-password"
                                         value={password}
                                         onChange={(e) => {
                                             setPassword(e.target.value);
@@ -287,6 +291,7 @@ export default function Signup() {
                                 <div className="relative">
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
+                                        autoComplete="new-password"
                                         value={confirmPassword}
                                         onChange={(e) => {
                                             setConfirmPassword(e.target.value);

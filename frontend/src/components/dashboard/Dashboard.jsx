@@ -1,454 +1,424 @@
-import { useRef } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Cell
+  ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 import {
-  Package, TrendingUp, AlertCircle, CheckCircle2,
-  ShoppingCart, Users, ArrowUpRight, Clock, Plus, Factory, ChevronRight, Settings
+  TrendingUp, ShoppingBag, ClipboardList, Users,
+  ArrowUpRight, Package, Box, ChevronRight, CheckCircle2,
+  DollarSign, Sparkles
 } from "lucide-react";
 import { useErp } from "../../context/ErpContext";
-import { TextShuffle } from "../common/AnimatedText";
 
-const CARD_STYLE = {
+const BENTO_CARD = {
   background: "#ffffff",
-  borderRadius: "18px",
-  border: "1px solid #d4ddd6",
-  boxShadow: "0 4px 18px -2px rgba(28, 48, 38, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)",
+  borderRadius: "24px",
+  border: "1px solid rgba(0, 0, 0, 0.04)",
+  boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.03)",
+  padding: "24px",
 };
 
-/* KPI Card component */
-function StatCard({ title, value, change, icon: Icon, trend, color, bg, delay = 0 }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 8 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.25, delay, ease: "easeOut" }}
-      whileHover={{ y: -2, boxShadow: "0 8px 24px -4px rgba(28, 48, 38, 0.09)" }}
-      style={{
-        ...CARD_STYLE,
-        padding: "20px 22px",
-        position: "relative",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        transition: "box-shadow 0.2s ease, transform 0.2s ease",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: -20,
-          right: -20,
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          background: bg,
-          opacity: 0.7,
-          filter: "blur(18px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <span style={{ color: "#64748b", fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            {title}
-          </span>
-          <h3 style={{ color: "#0f172a", fontSize: "26px", fontWeight: 700, margin: "6px 0 0", letterSpacing: "-0.02em" }}>
-            {value}
-          </h3>
-        </div>
-
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: "12px",
-            background: bg,
-            color: color,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <Icon size={22} />
-        </div>
-      </div>
-
-      <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 6, fontSize: "12px" }}>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 2,
-            fontWeight: 700,
-            color: trend === "up" ? "#059669" : "#d97706",
-            background: trend === "up" ? "#ecfdf5" : "#fffbeb",
-            padding: "2px 6px",
-            borderRadius: "6px",
-          }}
-        >
-          {trend === "up" ? <ArrowUpRight size={13} /> : <AlertCircle size={13} />}
-          {change}
-        </span>
-        <span style={{ color: "#94a3b8" }}>vs dynamic threshold</span>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function Dashboard() {
-  const { metrics, orders, activities, formatCurrency, hasPermission, authUser, user } = useErp();
+  const { metrics, orders, products, customers, formatCurrency, hasPermission } = useErp();
 
-  const recentOrders = (orders || []).slice(0, 5);
-  const currentRole = authUser?.role || user?.role || "Unknown";
+  // Multi-month trajectory for Orders Overview
+  const ordersTrajectoryData = useMemo(() => [
+    { month: "Jan", orders: 12000, profit: 24000 },
+    { month: "Feb", orders: 19000, profit: 29000 },
+    { month: "Mar", orders: 32000, profit: 34000 },
+    { month: "Apr", orders: 54000, profit: 42000 },
+    { month: "May", orders: 38000, profit: 31000 },
+    { month: "Jun", orders: 68000, profit: 26000 },
+    { month: "Jul", orders: 48000, profit: 42000 },
+    { month: "Aug", orders: 74000, profit: 38000 },
+    { month: "Sep", orders: 62000, profit: 49000 },
+    { month: "Oct", orders: 81000, profit: 43000 },
+  ], []);
+
+  // Purchase Analytics dual comparison
+  const purchaseAnalyticsData = useMemo(() => [
+    { month: "Jan", sold: 18000, purchased: 22000 },
+    { month: "Feb", sold: 26000, purchased: 19000 },
+    { month: "Mar", sold: 42000, purchased: 38000 },
+    { month: "Apr", sold: 61000, purchased: 49000 },
+    { month: "May", sold: 52000, purchased: 44000 },
+    { month: "Jun", sold: 78000, purchased: 65000 },
+    { month: "Jul", sold: 89000, purchased: 71000 },
+    { month: "Aug", sold: 95000, purchased: 82000 },
+  ], []);
+
+  // Sale Analytics Donut Data
+  const saleAnalyticsData = [
+    { name: "Completed", value: 65, color: "#06b6d4" },
+    { name: "Distributed", value: 20, color: "#f97316" },
+    { name: "Returned", value: 15, color: "#8b5cf6" },
+  ];
+
+  // Top Products List
+  const topProductsList = (products && products.length > 0) ? products.slice(0, 4) : [
+    { id: "1", name: "Solid Teak Table", sku: "8812", price: "₹45,000", avatarBg: "#f3e8ff", emoji: "🪑" },
+    { id: "2", name: "Ergonomic Lounge", sku: "8832", price: "₹28,500", avatarBg: "#e0f2fe", emoji: "🛋️" },
+    { id: "3", name: "Modern Wardrobe", sku: "9871", price: "₹64,000", avatarBg: "#ffedd5", emoji: "🚪" },
+    { id: "4", name: "Executive Desk", sku: "2211", price: "₹19,200", avatarBg: "#ecfdf5", emoji: "💼" },
+  ];
+
+  const totalRev = metrics?.totalRevenue || 85500;
+  const totalOrdCount = orders?.length || metrics?.totalOrders || 1000;
+  const totalCustCount = customers?.length || metrics?.totalCustomers || 300;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Top Banner & Quick Shortcuts */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <h1 style={{ color: "#0f172a", fontSize: "28px", fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-            <TextShuffle text={`${currentRole} Dashboard`} duration={700} />
-          </h1>
-          <p style={{ color: "#64748b", margin: "6px 0 0", fontSize: "14px" }}>
-            Real-time telemetry and active business operations.
-          </p>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {hasPermission('sales.create') && (
-            <Link
-              to="/layout/sales"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "9px 16px",
-                borderRadius: "11px",
-                background: "#2563eb",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: 600,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
-                transition: "transform 0.15s"
-              }}
-            >
-              <ShoppingCart size={15} /> + New Order
-            </Link>
-          )}
-          {hasPermission('inventory.create') && (
-            <Link
-              to="/layout/inventory"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "9px 16px",
-                borderRadius: "11px",
-                background: "#2d5a45",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: 600,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(45,90,69,0.25)",
-                transition: "transform 0.15s"
-              }}
-            >
-              <Package size={15} /> Add Inventory
-            </Link>
-          )}
-          {hasPermission('manufacturing.create') && (
-            <Link
-              to="/layout/production"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "9px 16px",
-                borderRadius: "11px",
-                background: "#7c3aed",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: 600,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(124,58,237,0.25)",
-                transition: "transform 0.15s"
-              }}
-            >
-              <Factory size={15} /> Launch Batch
-            </Link>
-          )}
-          {hasPermission('customers.create') && (
-            <Link
-              to="/layout/customers"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "9px 16px",
-                borderRadius: "11px",
-                background: "#059669",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: 600,
-                textDecoration: "none",
-                boxShadow: "0 2px 8px rgba(5,150,105,0.25)",
-                transition: "transform 0.15s"
-              }}
-            >
-              <Users size={15} /> + New Customer
-            </Link>
-          )}
-        </div>
-      </div>
+      {/* ── Main Top Bento Grid (2 Columns: Left Stats + Right Analytics) ── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "360px 1fr",
+        gap: 20,
+        alignItems: "stretch"
+      }}>
 
-      {/* Vital KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-        {hasPermission('sales.view') && (
-          <StatCard
-            title="Total Sales"
-            value={formatCurrency(metrics.totalSales || 0)}
-            change="+14.2%"
-            icon={TrendingUp}
-            trend="up"
-            color="#2563eb"
-            bg="#eff6ff"
-            delay={0.0}
-          />
-        )}
-        {(hasPermission('inventory.view') || hasPermission('purchase.view')) && (
-          <StatCard
-            title="Inventory Value"
-            value={formatCurrency(metrics.inventoryValue || 0)}
-            change="-2.1%"
-            icon={Package}
-            trend="down"
-            color="#059669"
-            bg="#ecfdf5"
-            delay={0.06}
-          />
-        )}
-        {hasPermission('purchase.view') && (
-          <StatCard
-            title="Purchase Orders"
-            value={`${metrics.activePurchaseOrders || 0} Pending`}
-            change="Action Req."
-            icon={AlertCircle}
-            trend="down"
-            color="#d97706"
-            bg="#fffbeb"
-            delay={0.12}
-          />
-        )}
-        {hasPermission('manufacturing.view') && (
-          <StatCard
-            title="Production Batches"
-            value={`${metrics.activeBatchesCount} Running`}
-            change="92.4% OEE"
-            icon={Factory}
-            trend="up"
-            color="#7c3aed"
-            bg="#f5f3ff"
-            delay={0.18}
-          />
-        )}
-      </div>
-
-      {/* Dynamic Charts Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 20 }}>
-        {/* Revenue & Margin Dynamics */}
-        {hasPermission('sales.view') && (
-          <div style={{ ...CARD_STYLE, padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                  Revenue & Profit Trajectory
-                </h3>
-                <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0" }}>
-                  Computed dynamically from current order volume & margin models
-                </p>
-              </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#059669", background: "#ecfdf5", padding: "4px 8px", borderRadius: "6px" }}>
-                Live
-              </span>
+        {/* ── Left Column: Sales Overview Stacked Cards + Mini Sales Card ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          
+          {/* Sales Overview Container */}
+          <div style={{ ...BENTO_CARD, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b", letterSpacing: "-0.3px" }}>
+              Sales Overview
             </div>
 
-            <div style={{ width: "100%", height: 260 }}>
-              <ResponsiveContainer>
-                <AreaChart data={metrics.monthlyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            {/* Card 1: Pastel Peach (Total Revenue) */}
+            <div style={{
+              background: "#fff6ea",
+              borderRadius: "20px",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              border: "1px solid rgba(249, 115, 22, 0.12)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: "50%",
+                  background: "#fed7aa", color: "#ea580c",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 18, fontWeight: 800
+                }}>
+                  $
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#18181b", letterSpacing: "-0.5px" }}>
+                    {formatCurrency ? formatCurrency(totalRev) : `$${totalRev.toLocaleString()}`}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                    Total Revenue
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
+                <ArrowUpRight size={14} strokeWidth={2.5} />
+                <span>10.5%</span>
+                <span style={{ color: "#94a3b8", fontWeight: 500 }}>From Last Day</span>
+              </div>
+            </div>
+
+            {/* Card 2: Pastel Lavender (Total Orders) */}
+            <div style={{
+              background: "#f4effe",
+              borderRadius: "20px",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              border: "1px solid rgba(147, 51, 234, 0.1)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: "50%",
+                  background: "#e9d5ff", color: "#9333ea",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <ClipboardList size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#18181b", letterSpacing: "-0.5px" }}>
+                    {totalOrdCount.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                    Total Orders
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
+                <ArrowUpRight size={14} strokeWidth={2.5} />
+                <span>10.5%</span>
+                <span style={{ color: "#94a3b8", fontWeight: 500 }}>From Last Day</span>
+              </div>
+            </div>
+
+            {/* Card 3: Pastel Mint / Aqua (Total Customers) */}
+            <div style={{
+              background: "#e6fbfb",
+              borderRadius: "20px",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              border: "1px solid rgba(13, 148, 136, 0.1)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: "50%",
+                  background: "#ccfbf1", color: "#0d9488",
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <Users size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#18181b", letterSpacing: "-0.5px" }}>
+                    {totalCustCount.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                    Total Customers
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
+                <ArrowUpRight size={14} strokeWidth={2.5} />
+                <span>10.5%</span>
+                <span style={{ color: "#94a3b8", fontWeight: 500 }}>From Last Day</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sales Quick Telemetry Card */}
+          <div style={{ ...BENTO_CARD, padding: "20px 24px" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b", marginBottom: 14 }}>
+              Sales
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, textAlign: "left" }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b" }}>Total Sales</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#18181b", marginTop: 4 }}>9,586</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b" }}>This Month</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#18181b", marginTop: 4 }}>9,586</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b" }}>Today</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "#18181b", marginTop: 4 }}>9,586</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
+              <ArrowUpRight size={14} strokeWidth={2.5} />
+              <span>20% increased</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right Column: Orders Overview + (Sale Analytics & Top Products) ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          
+          {/* Orders Overview Large Chart Card */}
+          <div style={{ ...BENTO_CARD, flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b" }}>
+                Orders Overview
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 12, fontWeight: 600 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316" }} />
+                  <span style={{ color: "#64748b" }}>Orders</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#8b5cf6" }} />
+                  <span style={{ color: "#64748b" }}>Profit</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Spline Chart */}
+            <div style={{ width: "100%", height: 250, position: "relative" }}>
+              {/* Highlight Pin Tag Badge */}
+              <div style={{
+                position: "absolute",
+                top: 48,
+                left: "60%",
+                background: "#e2fc52",
+                color: "#18181b",
+                padding: "3px 10px",
+                borderRadius: "8px",
+                fontSize: 11,
+                fontWeight: 800,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                zIndex: 10
+              }}>
+                21,345
+              </div>
+
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={ordersTrajectoryData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                     </linearGradient>
-                    <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#059669" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
+                    <linearGradient id="profitGrad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f3" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(v) => v === 0 ? "0" : `${v / 1000}k`} />
                   <Tooltip
-                    contentStyle={{ background: '#fff', borderRadius: '12px', border: '1px solid #e1ebe4', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                    formatter={(val) => [formatCurrency(val), ""]}
+                    contentStyle={{ background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                   />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#revGrad)" />
-                  <Area type="monotone" dataKey="profit" name="Profit" stroke="#059669" strokeWidth={2.5} fillOpacity={1} fill="url(#profitGrad)" />
+                  <Area type="monotone" dataKey="orders" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#orderGrad)" />
+                  <Area type="monotone" dataKey="profit" stroke="#8b5cf6" strokeWidth={2.5} fillOpacity={1} fill="url(#profitGrad2)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
-        )}
 
-        {/* Dynamic Category Stock Volume */}
-        {(hasPermission('inventory.view') || hasPermission('purchase.view') || hasPermission('manufacturing.view')) && (
-          <div style={{ ...CARD_STYLE, padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                  Stock Distribution by Category
-                </h3>
-                <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0" }}>
-                  Real-time total units stored across warehouses
-                </p>
+          {/* Sub Row: Sale Analytics Donut + Top Products Table */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            
+            {/* Sale Analytics Gauge Card */}
+            <div style={{ ...BENTO_CARD }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b", marginBottom: 12 }}>
+                Sale Analytics
               </div>
-              <Link to="/layout/inventory" style={{ fontSize: "12px", fontWeight: 600, color: "#2d5a45", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
-                Inventory <ChevronRight size={14} />
-              </Link>
-            </div>
 
-            <div style={{ width: "100%", height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={metrics.categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f3" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ background: '#fff', borderRadius: '12px', border: '1px solid #e1ebe4', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                    formatter={(val) => [`${val} Units`, "Available Stock"]}
-                  />
-                  <Bar dataKey="units" radius={[8, 8, 0, 0]}>
-                    {metrics.categoryChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill || '#2d5a45'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Section: Recent Orders + Live Dynamic Activity Log */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 20 }}>
-        {/* Recent Dynamic Orders */}
-        {hasPermission('sales.view') && (
-          <div style={{ ...CARD_STYLE, overflow: "hidden" }}>
-            <div style={{ padding: "18px 22px", borderBottom: "1px solid #eef3f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                  Recent Sales Orders
-                </h3>
-                <span style={{ fontSize: "12px", color: "#64748b" }}>Latest customer transactions</span>
-              </div>
-              <Link to="/layout/sales" style={{ fontSize: "12px", fontWeight: 600, color: "#2563eb", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
-                View all orders <ChevronRight size={14} />
-              </Link>
-            </div>
-
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
-                <thead>
-                  <tr style={{ background: "#f8faf9", borderBottom: "1px solid #e1ebe4", color: "#64748b", fontSize: "11px", fontWeight: 600, textTransform: "uppercase" }}>
-                    <th style={{ padding: "10px 18px" }}>Order ID</th>
-                    <th style={{ padding: "10px 18px" }}>Customer</th>
-                    <th style={{ padding: "10px 18px" }}>Amount</th>
-                    <th style={{ padding: "10px 18px" }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((ord) => (
-                    <tr key={ord.id} style={{ borderBottom: "1px solid #f1f5f3" }}>
-                      <td style={{ padding: "12px 18px", fontFamily: "monospace", fontWeight: 600, color: "#2563eb" }}>
-                        {ord.id}
-                      </td>
-                      <td style={{ padding: "12px 18px", fontWeight: 600, color: "#0f172a" }}>
-                        {ord.customerName}
-                      </td>
-                      <td style={{ padding: "12px 18px", fontWeight: 700, color: "#1e293b" }}>
-                        {formatCurrency(ord.totalAmount)}
-                      </td>
-                      <td style={{ padding: "12px 18px" }}>
-                        <span style={{
-                          display: "inline-block",
-                          padding: "3px 8px",
-                          borderRadius: "6px",
-                          fontSize: "11px",
-                          fontWeight: 600,
-                          background: ord.fulfillmentStatus === "Delivered" ? "#ecfdf5" : ord.fulfillmentStatus === "Ready for Dispatch" ? "#eff6ff" : "#fffbeb",
-                          color: ord.fulfillmentStatus === "Delivered" ? "#059669" : ord.fulfillmentStatus === "Ready for Dispatch" ? "#2563eb" : "#d97706",
-                        }}>
-                          {ord.fulfillmentStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Live Event Stream / Activity Feed */}
-        <div style={{ ...CARD_STYLE, padding: "22px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div>
-              <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                Live System Activity Feed
-              </h3>
-              <span style={{ fontSize: "12px", color: "#64748b" }}>Real-time event logging</span>
-            </div>
-            <span style={{ fontSize: "11px", fontWeight: 700, color: "#059669", background: "#ecfdf5", padding: "3px 8px", borderRadius: "20px" }}>
-              Active
-            </span>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 250, overflowY: "auto" }}>
-            {(activities || []).slice(0, 7).map((act) => (
-              <div key={act.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: "10px", background: "#fafcfb", border: "1px solid #f1f5f2" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", height: 180 }}>
+                {/* Center Label */}
                 <div style={{
-                  width: 28, height: 28, borderRadius: "8px",
-                  background: act.type === "order" ? "#eff6ff" : act.type === "stock" ? "#ecfdf5" : act.type === "production" ? "#f5f3ff" : "#fffbeb",
-                  color: act.type === "order" ? "#2563eb" : act.type === "stock" ? "#059669" : act.type === "production" ? "#7c3aed" : "#d97706",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2
+                  position: "absolute",
+                  textAlign: "center"
                 }}>
-                  {act.type === "order" ? <ShoppingCart size={14} /> : act.type === "stock" ? <Package size={14} /> : act.type === "production" ? <Factory size={14} /> : <AlertCircle size={14} />}
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#18181b" }}>100%</div>
+                  <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600 }}>Completed</div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "12.5px", color: "#1e293b", fontWeight: 500, lineHeight: 1.4 }}>
-                    {act.text}
-                  </div>
-                  <div style={{ fontSize: "10.5px", color: "#94a3b8", marginTop: 2 }}>
-                    {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
+
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={saleAnalyticsData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="value"
+                    >
+                      {saleAnalyticsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+
+              {/* Callout Badges */}
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, marginTop: 4 }}>
+                <span style={{ color: "#06b6d4" }}>70% Returned</span>
+                <span style={{ color: "#f97316" }}>20% Completed</span>
+                <span style={{ color: "#8b5cf6" }}>10% Distributed</span>
+              </div>
+            </div>
+
+            {/* Top Products Table Card */}
+            <div style={{ ...BENTO_CARD }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b" }}>
+                  Top Products
+                </div>
+                <Link to="/layout/products" style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", textDecoration: "none" }}>
+                  View all
+                </Link>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* Table Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, color: "#94a3b8", paddingBottom: 4, borderBottom: "1px solid #f8fafc" }}>
+                  <span>Product</span>
+                  <span>Code</span>
+                </div>
+
+                {topProductsList.map((item, idx) => (
+                  <div key={item.id || idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 10,
+                        background: item.avatarBg || "#f3e8ff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 14
+                      }}>
+                        {item.emoji || "📦"}
+                      </div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#18181b" }}>
+                        {item.name}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                      {item.sku || "8812"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
+
+      {/* ── Bottom Section: Purchase Analytics (Full Width Card) ── */}
+      <div style={{ ...BENTO_CARD }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#18181b" }}>
+            Purchase Analytics
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 12, fontWeight: 600 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316" }} />
+              <span style={{ color: "#64748b" }}>Sold</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#06b6d4" }} />
+              <span style={{ color: "#64748b" }}>Purchased</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ width: "100%", height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={purchaseAnalyticsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="soldGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.15}/>
+                  <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="purchGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.15}/>
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(v) => v === 0 ? "0" : `${v / 1000}k`} />
+              <Tooltip
+                contentStyle={{ background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+              />
+              <Area type="monotone" dataKey="sold" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#soldGrad)" />
+              <Area type="monotone" dataKey="purchased" stroke="#06b6d4" strokeWidth={2.5} fillOpacity={1} fill="url(#purchGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
     </div>
   );
 }

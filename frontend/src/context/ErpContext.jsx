@@ -468,16 +468,22 @@ export function ErpProvider({ children }) {
   }, [settings?.currencySymbol]);
 
   // Value object
-  const value = useMemo(() => ({
-    // Auth & Permissions
-    authUser,
-    user: authUser,
-    token,
-    isAuthLoading,
-    hasPermission,
-    loginUser,
-    signupUser,
-    logoutUser,
+  const value = useMemo(() => {
+    const roleUpper = (authUser?.role || '').toUpperCase();
+    const isUserAdmin = roleUpper === 'ADMIN' || roleUpper === 'SYSTEM ADMINISTRATOR' || roleUpper === 'BUSINESS OWNER' || (authUser?.permissions || []).includes('*');
+
+    return {
+      // Auth & Permissions
+      authUser,
+      user: authUser,
+      isAuthenticated: Boolean(authUser),
+      isAdmin: isUserAdmin,
+      token,
+      isAuthLoading,
+      hasPermission,
+      loginUser,
+      signupUser,
+      logoutUser,
 
     // Data State
     products,
@@ -537,7 +543,8 @@ export function ErpProvider({ children }) {
     deleteCustomer,
 
     formatCurrency
-  }), [
+  };
+}, [
     authUser,
     token,
     isAuthLoading,

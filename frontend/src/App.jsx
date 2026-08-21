@@ -115,7 +115,7 @@ function AnimatedRoutes() {
 function App() {
   return (
     <ErpProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AnimatedRoutes />
       </BrowserRouter>
     </ErpProvider>

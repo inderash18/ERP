@@ -1,31 +1,21 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield, Box, Truck, FileText } from "lucide-react";
+import { 
+  Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, 
+  Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield, 
+  Box, Truck, FileText, ChevronRight, Search, Moon, HelpCircle,
+  Plus, Sparkles, Command, SlidersHorizontal
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useErp } from "../../context/ErpContext";
 import RouteTransition from "./RouteTransition";
-import LiquidCursor from "../common/LiquidCursor";
-import { 
-  CharMorph, TextFlip, ClipReveal,
-  ElasticText, PerspectiveText, TextShuffle
-} from "../common/AnimatedText";
-
-/* One animation per nav item — plays only when that item becomes active */
-const NAV_ANIM = [
-  (t) => <CharMorph       text={t} stagger={0.04}  />,
-  (t) => <TextShuffle     text={t} duration={600}  />,
-  (t) => <TextFlip        text={t} stagger={0.05}  />,
-  (t) => <ElasticText     text={t} stagger={0.04}  />,
-  (t) => <PerspectiveText text={t} stagger={0.05}  />,
-  (t) => <ClipReveal      text={t} stagger={0.04}  />,
-  (t) => <TextShuffle     text={t} duration={500}  />,
-];
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, authUser, metrics, resetToDefaultData, logoutUser, hasPermission } = useErp();
+  const { user, authUser, metrics, dashboardMetrics, logoutUser, hasPermission } = useErp();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = async () => {
     await logoutUser();
@@ -33,20 +23,20 @@ export default function Layout() {
   };
 
   const rawNavItems = [
-    { name: "Dashboard",    path: "/layout",            icon: LayoutDashboard, count: null,                      perm: 'all' },
-    { name: "Products",     path: "/layout/products",   icon: Box,             count: null,                      perm: 'inventory.view' },
-    { name: "Inventory",    path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0, perm: 'inventory.view' },
-    { name: "Suppliers",    path: "/layout/suppliers",  icon: Truck,           count: null,                      perm: 'suppliers.view' },
-    { name: "Purchases",    path: "/layout/purchase",   icon: FileText,        count: null,                      perm: 'purchase.view' },
-    { name: "Sales",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null, perm: 'sales.view' },
-    { name: "Production",   path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null, perm: 'manufacturing.view' },
-    { name: "Customers",    path: "/layout/customers",  icon: Users,           count: null,                      perm: 'customers.view' },
-    { name: "Users & RBAC", path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
-    { name: "Settings",     path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
+    { name: "Dashboard",       path: "/layout",            icon: LayoutDashboard, count: null,                      perm: 'all' },
+    { name: "Sales & POS",     path: "/layout/sales",      icon: ShoppingCart,    count: metrics?.pendingDeliveries > 0 ? `${metrics.pendingDeliveries}` : null, perm: 'sales.view' },
+    { name: "Products",        path: "/layout/products",   icon: Box,             count: null,                      perm: 'inventory.view' },
+    { name: "Inventory",       path: "/layout/inventory",  icon: Package,         count: metrics?.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics?.lowStockCount > 0, perm: 'inventory.view' },
+    { name: "Purchases",       path: "/layout/purchase",   icon: FileText,        count: metrics?.pendingReceipts > 0 ? `${metrics.pendingReceipts}` : null, perm: 'purchase.view' },
+    { name: "Manufacturing",   path: "/layout/production", icon: Factory,         count: metrics?.activeManufacturing > 0 ? `${metrics.activeManufacturing}` : null, perm: 'manufacturing.view' },
+    { name: "Suppliers",       path: "/layout/suppliers",  icon: Truck,           count: null,                      perm: 'suppliers.view' },
+    { name: "Customers & CRM", path: "/layout/customers",  icon: Users,           count: null,                      perm: 'customers.view' },
+    { name: "Users & RBAC",    path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
+    { name: "Settings",        path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
   ];
 
-  const currentRole = authUser?.role || user?.role || '';
-  const isAdmin = currentRole.toUpperCase() === 'ADMIN' || currentRole.toUpperCase() === 'SYSTEM ADMINISTRATOR';
+  const currentRole = (authUser?.role || user?.role || 'User').toUpperCase();
+  const isAdmin = currentRole === 'ADMIN' || currentRole === 'SYSTEM ADMINISTRATOR' || currentRole === 'BUSINESS OWNER' || (authUser?.permissions || []).includes('*');
 
   const navItems = rawNavItems.filter(item => {
     if (item.perm === 'all') return true;
@@ -60,268 +50,300 @@ export default function Layout() {
     return location.pathname.startsWith(path);
   };
 
-  return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#e8eee9" }}>
+  const alertsList = metrics?.alerts || dashboardMetrics?.lowStockAlerts || [];
 
-      {/* ── Sidebar ─────────────────────────────────── */}
+  const getUserFirstName = () => {
+    const fullName = user?.name || user?.firstName || authUser?.name || 'Admin';
+    return fullName.split(' ')[0];
+  };
+
+  return (
+    <div style={{
+      display: "flex",
+      height: "100vh",
+      overflow: "hidden",
+      background: "#f8fafd",
+      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    }}>
+
+      {/* ── macOS Frosted Acrylic Sidebar ──────────────────────── */}
       <aside style={{
-        width: 250, flexShrink: 0,
+        width: 255, flexShrink: 0,
         display: "flex", flexDirection: "column",
-        background: "#fff",
-        borderRight: "1px solid #d4ddd6",
-        boxShadow: "2px 0 16px rgba(30,50,40,0.06)",
+        background: "rgba(242, 246, 252, 0.85)",
+        backdropFilter: "blur(30px) saturate(190%)",
+        borderRight: "1px solid rgba(0, 0, 0, 0.08)",
+        padding: "16px 14px 14px",
         position: "relative",
         zIndex: 20
       }}>
 
-        {/* Logo */}
-        <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid #e8eee9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 10, background: "#405b4d",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px",
-              boxShadow: "0 2px 8px rgba(64,91,77,0.3)"
-            }}>ERP</div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#17241d", letterSpacing: "-0.3px", lineHeight: 1.2 }}>
-                Mini-ERP
-              </div>
-              <span style={{ fontSize: 11, color: "#8a968f", fontWeight: 500 }}>
-                Live Operations v2.4
-              </span>
+        {/* macOS Window Controls (Traffic Lights) */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "2px 8px 16px" }}>
+          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ff5f56", border: "1px solid #e0443e", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
+          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ffbd2e", border: "1px solid #dea123", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
+          <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#27c93f", border: "1px solid #1aab29", boxShadow: "inset 0 1px 1px rgba(255,255,255,0.4)" }} />
+        </div>
+
+        {/* Google Workspace Brand Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 16px" }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10,
+            background: "linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#ffffff",
+            boxShadow: "0 2px 8px rgba(26, 115, 232, 0.3)"
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 900 }}>SF</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#1f1f1f", letterSpacing: "-0.2px", lineHeight: 1.2 }}>
+              Shiv Furniture
+            </div>
+            <div style={{ fontSize: 11, color: "#5f6368", fontWeight: 500 }}>
+              Enterprise ERP
             </div>
           </div>
         </div>
 
-        {/* User Card */}
-        <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f2", background: "#fafcfb" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "#2d5a45", color: "#ffffff",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 700
-            }}>
-              {user?.avatar || "AR"}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#17241d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {user?.name || "Alexander Reed"}
-              </div>
-              <div style={{ fontSize: 11, color: "#8a968f", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {user?.role || "Operations Director"}
-              </div>
-            </div>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 0 2px #d1fae5" }} title="Live Online" />
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3, overflowY: "auto" }}>
-          {navItems.map((item, idx) => {
-            const active     = isActive(item.path);
-            const renderText = NAV_ANIM[idx];
+        {/* Google Material 3 Navigation Items */}
+        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, overflowY: "auto" }}>
+          {navItems.map((item) => {
+            const active = isActive(item.path);
 
             return (
               <Link
                 key={item.name}
                 to={item.path}
                 style={{
-                  display: "flex", alignItems: "center", gap: 11,
-                  padding: "9px 12px", borderRadius: 12,
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "9px 14px",
+                  borderRadius: "9999px",
                   textDecoration: "none",
-                  color:      active ? "#405b4d" : "#6b7c71",
-                  background: active ? "#e8eee9" : "transparent",
-                  fontWeight: active ? 660 : 500,
+                  color: active ? "#0b57d0" : "#444746",
+                  background: active ? "#d3e3fd" : "transparent",
+                  fontWeight: active ? 600 : 500,
                   fontSize: 13.5,
-                  transition: "background 0.18s, color 0.18s",
+                  transition: "all 0.15s ease",
                   position: "relative"
                 }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.background = "#f3f7f4"; }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                onMouseEnter={e => {
+                  if (!active) e.currentTarget.style.background = "#e9eef6";
+                }}
+                onMouseLeave={e => {
+                  if (!active) e.currentTarget.style.background = "transparent";
+                }}
               >
                 {/* Icon */}
                 <motion.span
                   key={`${item.path}-${active}`}
-                  initial={active ? { scale: 0.75 } : { scale: 1 }}
+                  initial={active ? { scale: 0.85 } : { scale: 1 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 380, damping: 20 }}
-                  style={{ display: "flex", flexShrink: 0 }}
+                  style={{ display: "flex", flexShrink: 0, color: active ? "#0b57d0" : "#444746" }}
                 >
-                  <item.icon size={17} />
+                  <item.icon size={18} strokeWidth={active ? 2.3 : 1.8} />
                 </motion.span>
 
                 {/* Text */}
-                <span style={{ flex: 1, display: "flex", alignItems: "center", minHeight: 20 }}>
-                  <AnimatePresence mode="wait">
-                    {active ? (
-                      <motion.span key={`on-${item.path}`} style={{ display: "inline-flex" }}>
-                        {renderText(item.name)}
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key={`off-${item.path}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.12 }}
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {item.name}
                 </span>
 
-                {/* Dynamic count badge */}
+                {/* Badge */}
                 {item.count && (
                   <span style={{
-                    fontSize: 10,
+                    fontSize: 10.5,
                     fontWeight: 700,
-                    padding: "2px 7px",
-                    borderRadius: 10,
-                    background: item.alert ? "#fef3c7" : "#e2e8f0",
-                    color: item.alert ? "#92400e" : "#475569",
-                    lineHeight: 1.2
+                    padding: "2px 8px",
+                    borderRadius: "9999px",
+                    background: item.alert ? "#fef3c7" : "#e0e3e7",
+                    color: item.alert ? "#b45309" : "#444746"
                   }}>
                     {item.count}
                   </span>
                 )}
-
-                {/* Active dot */}
-                <AnimatePresence>
-                  {active && (
-                    <motion.div
-                      key="dot"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{   scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                      style={{ width: 6, height: 6, borderRadius: "50%", background: "#405b4d", flexShrink: 0 }}
-                    />
-                  )}
-                </AnimatePresence>
               </Link>
             );
           })}
         </nav>
 
-        {/* Quick system reset & Logout */}
-        <div style={{ padding: "10px 12px", borderTop: "1px solid #e8eee9", display: "flex", flexDirection: "column", gap: 4 }}>
-          <button
-            onClick={() => {
-              if (window.confirm("Reset all ERP data to default demo datasets?")) {
-                resetToDefaultData();
-              }
-            }}
-            style={{
-              display: "flex", alignItems: "center", gap: 9, width: "100%",
-              padding: "7px 10px", borderRadius: 8, border: "none",
-              background: "transparent", color: "#8a968f",
-              fontSize: 12, fontWeight: 500, cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = "#2d5a45"; e.currentTarget.style.background = "#eef4f0"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#8a968f"; e.currentTarget.style.background = "transparent"; }}
-          >
-            <RotateCcw size={14} />
-            <span>Reset Demo Data</span>
-          </button>
+        {/* User Card & Logout */}
+        <div style={{ marginTop: "auto", borderTop: "1px solid rgba(0, 0, 0, 0.08)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 8px" }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: "#1a73e8", color: "#ffffff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 12, fontWeight: 700
+            }}>
+              {getUserFirstName()[0]}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1f1f1f", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {user?.name || getUserFirstName()}
+              </div>
+              <div style={{ fontSize: 11, color: "#5f6368" }}>
+                {currentRole}
+              </div>
+            </div>
+          </div>
 
           <button
             onClick={handleLogout}
             style={{
-              display: "flex", alignItems: "center", gap: 9, width: "100%",
-              padding: "7px 10px", borderRadius: 8, border: "none",
-              background: "transparent", color: "#8b948e",
-              fontSize: 12.5, fontWeight: 500, cursor: "pointer",
-              transition: "color 0.15s, background 0.15s",
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "8px 12px", borderRadius: "9999px", border: "none",
+              background: "transparent", color: "#d93025",
+              fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+              transition: "all 0.15s ease"
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = "#c0392b"; e.currentTarget.style.background = "#fdf0ee"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#8b948e"; e.currentTarget.style.background = "transparent"; }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#fce8e6"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
           >
             <LogOut size={15} />
-            <span>Logout</span>
+            <span>Sign out</span>
           </button>
         </div>
       </aside>
 
-      {/* ── Page content + Top Bar ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh" }}>
+      {/* ── Main Workspace ─────────────────────────────────────── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh", overflow: "hidden" }}>
         
-        {/* Top Live Bar */}
+        {/* Google / macOS Top App Bar */}
         <header style={{
-          height: 60,
+          height: 64,
           background: "#ffffff",
-          borderBottom: "1px solid #d4ddd6",
+          borderBottom: "1px solid #e1e3e1",
           padding: "0 28px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexShrink: 0,
-          boxShadow: "0 2px 10px rgba(30,50,40,0.02)",
-          position: "relative",
-          zIndex: 10
+          boxShadow: "0 1px 3px rgba(60,64,67,0.08)"
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          {/* Google-Style Global Search Capsule */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "#edf2fa",
+            borderRadius: "9999px",
+            padding: "8px 18px",
+            width: 440,
+            transition: "all 0.2s ease"
+          }}>
+            <Search size={17} color="#5f6368" />
+            <input
+              type="text"
+              placeholder="Search orders, products, inventory, customers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                border: "none",
+                background: "transparent",
+                outline: "none",
+                fontSize: 13,
+                color: "#1f1f1f",
+                width: "100%"
+              }}
+            />
             <span style={{
-              display: "inline-flex",
+              fontSize: 10,
+              fontWeight: 700,
+              background: "#ffffff",
+              color: "#5f6368",
+              padding: "2px 6px",
+              borderRadius: 6,
+              border: "1px solid #dadce0"
+            }}>
+              ⌘K
+            </span>
+          </div>
+
+          {/* Right Action Icons & Status */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
+            {/* Live Database Sync Badge */}
+            <div style={{
+              display: "flex",
               alignItems: "center",
               gap: 6,
               fontSize: 12,
               fontWeight: 600,
-              padding: "4px 10px",
-              borderRadius: 20,
-              background: "#ecfdf5",
-              color: "#059669",
-              border: "1px solid #d1fae5"
+              color: "#137333",
+              background: "#e6f4ea",
+              padding: "4px 12px",
+              borderRadius: "9999px",
+              border: "1px solid #ceead6"
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
-              Live Dynamic Reactive Sync
-            </span>
-          </div>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34a853" }} />
+              MongoDB Connected
+            </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
             {/* Notification Bell */}
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               style={{
                 position: "relative",
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                border: "1px solid #d1ded5",
-                background: showNotifications ? "#e8eee9" : "#ffffff",
-                color: "#405b4d",
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                border: "none",
+                background: showNotifications ? "#e8f0fe" : "transparent",
+                color: "#444746",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                transition: "all 0.15s"
+                transition: "all 0.15s ease"
               }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#f1f3f4"; }}
+              onMouseLeave={e => { if (!showNotifications) e.currentTarget.style.background = "transparent"; }}
             >
-              <Bell size={17} />
-              {metrics.alerts.length > 0 && (
+              <Bell size={18} />
+              {alertsList.length > 0 && (
                 <span style={{
                   position: "absolute",
-                  top: -4,
-                  right: -4,
-                  width: 18,
-                  height: 18,
+                  top: 2,
+                  right: 2,
+                  width: 16,
+                  height: 16,
                   borderRadius: "50%",
-                  background: "#ef4444",
+                  background: "#ea4335",
                   color: "#fff",
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: 700,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   border: "2px solid #fff"
                 }}>
-                  {metrics.alerts.length}
+                  {alertsList.length}
                 </span>
               )}
             </button>
+
+            {/* Google Multi-Color Avatar */}
+            <div style={{
+              width: 34, height: 34,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #ea4335 0%, #fbbc04 50%, #34a853 100%)",
+              padding: 2,
+              cursor: "pointer"
+            }}>
+              <div style={{
+                width: "100%", height: "100%",
+                borderRadius: "50%",
+                background: "#ffffff",
+                color: "#1a73e8",
+                fontSize: 13,
+                fontWeight: 800,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                {getUserFirstName()[0]}
+              </div>
+            </div>
 
             {/* Notification Dropdown */}
             <AnimatePresence>
@@ -336,56 +358,34 @@ export default function Layout() {
                     right: 0,
                     width: 340,
                     background: "#ffffff",
-                    borderRadius: 14,
-                    border: "1px solid #d4ddd6",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                    borderRadius: 18,
+                    border: "1px solid #e1e3e1",
+                    boxShadow: "0 8px 24px rgba(60,64,67,0.15)",
                     padding: 16,
                     zIndex: 50
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: "1px solid #f1f5f2", paddingBottom: 8 }}>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#17241d" }}>
-                      Live Alerts ({metrics.alerts.length})
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: "1px solid #f1f3f4", paddingBottom: 8 }}>
+                    <h4 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "#1f1f1f" }}>
+                      System Alerts ({alertsList.length})
                     </h4>
-                    <button
-                      onClick={() => setShowNotifications(false)}
-                      style={{ border: "none", background: "transparent", color: "#94a3b8", cursor: "pointer", padding: 2 }}
-                    >
-                      <X size={16} />
+                    <button onClick={() => setShowNotifications(false)} style={{ border: "none", background: "transparent", color: "#5f6368", cursor: "pointer" }}>
+                      <X size={15} />
                     </button>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
-                    {metrics.alerts.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "20px 0", color: "#94a3b8", fontSize: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+                    {alertsList.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "20px 0", color: "#5f6368", fontSize: 12 }}>
                         No current alerts. All systems normal.
                       </div>
                     ) : (
-                      metrics.alerts.map((alt) => (
-                        <div
-                          key={alt.id}
-                          style={{
-                            padding: "10px 12px",
-                            borderRadius: 10,
-                            background: alt.type === "warning" ? "#fffbeb" : "#eff6ff",
-                            border: `1px solid ${alt.type === "warning" ? "#fef3c7" : "#dbeafe"}`,
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 10
-                          }}
-                        >
-                          {alt.type === "warning" ? (
-                            <AlertTriangle size={16} color="#d97706" style={{ marginTop: 2, flexShrink: 0 }} />
-                          ) : (
-                            <CheckCircle2 size={16} color="#2563eb" style={{ marginTop: 2, flexShrink: 0 }} />
-                          )}
+                      alertsList.map((alt, aIdx) => (
+                        <div key={alt.id || aIdx} style={{ padding: "10px 12px", borderRadius: 12, background: "#fef7e0", border: "1px solid #feefc3", display: "flex", gap: 8 }}>
+                          <AlertTriangle size={15} color="#b06000" style={{ marginTop: 2, flexShrink: 0 }} />
                           <div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: alt.type === "warning" ? "#92400e" : "#1e40af" }}>
-                              {alt.title}
-                            </div>
-                            <div style={{ fontSize: 11, color: alt.type === "warning" ? "#b45309" : "#3b82f6", marginTop: 2 }}>
-                              {alt.desc}
-                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#1f1f1f" }}>{alt.title || alt.productName || 'Low Stock Alert'}</div>
+                            <div style={{ fontSize: 11, color: "#5f6368" }}>{alt.message || `${alt.productName || 'Product'}: ${alt.onHand ?? 0} in stock`}</div>
                           </div>
                         </div>
                       ))
@@ -397,14 +397,20 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* Main page content scroll area */}
-        <main className="scroll-container" style={{ flex: 1, overflowY: "auto", background: "#e8eee9" }}>
-          <div style={{ padding: 28, maxWidth: 1360, margin: "0 auto", minHeight: "100%" }}>
-            <Outlet />
+        {/* Page Content View */}
+        <main style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "24px 28px",
+          background: "#f8fafd"
+        }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+            <RouteTransition>
+              <Outlet />
+            </RouteTransition>
           </div>
         </main>
       </div>
-
     </div>
   );
 }

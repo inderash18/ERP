@@ -4,7 +4,7 @@ import { useErp } from '../../context/ErpContext';
 import AccessDenied from './AccessDenied';
 
 export default function RoleRoute({ permission, children }) {
-  const { authUser, user, hasPermission, isAuthLoading } = useErp();
+  const { authUser, user, isAuthenticated, hasPermission, isAuthLoading } = useErp();
 
   if (isAuthLoading) {
     return (
@@ -14,7 +14,7 @@ export default function RoleRoute({ permission, children }) {
     );
   }
 
-  const authenticated = Boolean(authUser?.token || user?.token);
+  const authenticated = Boolean(isAuthenticated || authUser || user);
   if (!authenticated) {
     return <Navigate to="/login" replace />;
   }
