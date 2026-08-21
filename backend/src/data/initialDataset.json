@@ -1,0 +1,319 @@
+{
+  "organization": {
+    "name": "Shiv Furniture Works",
+    "domain": "shivfurniture.in",
+    "status": "ACTIVE",
+    "settings": {
+      "currency": "INR",
+      "currencySymbol": "₹",
+      "timezone": "Asia/Kolkata",
+      "taxRate": 18,
+      "lowStockThresholdPercent": 20
+    }
+  },
+  "roles": [
+    {
+      "name": "Admin",
+      "permissions": ["*"],
+      "isSystem": true
+    },
+    {
+      "name": "Business Owner",
+      "permissions": ["*"],
+      "isSystem": true
+    },
+    {
+      "name": "Sales User",
+      "permissions": ["sales.*", "customer.*", "product.view", "inventory.view"],
+      "isSystem": false
+    },
+    {
+      "name": "Purchase User",
+      "permissions": ["purchase.*", "vendor.*", "product.view", "inventory.view"],
+      "isSystem": false
+    },
+    {
+      "name": "Manufacturing User",
+      "permissions": ["manufacturing.*", "bom.*", "product.view", "inventory.view"],
+      "isSystem": false
+    },
+    {
+      "name": "Inventory Manager",
+      "permissions": ["inventory.*", "product.view", "product.create", "product.edit"],
+      "isSystem": false
+    }
+  ],
+  "user": {
+    "firstName": "Super",
+    "lastName": "Admin",
+    "employeeId": "ADMIN01",
+    "email": "admin@shivfurniture.in",
+    "password": "password123",
+    "department": "Executive",
+    "roleName": "Admin",
+    "status": "ACTIVE"
+  },
+  "categories": [
+    { "name": "Finished Furniture", "description": "Finished custom and batch furniture ready for dispatch" },
+    { "name": "Raw Wood & Timber", "description": "Teak, Sheesham, Oak logs and sawn timber planks" },
+    { "name": "Hardware & Fasteners", "description": "Screws, bolts, hinges, drawer channels and metal fittings" },
+    { "name": "Fabrics & Upholstery", "description": "Foam cushions, velvet fabrics, leatherette and padding" },
+    { "name": "Paints & Finishes", "description": "Wood stains, varnishes, sealers, and protective lacquers" }
+  ],
+  "vendors": [
+    {
+      "name": "National Timber Suppliers",
+      "email": "orders@nationaltimber.in",
+      "phone": "+91 98201 11223",
+      "address": { "street": "Timber Market Yard 4", "city": "Mumbai", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Apex Hardware & Screws Ltd",
+      "email": "sales@apexhardware.in",
+      "phone": "+91 98202 33445",
+      "address": { "street": "MIDC Industrial Area", "city": "Pune", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Heritage Upholstery & Fabrics",
+      "email": "supply@heritagefabrics.in",
+      "phone": "+91 98203 55667",
+      "address": { "street": "Textile Complex 12", "city": "Surat", "state": "GJ", "country": "India" },
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Asian Paints & Coatings Depot",
+      "email": "depot@coatingsasia.in",
+      "phone": "+91 98204 77889",
+      "address": { "street": "Chemical Zone Plot 8", "city": "Thane", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    }
+  ],
+  "customers": [
+    {
+      "name": "Royal Grand Hotel & Suites",
+      "email": "procurement@royalgrandhotel.in",
+      "phone": "+91 98111 22334",
+      "address": { "street": "Marine Drive Promenade", "city": "Mumbai", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Urban Spaces Interior Studio",
+      "email": "projects@urbanspaces.in",
+      "phone": "+91 98222 44556",
+      "address": { "street": "Bandra Kurla Complex", "city": "Mumbai", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    },
+    {
+      "name": "Decora Modern Home Solutions",
+      "email": "contact@decorahomes.in",
+      "phone": "+91 98333 66778",
+      "address": { "street": "Koregaon Park Road", "city": "Pune", "state": "MH", "country": "India" },
+      "status": "ACTIVE"
+    }
+  ],
+  "workCenters": [
+    { "name": "Woodworking & Cutting Bay", "code": "WC-CUT-01", "costPerHour": 450, "capacity": 100 },
+    { "name": "Assembly Line 1", "code": "WC-ASSY-01", "costPerHour": 350, "capacity": 80 },
+    { "name": "Polishing & Finishing Floor", "code": "WC-FIN-01", "costPerHour": 400, "capacity": 60 },
+    { "name": "Upholstery & Cushioning Station", "code": "WC-UPH-01", "costPerHour": 380, "capacity": 70 },
+    { "name": "Packaging & Quality Bay", "code": "WC-PKG-01", "costPerHour": 250, "capacity": 120 }
+  ],
+  "products": [
+    {
+      "name": "Solid Teak Dining Table",
+      "sku": "TBL-TEAK-01",
+      "categoryName": "Finished Furniture",
+      "type": "Finished Good",
+      "unit": "pcs",
+      "salesPrice": 45000,
+      "costPrice": 28000,
+      "procurementStrategy": "MTO",
+      "procurementType": "MANUFACTURING",
+      "reorderLevel": 2,
+      "targetStock": 10,
+      "initialStock": 2
+    },
+    {
+      "name": "Ergonomic Executive Office Chair",
+      "sku": "CHR-EXEC-01",
+      "categoryName": "Finished Furniture",
+      "type": "Finished Good",
+      "unit": "pcs",
+      "salesPrice": 18500,
+      "costPrice": 11000,
+      "procurementStrategy": "MTS",
+      "procurementType": "MANUFACTURING",
+      "reorderLevel": 10,
+      "targetStock": 50,
+      "initialStock": 25
+    },
+    {
+      "name": "Modern 3-Door Wooden Wardrobe",
+      "sku": "WRD-MOD-01",
+      "categoryName": "Finished Furniture",
+      "type": "Finished Good",
+      "unit": "pcs",
+      "salesPrice": 64000,
+      "costPrice": 39000,
+      "procurementStrategy": "MTO",
+      "procurementType": "MANUFACTURING",
+      "reorderLevel": 1,
+      "targetStock": 5,
+      "initialStock": 1
+    },
+    {
+      "name": "Classic Solid Wood Coffee Table",
+      "sku": "TBL-COF-01",
+      "categoryName": "Finished Furniture",
+      "type": "Finished Good",
+      "unit": "pcs",
+      "salesPrice": 12000,
+      "costPrice": 7200,
+      "procurementStrategy": "MTS",
+      "procurementType": "MANUFACTURING",
+      "reorderLevel": 5,
+      "targetStock": 20,
+      "initialStock": 15
+    },
+    {
+      "name": "Teak Wood Planks 2x4 (Feet)",
+      "sku": "RAW-TEAK-01",
+      "categoryName": "Raw Wood & Timber",
+      "type": "Raw Material",
+      "unit": "feet",
+      "salesPrice": 0,
+      "costPrice": 1200,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "National Timber Suppliers",
+      "reorderLevel": 30,
+      "targetStock": 150,
+      "initialStock": 120
+    },
+    {
+      "name": "Plywood Sheet 18mm (8x4)",
+      "sku": "RAW-PLY-01",
+      "categoryName": "Raw Wood & Timber",
+      "type": "Raw Material",
+      "unit": "sheets",
+      "salesPrice": 0,
+      "costPrice": 1800,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "National Timber Suppliers",
+      "reorderLevel": 20,
+      "targetStock": 100,
+      "initialStock": 80
+    },
+    {
+      "name": "Heavy Duty Steel Screws & Bolts (Pack 50)",
+      "sku": "HDW-SCR-01",
+      "categoryName": "Hardware & Fasteners",
+      "type": "Component",
+      "unit": "packs",
+      "salesPrice": 0,
+      "costPrice": 250,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Apex Hardware & Screws Ltd",
+      "reorderLevel": 50,
+      "targetStock": 300,
+      "initialStock": 250
+    },
+    {
+      "name": "High Density Foam Cushion (Slab)",
+      "sku": "FAB-FOAM-01",
+      "categoryName": "Fabrics & Upholstery",
+      "type": "Raw Material",
+      "unit": "slabs",
+      "salesPrice": 0,
+      "costPrice": 850,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Heritage Upholstery & Fabrics",
+      "reorderLevel": 15,
+      "targetStock": 80,
+      "initialStock": 60
+    },
+    {
+      "name": "Premium Velvet Fabric (Meters)",
+      "sku": "FAB-VEL-01",
+      "categoryName": "Fabrics & Upholstery",
+      "type": "Raw Material",
+      "unit": "meters",
+      "salesPrice": 0,
+      "costPrice": 450,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Heritage Upholstery & Fabrics",
+      "reorderLevel": 25,
+      "targetStock": 120,
+      "initialStock": 90
+    },
+    {
+      "name": "Natural Teak Varnish & Polish (Liters)",
+      "sku": "PNT-VAR-01",
+      "categoryName": "Paints & Finishes",
+      "type": "Raw Material",
+      "unit": "liters",
+      "salesPrice": 0,
+      "costPrice": 600,
+      "procurementStrategy": "MTS",
+      "procurementType": "PURCHASE",
+      "defaultVendorName": "Asian Paints & Coatings Depot",
+      "reorderLevel": 10,
+      "targetStock": 50,
+      "initialStock": 40
+    }
+  ],
+  "boms": [
+    {
+      "productSku": "TBL-TEAK-01",
+      "name": "BoM - Solid Teak Dining Table",
+      "baseQuantity": 1,
+      "components": [
+        { "sku": "RAW-TEAK-01", "quantity": 8, "unit": "feet", "scrapPercentage": 5 },
+        { "sku": "HDW-SCR-01", "quantity": 2, "unit": "packs", "scrapPercentage": 0 },
+        { "sku": "PNT-VAR-01", "quantity": 2, "unit": "liters", "scrapPercentage": 2 }
+      ],
+      "operations": [
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Wood Sizing & Planing", "durationMinutes": 45 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Joinery & Table Assembly", "durationMinutes": 60 },
+        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Sanding, Polish & Teak Varnish", "durationMinutes": 45 }
+      ]
+    },
+    {
+      "productSku": "CHR-EXEC-01",
+      "name": "BoM - Ergonomic Executive Chair",
+      "baseQuantity": 1,
+      "components": [
+        { "sku": "RAW-PLY-01", "quantity": 1, "unit": "sheets", "scrapPercentage": 5 },
+        { "sku": "FAB-FOAM-01", "quantity": 1, "unit": "slabs", "scrapPercentage": 0 },
+        { "sku": "FAB-VEL-01", "quantity": 2, "unit": "meters", "scrapPercentage": 3 },
+        { "sku": "HDW-SCR-01", "quantity": 1, "unit": "packs", "scrapPercentage": 0 }
+      ],
+      "operations": [
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Frame CNC Cutting", "durationMinutes": 20 },
+        { "sequence": 20, "workCenterCode": "WC-UPH-01", "operationName": "Cushioning & Velvet Stitching", "durationMinutes": 40 },
+        { "sequence": 30, "workCenterCode": "WC-ASSY-01", "operationName": "Final Chair Assembly & QC", "durationMinutes": 30 }
+      ]
+    },
+    {
+      "productSku": "TBL-COF-01",
+      "name": "BoM - Classic Coffee Table",
+      "baseQuantity": 1,
+      "components": [
+        { "sku": "RAW-TEAK-01", "quantity": 4, "unit": "feet", "scrapPercentage": 5 },
+        { "sku": "HDW-SCR-01", "quantity": 1, "unit": "packs", "scrapPercentage": 0 },
+        { "sku": "PNT-VAR-01", "quantity": 1, "unit": "liters", "scrapPercentage": 2 }
+      ],
+      "operations": [
+        { "sequence": 10, "workCenterCode": "WC-CUT-01", "operationName": "Cutting & Shaping", "durationMinutes": 30 },
+        { "sequence": 20, "workCenterCode": "WC-ASSY-01", "operationName": "Legs & Top Assembly", "durationMinutes": 35 },
+        { "sequence": 30, "workCenterCode": "WC-FIN-01", "operationName": "Clear Lacquer Finish", "durationMinutes": 25 }
+      ]
+    }
+  ]
+}
