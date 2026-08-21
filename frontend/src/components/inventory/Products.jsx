@@ -45,7 +45,8 @@ export default function Products() {
     stock: '0',
     minStock: '10',
     targetStock: '50',
-    supplierId: ''
+    supplierId: '',
+    imageUrl: ''
   });
 
   const handleOpenAdd = () => {
@@ -61,7 +62,8 @@ export default function Products() {
       stock: '0',
       minStock: '10',
       targetStock: '50',
-      supplierId: ''
+      supplierId: '',
+      imageUrl: ''
     });
     setShowAddModal(true);
   };
@@ -79,7 +81,8 @@ export default function Products() {
       stock: String(item.stock),
       minStock: String(item.minStock),
       targetStock: String(item.targetStock || item.minStock * 2),
-      supplierId: item.supplierId || ''
+      supplierId: item.supplierId || '',
+      imageUrl: item.imageUrl || ''
     });
     setShowAddModal(true);
   };
@@ -100,7 +103,8 @@ export default function Products() {
       stock: Number(formData.stock) || 0,
       minStock: Number(formData.minStock) || 0,
       targetStock: Number(formData.targetStock) || 0,
-      supplierId: formData.supplierId || null
+      supplierId: formData.supplierId || null,
+      imageUrl: formData.imageUrl || ''
     };
 
     if (editingItem) {
@@ -220,8 +224,12 @@ export default function Products() {
                 <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                        <Package size={18} />
+                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', overflow: 'hidden' }}>
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Package size={18} />
+                        )}
                       </div>
                       <div>
                         <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}>{item.name}</div>
@@ -364,6 +372,11 @@ export default function Products() {
                     <option value="">-- Select Supplier --</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
                   </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: 6 }}>Image URL</label>
+                  <input type="url" value={formData.imageUrl} onChange={e => setFormData({ ...formData, imageUrl: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4ddd6', fontSize: '13.5px', outline: 'none' }} placeholder="https://..." />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>

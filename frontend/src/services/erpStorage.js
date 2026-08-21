@@ -23,10 +23,10 @@ const STORAGE_KEYS = {
 
 export const DEFAULT_PRODUCTS = [
   // Finished Goods
-  { id: "PRD-001", sku: "FG-TBL-STUDY", name: "Wooden Study Table", category: "Tables", type: "Finished Good", stock: 3, minStock: 10, targetStock: 20, unit: "units", purchasePrice: 0, sellingPrice: 4500, status: "Low Stock", supplierId: null },
-  { id: "PRD-002", sku: "FG-CHR-OFFC", name: "Office Chair", category: "Chairs", type: "Finished Good", stock: 15, minStock: 10, targetStock: 30, unit: "units", purchasePrice: 0, sellingPrice: 3200, status: "In Stock", supplierId: null },
-  { id: "PRD-003", sku: "FG-CAB-WOOD", name: "Wooden Cabinet", category: "Storage", type: "Finished Good", stock: 10, minStock: 5, targetStock: 15, unit: "units", purchasePrice: 0, sellingPrice: 8500, status: "In Stock", supplierId: null },
-  { id: "PRD-004", sku: "FG-TBL-DINE", name: "Dining Table", category: "Tables", type: "Finished Good", stock: 5, minStock: 5, targetStock: 10, unit: "units", purchasePrice: 0, sellingPrice: 12000, status: "Low Stock", supplierId: null },
+  { id: "PRD-001", sku: "FG-TBL-STUDY", name: "Wooden Study Table", category: "Tables", type: "Finished Good", stock: 3, minStock: 10, targetStock: 20, unit: "units", purchasePrice: 0, sellingPrice: 4500, status: "Low Stock", supplierId: null, imageUrl: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500&q=80" },
+  { id: "PRD-002", sku: "FG-CHR-OFFC", name: "Office Chair", category: "Chairs", type: "Finished Good", stock: 15, minStock: 10, targetStock: 30, unit: "units", purchasePrice: 0, sellingPrice: 3200, status: "In Stock", supplierId: null, imageUrl: "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=500&q=80" },
+  { id: "PRD-003", sku: "FG-CAB-WOOD", name: "Wooden Cabinet", category: "Storage", type: "Finished Good", stock: 10, minStock: 5, targetStock: 15, unit: "units", purchasePrice: 0, sellingPrice: 8500, status: "In Stock", supplierId: null, imageUrl: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=500&q=80" },
+  { id: "PRD-004", sku: "FG-TBL-DINE", name: "Dining Table", category: "Tables", type: "Finished Good", stock: 5, minStock: 5, targetStock: 10, unit: "units", purchasePrice: 0, sellingPrice: 12000, status: "Low Stock", supplierId: null, imageUrl: "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=500&q=80" },
   // Raw Materials
   { id: "PRD-005", sku: "RM-WOOD-PNL", name: "Wood Panel", category: "Wood", type: "Raw Material", stock: 10, minStock: 50, targetStock: 200, unit: "pcs", purchasePrice: 400, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
   { id: "PRD-006", sku: "RM-SCRW-16", name: "Screws", category: "Hardware", type: "Raw Material", stock: 100, minStock: 1000, targetStock: 5000, unit: "pcs", purchasePrice: 2, sellingPrice: 0, status: "In Stock", supplierId: "SUP-002" },
