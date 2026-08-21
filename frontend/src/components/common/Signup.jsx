@@ -110,8 +110,11 @@ export default function Signup() {
         overflow-hidden
         rounded-[38px]
         bg-white
-        shadow-[0_25px_70px_rgba(30,50,40,0.18)]
-      ">
+        "
+       style={{
+                    boxShadow:
+                        "0 20px 40px rgba(0, 0, 0, 0.25), 0 40px 100px rgba(30, 50, 40, 0.35)",
+                }}>
 
                 {/* IMAGE PANEL */}
                 <div className="absolute left-0 top-0 h-full w-[60%] z-0">

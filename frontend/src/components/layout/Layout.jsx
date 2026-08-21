@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield } from "lucide-react";
+import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield, Box, Truck, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useErp } from "../../context/ErpContext";
 import RouteTransition from "./RouteTransition";
@@ -34,7 +34,10 @@ export default function Layout() {
 
   const navItems = [
     { name: "Dashboard",    path: "/layout",            icon: LayoutDashboard, count: null },
+    { name: "Products",     path: "/layout/products",   icon: Box,             count: null },
     { name: "Inventory",    path: "/layout/inventory",  icon: Package,         count: metrics.lowStockCount > 0 ? `${metrics.lowStockCount} low` : null, alert: metrics.lowStockCount > 0 },
+    { name: "Suppliers",    path: "/layout/suppliers",  icon: Truck,           count: null },
+    { name: "Purchases",    path: "/layout/purchase",   icon: FileText,        count: null },
     { name: "Sales",        path: "/layout/sales",      icon: ShoppingCart,    count: metrics.activeOrdersCount > 0 ? `${metrics.activeOrdersCount}` : null },
     { name: "Production",   path: "/layout/production", icon: Factory,         count: metrics.activeBatchesCount > 0 ? `${metrics.activeBatchesCount}` : null },
     { name: "Customers",    path: "/layout/customers",  icon: Users,           count: null },

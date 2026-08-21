@@ -1,289 +1,127 @@
 // LocalStorage Keys
 const STORAGE_KEYS = {
-  INVENTORY: 'mini_erp_inventory_v1',
-  CUSTOMERS: 'mini_erp_customers_v1',
-  SALES_ORDERS: 'mini_erp_orders_v1',
-  BATCHES: 'mini_erp_batches_v1',
-  ACTIVITIES: 'mini_erp_activities_v1',
-  SETTINGS: 'mini_erp_settings_v1',
-  USER_SESSION: 'mini_erp_user_v1',
-  MANAGED_USERS: 'mini_erp_managed_users_v1',
-  ROLE_MATRIX: 'mini_erp_role_matrix_v1',
+  PRODUCTS: 'mini_erp_products_v2',
+  INVENTORY: 'mini_erp_inventory_v2', // Backwards compat
+  STOCK_MOVEMENTS: 'mini_erp_stock_movements_v2',
+  SUPPLIERS: 'mini_erp_suppliers_v2',
+  PURCHASE_ORDERS: 'mini_erp_purchase_orders_v2',
+  BOMS: 'mini_erp_boms_v2',
+  WORK_ORDERS: 'mini_erp_work_orders_v2',
+  PROCUREMENT_RECS: 'mini_erp_procurement_recs_v2',
+  AUDIT_LOGS: 'mini_erp_audit_logs_v2',
+  
+  CUSTOMERS: 'mini_erp_customers_v2',
+  SALES_ORDERS: 'mini_erp_sales_orders_v2',
+  BATCHES: 'mini_erp_batches_v2', // Backwards compat
+  ACTIVITIES: 'mini_erp_activities_v2',
+  SETTINGS: 'mini_erp_settings_v2',
+  USER_SESSION: 'mini_erp_user_v2',
+  MANAGED_USERS: 'mini_erp_managed_users_v2',
+  ROLE_MATRIX: 'mini_erp_role_matrix_v2',
 };
 
-// Default seed data for initial load
-export const DEFAULT_INVENTORY = [
-  { id: "INV-001", sku: "SKU-9021", name: "Aluminum Extrusion Bar (6063-T6)", category: "Raw Material", stock: 450, minStock: 100, unit: "kg", unitPrice: 280, status: "In Stock" },
-  { id: "INV-002", sku: "SKU-8842", name: "Precision Roller Bearing 25mm", category: "Components", stock: 1240, minStock: 300, unit: "pcs", unitPrice: 150, status: "In Stock" },
-  { id: "INV-003", sku: "SKU-7721", name: "High-Tensile Hex Bolt M8x40", category: "Hardware", stock: 85, minStock: 200, unit: "boxes", unitPrice: 450, status: "Low Stock" },
-  { id: "INV-004", sku: "SKU-6519", name: "Hydraulic Fluid Type IV (20L)", category: "Raw Material", stock: 18, minStock: 15, unit: "drums", unitPrice: 3200, status: "In Stock" },
-  { id: "INV-005", sku: "SKU-5402", name: "Tempered Glass Panel 600x800", category: "Finished Goods", stock: 320, minStock: 50, unit: "pcs", unitPrice: 1850, status: "In Stock" },
-  { id: "INV-006", sku: "SKU-4310", name: "Heavy Duty Servo Motor 400W", category: "Components", stock: 42, minStock: 20, unit: "pcs", unitPrice: 8500, status: "In Stock" },
-  { id: "INV-007", sku: "SKU-3129", name: "Teak Finish Veneer Sheet 4x8ft", category: "Raw Material", stock: 24, minStock: 40, unit: "Sheets", unitPrice: 1200, status: "Low Stock" },
-  { id: "INV-008", sku: "SKU-2098", name: "Modular Office Workstation 4-Seater", category: "Finished Goods", stock: 15, minStock: 10, unit: "Units", unitPrice: 24500, status: "In Stock" },
+export const DEFAULT_PRODUCTS = [
+  // Finished Goods
+  { id: "PRD-001", sku: "FG-TBL-STUDY", name: "Wooden Study Table", category: "Tables", type: "Finished Good", stock: 3, minStock: 10, targetStock: 20, unit: "units", purchasePrice: 0, sellingPrice: 4500, status: "Low Stock", supplierId: null },
+  { id: "PRD-002", sku: "FG-CHR-OFFC", name: "Office Chair", category: "Chairs", type: "Finished Good", stock: 15, minStock: 10, targetStock: 30, unit: "units", purchasePrice: 0, sellingPrice: 3200, status: "In Stock", supplierId: null },
+  { id: "PRD-003", sku: "FG-CAB-WOOD", name: "Wooden Cabinet", category: "Storage", type: "Finished Good", stock: 10, minStock: 5, targetStock: 15, unit: "units", purchasePrice: 0, sellingPrice: 8500, status: "In Stock", supplierId: null },
+  { id: "PRD-004", sku: "FG-TBL-DINE", name: "Dining Table", category: "Tables", type: "Finished Good", stock: 5, minStock: 5, targetStock: 10, unit: "units", purchasePrice: 0, sellingPrice: 12000, status: "Low Stock", supplierId: null },
+  // Raw Materials
+  { id: "PRD-005", sku: "RM-WOOD-PNL", name: "Wood Panel", category: "Wood", type: "Raw Material", stock: 45, minStock: 50, targetStock: 200, unit: "pcs", purchasePrice: 400, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
+  { id: "PRD-006", sku: "RM-SCRW-16", name: "Screws", category: "Hardware", type: "Raw Material", stock: 2000, minStock: 1000, targetStock: 5000, unit: "pcs", purchasePrice: 2, sellingPrice: 0, status: "In Stock", supplierId: "SUP-002" },
+  { id: "PRD-007", sku: "RM-POL-WOOD", name: "Wood Polish", category: "Finishing", type: "Raw Material", stock: 15, minStock: 20, targetStock: 50, unit: "L", purchasePrice: 350, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-003" },
+  // Components
+  { id: "PRD-008", sku: "CMP-TBL-LEG", name: "Table Leg", category: "Wood", type: "Component", stock: 32, minStock: 40, targetStock: 100, unit: "pcs", purchasePrice: 150, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-001" },
+  { id: "PRD-009", sku: "CMP-MTL-FRM", name: "Metal Frame", category: "Hardware", type: "Component", stock: 10, minStock: 20, targetStock: 50, unit: "pcs", purchasePrice: 800, sellingPrice: 0, status: "Low Stock", supplierId: "SUP-002" },
+  { id: "PRD-010", sku: "CMP-CHR-CSH", name: "Chair Cushion", category: "Upholstery", type: "Component", stock: 40, minStock: 30, targetStock: 100, unit: "pcs", purchasePrice: 250, sellingPrice: 0, status: "In Stock", supplierId: "SUP-003" },
+];
+
+export const DEFAULT_INVENTORY = DEFAULT_PRODUCTS;
+
+export const DEFAULT_SUPPLIERS = [
+  { id: "SUP-001", code: "VEND-TIMB", name: "Local Timber Co.", contactPerson: "Rajiv Desai", email: "sales@localtimber.in", phone: "+91 98765 11111", address: "Timber Market, Pune", paymentTerms: "Net 30", status: "Active" },
+  { id: "SUP-002", code: "VEND-FAST", name: "Fasteners India", contactPerson: "Amit Shah", email: "orders@fasteners.in", phone: "+91 98765 22222", address: "GIDC, Ahmedabad", paymentTerms: "Net 15", status: "Active" },
+  { id: "SUP-003", code: "VEND-UNIV", name: "Universal Furniture Parts", contactPerson: "Sonal Mehta", email: "supply@universalparts.in", phone: "+91 98765 33333", address: "Andheri, Mumbai", paymentTerms: "Prepaid", status: "Active" },
+];
+
+export const DEFAULT_BOMS = [
+  {
+    id: "BOM-001",
+    productId: "PRD-001", // Wooden Study Table
+    productName: "Wooden Study Table",
+    quantity: 1, // To make 1 table
+    components: [
+      { productId: "PRD-005", productName: "Wood Panel", quantity: 2, unit: "pcs" },
+      { productId: "PRD-008", productName: "Table Leg", quantity: 4, unit: "pcs" },
+      { productId: "PRD-006", productName: "Screws", quantity: 16, unit: "pcs" },
+      { productId: "PRD-007", productName: "Wood Polish", quantity: 0.2, unit: "L" },
+    ]
+  },
+  {
+    id: "BOM-002",
+    productId: "PRD-002", // Office Chair
+    productName: "Office Chair",
+    quantity: 1,
+    components: [
+      { productId: "PRD-009", productName: "Metal Frame", quantity: 1, unit: "pcs" },
+      { productId: "PRD-010", productName: "Chair Cushion", quantity: 2, unit: "pcs" },
+      { productId: "PRD-006", productName: "Screws", quantity: 8, unit: "pcs" },
+    ]
+  }
 ];
 
 export const DEFAULT_CUSTOMERS = [
-  { id: "CUST-001", name: "Apex Industrial Corp", contact: "Rajesh Sharma", email: "procurement@apexcorp.in", phone: "+91 98234 11200", city: "Mumbai, MH", tier: "Enterprise Tier", createdAt: "2026-01-15" },
-  { id: "CUST-002", name: "Nexus Logistics Ltd", contact: "Anita Deshmukh", email: "contact@nexuslogistics.com", phone: "+91 97120 54321", city: "Pune, MH", tier: "Strategic Partner", createdAt: "2026-02-01" },
-  { id: "CUST-003", name: "Zenith Automotive Systems", contact: "Karan Patel", email: "karan@zenithauto.io", phone: "+91 98980 99881", city: "Ahmedabad, GJ", tier: "Enterprise Tier", createdAt: "2026-02-18" },
-  { id: "CUST-004", name: "Beacon Energy Solutions", contact: "Priya Nair", email: "priya@beaconenergy.org", phone: "+91 94470 33211", city: "Bengaluru, KA", tier: "Growth Account", createdAt: "2026-03-05" },
-  { id: "CUST-005", name: "Horizon Aerospace Technologies", contact: "Vikram Malhotra", email: "supplies@horizonaero.in", phone: "+91 91234 88765", city: "Hyderabad, TS", tier: "Enterprise Tier", createdAt: "2026-04-10" },
+  { id: "CUST-001", name: "Urban Home Decor", contact: "Vikram Singh", email: "purchasing@urbanhome.in", phone: "+91 99887 77665", city: "Mumbai, MH", tier: "Enterprise Tier", createdAt: "2026-01-15" },
+  { id: "CUST-002", name: "Office Spaces Ltd", contact: "Neha Sharma", email: "neha@officespaces.co.in", phone: "+91 98765 54321", city: "Pune, MH", tier: "Strategic Partner", createdAt: "2026-02-01" },
 ];
 
 export const DEFAULT_SALES_ORDERS = [
   {
-    id: "SO-2026-0941",
-    customerId: "CUST-001",
-    customerName: "Apex Industrial Corp",
-    date: "2026-08-20",
-    items: [
-      { productId: "INV-005", productName: "Tempered Glass Panel 600x800", quantity: 60, unitPrice: 1850, total: 111000 },
-      { productId: "INV-002", productName: "Precision Roller Bearing 25mm", quantity: 200, unitPrice: 155, total: 31000 }
-    ],
-    totalAmount: 142000,
-    paymentStatus: "Paid",
-    fulfillmentStatus: "Ready for Dispatch"
-  },
-  {
-    id: "SO-2026-0940",
+    id: "SO-2026-1001",
     customerId: "CUST-002",
-    customerName: "Nexus Logistics Ltd",
-    date: "2026-08-20",
+    customerName: "Office Spaces Ltd",
+    date: new Date().toISOString().split('T')[0],
     items: [
-      { productId: "INV-008", productName: "Modular Office Workstation 4-Seater", quantity: 3, unitPrice: 24500, total: 73500 },
-      { productId: "INV-003", productName: "High-Tensile Hex Bolt M8x40", quantity: 33, unitPrice: 450, total: 15000 }
+      { productId: "PRD-001", productName: "Wooden Study Table", quantity: 10, unitPrice: 4500, total: 45000 }
     ],
-    totalAmount: 88500,
+    totalAmount: 45000,
     paymentStatus: "Pending",
-    fulfillmentStatus: "Processing"
-  },
-  {
-    id: "SO-2026-0939",
-    customerId: "CUST-003",
-    customerName: "Zenith Automotive Systems",
-    date: "2026-08-19",
-    items: [
-      { productId: "INV-006", productName: "Heavy Duty Servo Motor 400W", quantity: 30, unitPrice: 8500, total: 255000 },
-      { productId: "INV-001", productName: "Aluminum Extrusion Bar (6063-T6)", quantity: 215, unitPrice: 280, total: 60200 }
-    ],
-    totalAmount: 315200,
-    paymentStatus: "Paid",
-    fulfillmentStatus: "In Production"
-  },
-  {
-    id: "SO-2026-0938",
-    customerId: "CUST-004",
-    customerName: "Beacon Energy Solutions",
-    date: "2026-08-19",
-    items: [
-      { productId: "INV-004", productName: "Hydraulic Fluid Type IV (20L)", quantity: 20, unitPrice: 3200, total: 64000 }
-    ],
-    totalAmount: 64000,
-    paymentStatus: "Paid",
-    fulfillmentStatus: "Delivered"
-  },
-];
-
-export const DEFAULT_BATCHES = [
-  {
-    id: "BATCH-89",
-    productId: "INV-005",
-    productName: "Tempered Glass Panel 600x800",
-    line: "Line Alpha (CNC Milling)",
-    targetQty: 500,
-    unit: "pcs",
-    progress: 85,
-    status: "In Progress",
-    startedAt: "2026-08-20",
-    targetDate: "2026-08-22"
-  },
-  {
-    id: "BATCH-88",
-    productId: "INV-003",
-    productName: "High-Tensile Hex Bolt M8x40",
-    line: "Line Beta (Stamping)",
-    targetQty: 1200,
-    unit: "boxes",
-    progress: 100,
-    status: "Completed",
-    startedAt: "2026-08-18",
-    targetDate: "2026-08-20"
-  },
-  {
-    id: "BATCH-87",
-    productId: "INV-001",
-    productName: "Aluminum Extrusion Bar (6063-T6)",
-    line: "Line Gamma (Anodizing)",
-    targetQty: 350,
-    unit: "kg",
-    progress: 40,
-    status: "In Progress",
-    startedAt: "2026-08-19",
-    targetDate: "2026-08-23"
-  },
-  {
-    id: "BATCH-86",
-    productId: "INV-008",
-    productName: "Modular Office Workstation 4-Seater",
-    line: "Line Delta (Assembly)",
-    targetQty: 25,
-    unit: "Units",
-    progress: 15,
-    status: "Queued",
-    startedAt: "2026-08-21",
-    targetDate: "2026-08-28"
+    fulfillmentStatus: "Processing" // This is our MTO scenario
   }
 ];
 
+export const DEFAULT_PURCHASE_ORDERS = [];
+export const DEFAULT_WORK_ORDERS = [];
+export const DEFAULT_STOCK_MOVEMENTS = [];
+export const DEFAULT_PROCUREMENT_RECS = [];
+export const DEFAULT_AUDIT_LOGS = [];
+export const DEFAULT_BATCHES = []; 
 export const DEFAULT_ACTIVITIES = [
-  { id: "ACT-01", type: "order", text: "Order #SO-2026-0941 approved for dispatch (Apex Industrial Corp)", timestamp: new Date(Date.now() - 2 * 60000).toISOString() },
-  { id: "ACT-02", type: "stock", text: "Stock adjusted: Aluminum Extrusion Bar (450 kg)", timestamp: new Date(Date.now() - 18 * 60000).toISOString() },
-  { id: "ACT-03", type: "alert", text: "Low stock alert: High-Tensile Hex Bolt is below 200 boxes threshold", timestamp: new Date(Date.now() - 42 * 60000).toISOString() },
-  { id: "ACT-04", type: "customer", text: "Horizon Aerospace Technologies registered as Enterprise Client", timestamp: new Date(Date.now() - 60 * 60000).toISOString() },
-  { id: "ACT-05", type: "production", text: "Quality inspection passed for Batch #88 (Reinforced Brackets)", timestamp: new Date(Date.now() - 120 * 60000).toISOString() },
+  { id: "ACT-01", type: "order", text: "New Sales Order SO-2026-1001 placed for 10 Wooden Study Tables", timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
 ];
 
 export const DEFAULT_SETTINGS = {
-  orgName: "Mini-ERP Industrial Solutions Pvt Ltd",
-  orgEmail: "admin@minierp-solutions.com",
-  orgPhone: "+91 22 4589 0000",
+  orgName: "Shiv Furniture Works",
+  orgEmail: "contact@shivfurniture.in",
+  orgPhone: "+91 22 1234 5678",
   currency: "INR",
   currencySymbol: "₹",
   taxRate: 18,
   lowStockThresholdPercent: 20,
-  twoFactorAuth: true,
+  twoFactorAuth: false,
   autoReorderAlerts: true,
   emailNotifications: true,
 };
 
 export const DEFAULT_USER = {
-  name: "Alexander Reed",
-  email: "a.reed@minierp.io",
-  role: "Operations Director",
-  avatar: "AR",
+  name: "System Admin",
+  email: "admin@shivfurniture.in",
+  role: "System Administrator",
+  avatar: "SA",
 };
 
-// ----------------------------------------------------
-// RBAC / USER MANAGEMENT REFERENCE DATA
-// ----------------------------------------------------
-export const DEFAULT_ROLE_MATRIX = [
-  { module: "Sales", action: "View", admin: true, user: true, none: "Optional" },
-  { module: "Sales", action: "Create", admin: true, user: true, none: false },
-  { module: "Sales", action: "Edit", admin: true, user: "Limited", none: false },
-  { module: "Sales", action: "Delete", admin: true, user: false, none: false },
-  { module: "Sales", action: "Approve (Confirm)", admin: true, user: false, none: false },
-  { module: "Purchase", action: "View", admin: true, user: true, none: "Optional" },
-  { module: "Purchase", action: "Approve", admin: true, user: false, none: false },
-  { module: "Purchase", action: "Edit", admin: true, user: "Limited", none: false },
-  { module: "Purchase", action: "Create", admin: true, user: true, none: false },
-  { module: "Manufacturing", action: "Production Entry", admin: true, user: true, none: false },
-  { module: "Manufacturing", action: "Edit BOM", admin: true, user: false, none: false },
-  { module: "Manufacturing", action: "View", admin: true, user: true, none: "Optional" },
-  { module: "Product", action: "View", admin: true, user: true, none: "Optional" },
-  { module: "Product", action: "Create", admin: true, user: true, none: false },
-  { module: "Product", action: "Edit", admin: true, user: "Limited", none: false },
-];
-
-export const DEFAULT_MANAGED_USERS = [
-  {
-    id: "USR-001",
-    name: "Mahesh Gupta",
-    address: "Colaba, Mumbai, 400001",
-    phone: "+91 80000 00000",
-    email: "xyz@xyx.com",
-    position: "Sales Manager",
-    role: "User",
-    avatar: "MG",
-    permissions: {
-      product: {
-        "Product": { create: true, view: true, edit: true, delete: true },
-        "Sales Price": { create: true, view: true, edit: true, delete: true },
-        "Cost Price": { create: true, view: true, edit: true, delete: true },
-        "On Hand Qty": { create: true, view: true, edit: true, delete: false },
-        "Free To Use Qty": { create: true, view: "System Computed", edit: false, delete: false },
-        "Procure On Demand": { create: "Not possible", view: true, edit: true, delete: true },
-        "Procurement Method": { create: "Not possible", view: true, edit: true, delete: true },
-        "Vendor": { create: true, view: true, edit: true, delete: true },
-        "Bill of Materials (BoM)": { create: true, view: true, edit: true, delete: true },
-      },
-      manufacturing: {
-        "Product to Manufacture": { create: true, view: true, edit: true, delete: true },
-        "Product Quantity": { create: true, view: true, edit: true, delete: true },
-        "BoM": { create: true, view: true, edit: true, delete: true },
-        "Responsible Person": { create: true, view: true, edit: true, delete: true },
-        "Finished Quantity": { create: true, view: true, edit: true, delete: true },
-        "Creation Date": { create: "Auto Compute", view: true, edit: false, delete: false },
-      },
-      purchase: {
-        "Vendor": { create: true, view: true, edit: true, delete: true },
-        "Vendor Address": { create: true, view: true, edit: true, delete: true },
-        "Responsible Person": { create: true, view: true, edit: true, delete: true },
-        "Product": { create: true, view: true, edit: true, delete: true },
-        "Ordered Quantity": { create: true, view: true, edit: true, delete: true },
-        "Received Quantity": { create: true, view: true, edit: true, delete: true },
-        "Cost Price": { create: true, view: true, edit: true, delete: true },
-        "Total": { create: true, view: true, edit: "Auto Recomputed", delete: true },
-        "Creation Date": { create: "Auto Compute", view: true, edit: false, delete: false },
-      },
-      sales: {
-        "Customer": { create: true, view: true, edit: true, delete: false },
-        "Order Number": { create: "Auto Compute", view: true, edit: false, delete: false },
-        "Delivery Address": { create: true, view: true, edit: true, delete: false },
-        "Items & Quantities": { create: true, view: true, edit: true, delete: true },
-        "Unit Price": { create: true, view: true, edit: true, delete: false },
-        "Total Amount": { create: true, view: true, edit: "Auto Recomputed", delete: false },
-        "Payment Status": { create: true, view: true, edit: true, delete: false },
-        "Fulfillment Status": { create: true, view: true, edit: true, delete: false },
-        "Order Approval": { create: false, view: true, edit: false, delete: false },
-      }
-    }
-  },
-  {
-    id: "USR-002",
-    name: "Nisarg Verma",
-    address: "Andheri East, Mumbai, 400069",
-    phone: "+91 98765 43210",
-    email: "nisarg.verma@minierp.io",
-    position: "Procurement Lead",
-    role: "User",
-    avatar: "NV",
-    permissions: null
-  },
-  {
-    id: "USR-003",
-    name: "Sweta Kediva",
-    address: "Kothrud, Pune, 411038",
-    phone: "+91 91234 56789",
-    email: "sweta.k@minierp.io",
-    position: "Plant Supervisor",
-    role: "User",
-    avatar: "SK",
-    permissions: null
-  },
-  {
-    id: "USR-004",
-    name: "Dinesh Patel",
-    address: "Navrangpura, Ahmedabad, 380009",
-    phone: "+91 98223 34455",
-    email: "dinesh.p@minierp.io",
-    position: "Inventory Controller",
-    role: "User",
-    avatar: "DP",
-    permissions: null
-  },
-  {
-    id: "USR-005",
-    name: "Trisha K.",
-    address: "Indiranagar, Bengaluru, 560038",
-    phone: "+91 94477 88990",
-    email: "trisha.k@minierp.io",
-    position: "System Administrator",
-    role: "Admin",
-    avatar: "TK",
-    permissions: null
-  }
-];
+export const DEFAULT_ROLE_MATRIX = [];
+export const DEFAULT_MANAGED_USERS = [];
 
 // Safe LocalStorage helpers
 export const loadData = (key, fallback) => {
@@ -306,6 +144,31 @@ export const saveData = (key, value) => {
 };
 
 export const storage = {
+  getProducts: () => loadData(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS),
+  setProducts: (data) => saveData(STORAGE_KEYS.PRODUCTS, data),
+
+  getSuppliers: () => loadData(STORAGE_KEYS.SUPPLIERS, DEFAULT_SUPPLIERS),
+  setSuppliers: (data) => saveData(STORAGE_KEYS.SUPPLIERS, data),
+
+  getPurchaseOrders: () => loadData(STORAGE_KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS),
+  setPurchaseOrders: (data) => saveData(STORAGE_KEYS.PURCHASE_ORDERS, data),
+
+  getBoms: () => loadData(STORAGE_KEYS.BOMS, DEFAULT_BOMS),
+  setBoms: (data) => saveData(STORAGE_KEYS.BOMS, data),
+
+  getWorkOrders: () => loadData(STORAGE_KEYS.WORK_ORDERS, DEFAULT_WORK_ORDERS),
+  setWorkOrders: (data) => saveData(STORAGE_KEYS.WORK_ORDERS, data),
+
+  getStockMovements: () => loadData(STORAGE_KEYS.STOCK_MOVEMENTS, DEFAULT_STOCK_MOVEMENTS),
+  setStockMovements: (data) => saveData(STORAGE_KEYS.STOCK_MOVEMENTS, data),
+
+  getProcurementRecs: () => loadData(STORAGE_KEYS.PROCUREMENT_RECS, DEFAULT_PROCUREMENT_RECS),
+  setProcurementRecs: (data) => saveData(STORAGE_KEYS.PROCUREMENT_RECS, data),
+
+  getAuditLogs: () => loadData(STORAGE_KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS),
+  setAuditLogs: (data) => saveData(STORAGE_KEYS.AUDIT_LOGS, data),
+
+  // Backwards compat
   getInventory: () => loadData(STORAGE_KEYS.INVENTORY, DEFAULT_INVENTORY),
   setInventory: (data) => saveData(STORAGE_KEYS.INVENTORY, data),
 
@@ -333,8 +196,17 @@ export const storage = {
   getRoleMatrix: () => loadData(STORAGE_KEYS.ROLE_MATRIX, DEFAULT_ROLE_MATRIX),
   setRoleMatrix: (data) => saveData(STORAGE_KEYS.ROLE_MATRIX, data),
 
-  resetAll: () => {
+  seedShivFurnitureDemoData: () => {
+    saveData(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS);
     saveData(STORAGE_KEYS.INVENTORY, DEFAULT_INVENTORY);
+    saveData(STORAGE_KEYS.SUPPLIERS, DEFAULT_SUPPLIERS);
+    saveData(STORAGE_KEYS.PURCHASE_ORDERS, DEFAULT_PURCHASE_ORDERS);
+    saveData(STORAGE_KEYS.BOMS, DEFAULT_BOMS);
+    saveData(STORAGE_KEYS.WORK_ORDERS, DEFAULT_WORK_ORDERS);
+    saveData(STORAGE_KEYS.STOCK_MOVEMENTS, DEFAULT_STOCK_MOVEMENTS);
+    saveData(STORAGE_KEYS.PROCUREMENT_RECS, DEFAULT_PROCUREMENT_RECS);
+    saveData(STORAGE_KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS);
+    
     saveData(STORAGE_KEYS.CUSTOMERS, DEFAULT_CUSTOMERS);
     saveData(STORAGE_KEYS.SALES_ORDERS, DEFAULT_SALES_ORDERS);
     saveData(STORAGE_KEYS.BATCHES, DEFAULT_BATCHES);
@@ -345,13 +217,25 @@ export const storage = {
     saveData(STORAGE_KEYS.ROLE_MATRIX, DEFAULT_ROLE_MATRIX);
   },
 
+  resetAll: () => {
+    storage.seedShivFurnitureDemoData();
+  },
+
   clearAll: () => {
+    saveData(STORAGE_KEYS.PRODUCTS, []);
     saveData(STORAGE_KEYS.INVENTORY, []);
+    saveData(STORAGE_KEYS.SUPPLIERS, []);
+    saveData(STORAGE_KEYS.PURCHASE_ORDERS, []);
+    saveData(STORAGE_KEYS.BOMS, []);
+    saveData(STORAGE_KEYS.WORK_ORDERS, []);
+    saveData(STORAGE_KEYS.STOCK_MOVEMENTS, []);
+    saveData(STORAGE_KEYS.PROCUREMENT_RECS, []);
+    saveData(STORAGE_KEYS.AUDIT_LOGS, []);
     saveData(STORAGE_KEYS.CUSTOMERS, []);
     saveData(STORAGE_KEYS.SALES_ORDERS, []);
     saveData(STORAGE_KEYS.BATCHES, []);
     saveData(STORAGE_KEYS.ACTIVITIES, []);
     saveData(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
-    saveData(STORAGE_KEYS.MANAGED_USERS, DEFAULT_MANAGED_USERS);
+    saveData(STORAGE_KEYS.MANAGED_USERS, []);
   }
 };

@@ -5,25 +5,12 @@ import { apiCall } from '../lib/api';
 const ErpContext = createContext(null);
 
 export function ErpProvider({ children }) {
-  // ----------------------------------------------------
-  // ERP DATA STATE (from LocalStorage)
-  // ----------------------------------------------------
-  const [products, setProducts] = useState(() => storage.getProducts() || []);
-  const [suppliers, setSuppliers] = useState(() => storage.getSuppliers() || []);
-  const [purchaseOrders, setPurchaseOrders] = useState(() => storage.getPurchaseOrders() || []);
-  const [boms, setBoms] = useState(() => storage.getBoms() || []);
-  const [workOrders, setWorkOrders] = useState(() => storage.getWorkOrders() || []);
-  const [stockMovements, setStockMovements] = useState(() => storage.getStockMovements() || []);
-  const [procurementRecs, setProcurementRecs] = useState(() => storage.getProcurementRecs() || []);
-  const [auditLogs, setAuditLogs] = useState(() => storage.getAuditLogs() || []);
-
   const [inventory, setInventory] = useState(() => storage.getInventory() || []);
   const [customers, setCustomers] = useState(() => storage.getCustomers() || []);
   const [orders, setOrders] = useState(() => storage.getOrders() || []);
   const [batches, setBatches] = useState(() => storage.getBatches() || []);
   const [activities, setActivities] = useState(() => storage.getActivities() || []);
   const [settings, setSettings] = useState(() => storage.getSettings() || {});
-  
   const [user, setUser] = useState(() => storage.getUser() || {});
   const [managedUsers, setManagedUsers] = useState(() => storage.getManagedUsers() || DEFAULT_MANAGED_USERS);
   const [roleMatrix, setRoleMatrix] = useState(() => storage.getRoleMatrix() || DEFAULT_ROLE_MATRIX);
@@ -99,7 +86,6 @@ export function ErpProvider({ children }) {
     setAuthUser(userData);
 
     logActivity('alert', `User authenticated: ${userData.name || userData.email} (${userData.role || 'User'})`);
-    createAuditLog('Login', 'Auth', userData.email, 'User logged in successfully');
     return userData;
   }, []);
 
@@ -122,7 +108,6 @@ export function ErpProvider({ children }) {
     }
 
     logActivity('alert', `New user registered: ${userData.name || userData.email}`);
-    createAuditLog('Signup', 'Auth', userData.email, 'New user registered');
     return userData;
   }, []);
 
@@ -137,15 +122,6 @@ export function ErpProvider({ children }) {
   }, []);
 
   // Save to storage on state change
-  useEffect(() => { storage.setProducts(products); }, [products]);
-  useEffect(() => { storage.setSuppliers(suppliers); }, [suppliers]);
-  useEffect(() => { storage.setPurchaseOrders(purchaseOrders); }, [purchaseOrders]);
-  useEffect(() => { storage.setBoms(boms); }, [boms]);
-  useEffect(() => { storage.setWorkOrders(workOrders); }, [workOrders]);
-  useEffect(() => { storage.setStockMovements(stockMovements); }, [stockMovements]);
-  useEffect(() => { storage.setProcurementRecs(procurementRecs); }, [procurementRecs]);
-  useEffect(() => { storage.setAuditLogs(auditLogs); }, [auditLogs]);
-  
   useEffect(() => { storage.setInventory(inventory); }, [inventory]);
   useEffect(() => { storage.setCustomers(customers); }, [customers]);
   useEffect(() => { storage.setOrders(orders); }, [orders]);
@@ -156,26 +132,7 @@ export function ErpProvider({ children }) {
   useEffect(() => { storage.setManagedUsers(managedUsers); }, [managedUsers]);
   useEffect(() => { storage.setRoleMatrix(roleMatrix); }, [roleMatrix]);
 
-  // ----------------------------------------------------
-  // CORE ERP LOGIC & UTILITIES
-  // ----------------------------------------------------
-
-  // 1. Audit Logs
-  const createAuditLog = useCallback((action, module, referenceId, description) => {
-    const userEmail = authUser?.email || user?.email || 'System';
-    const log = {
-      id: `AL-${Date.now()}`,
-      action,
-      module,
-      referenceId,
-      user: userEmail,
-      timestamp: new Date().toISOString(),
-      description
-    };
-    setAuditLogs(prev => [log, ...prev]);
-  }, [authUser, user]);
-
-  // Activity Feed (Dashboard)
+  // Helper to log activities
   const logActivity = useCallback((type, text) => {
     const newAct = {
       id: `ACT-${Date.now()}`,
@@ -183,153 +140,72 @@ export function ErpProvider({ children }) {
       text,
       timestamp: new Date().toISOString()
     };
-    setActivities(prev => [newAct, ...prev.slice(0, 49)]);
+    setActivities(prev => [newAct, ...prev.slice(0, 49)]); // keep latest 50
   }, []);
 
-  // 2. Stock Movements
-  const addStockMovement = useCallback((movementData) => {
-    const { productId, type, quantity, referenceType, referenceId } = movementData;
-    const movement = {
-      id: `SM-${Date.now()}`,
-      productId,
-      type,
-      quantity: Number(quantity),
-      referenceType,
-      referenceId,
-      date: new Date().toISOString(),
-      user: authUser?.email || user?.email || 'System'
-    };
-
-    setStockMovements(prev => [movement, ...prev]);
-
-    // Update Product Stock
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        const newStock = Math.max(0, p.stock + Number(quantity));
-        const status = newStock <= p.minStock ? 'Low Stock' : 'In Stock';
-        return { ...p, stock: newStock, status };
-      }
-      return p;
-    }));
-
-    // Update Inventory Stock (For backwards compatibility)
-    setInventory(prev => prev.map(i => {
-      if (i.id === productId) {
-        const newStock = Math.max(0, i.stock + Number(quantity));
-        const status = newStock <= i.minStock ? 'Low Stock' : 'In Stock';
-        return { ...i, stock: newStock, status };
-      }
-      return i;
-    }));
-
-    createAuditLog(type, 'Inventory', referenceId || productId, `Stock adjustment for ${productId}: ${quantity > 0 ? '+' : ''}${quantity}`);
-    
-    return movement;
-  }, [authUser, user, createAuditLog]);
-
-
-  // Format currency
+  // Format currency according to settings
   const formatCurrency = useCallback((amount) => {
     const sym = settings?.currencySymbol || '₹';
     const num = Number(amount) || 0;
     return `${sym}${num.toLocaleString('en-IN')}`;
   }, [settings?.currencySymbol]);
 
-
   // ----------------------------------------------------
-  // PRODUCTS & INVENTORY ACTIONS
+  // INVENTORY ACTIONS
   // ----------------------------------------------------
-  
-  // NOTE: This will replace `addInventoryItem` long term
-  const addProduct = useCallback((productData) => {
-    const id = `PRD-${String(products.length + 1).padStart(3, '0')}`;
-    const newProduct = {
-      ...productData,
+  const addInventoryItem = useCallback((item) => {
+    const id = `INV-${String(inventory.length + 1).padStart(3, '0')}`;
+    const newItem = {
+      ...item,
       id,
-      sku: productData.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-      stock: Number(productData.stock) || 0,
-      minStock: Number(productData.minStock) || 10,
-      targetStock: Number(productData.targetStock) || 50,
-      purchasePrice: Number(productData.purchasePrice) || 0,
-      sellingPrice: Number(productData.sellingPrice) || 0,
-      status: (Number(productData.stock) || 0) <= (Number(productData.minStock) || 10) ? 'Low Stock' : 'In Stock'
+      sku: item.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      stock: Number(item.stock) || 0,
+      minStock: Number(item.minStock) || 10,
+      unitPrice: Number(item.unitPrice) || 100,
+      status: (Number(item.stock) || 0) <= (Number(item.minStock) || 10) ? 'Low Stock' : 'In Stock'
     };
-    
-    setProducts(prev => [newProduct, ...prev]);
-    setInventory(prev => [newProduct, ...prev]); // Backwards compat
-    logActivity('stock', `Added new product: ${newProduct.name}`);
-    createAuditLog('Create', 'Products', id, `Created product ${newProduct.name}`);
-    return newProduct;
-  }, [products.length, logActivity, createAuditLog]);
+    setInventory(prev => [newItem, ...prev]);
+    logActivity('stock', `Added new product to inventory: ${newItem.name} (${newItem.sku})`);
+    return newItem;
+  }, [inventory.length, logActivity]);
 
-  const updateProduct = useCallback((id, updates) => {
-    const applyUpdate = item => {
+  const updateInventoryItem = useCallback((id, updates) => {
+    setInventory(prev => prev.map(item => {
       if (item.id === id) {
         const merged = { ...item, ...updates };
         merged.stock = Number(merged.stock) || 0;
         merged.minStock = Number(merged.minStock) || 0;
+        merged.unitPrice = Number(merged.unitPrice) || 0;
         merged.status = merged.stock <= merged.minStock ? 'Low Stock' : 'In Stock';
         return merged;
       }
       return item;
-    };
-    setProducts(prev => prev.map(applyUpdate));
-    setInventory(prev => prev.map(applyUpdate));
-    createAuditLog('Update', 'Products', id, `Updated product details`);
-  }, [createAuditLog]);
+    }));
+    logActivity('stock', `Updated inventory item ${id}`);
+  }, [logActivity]);
 
-  const deleteProduct = useCallback((id) => {
-    const target = products.find(i => i.id === id);
-    setProducts(prev => prev.filter(i => i.id !== id));
+  const adjustStock = useCallback((id, delta) => {
+    setInventory(prev => prev.map(item => {
+      if (item.id === id) {
+        const newStock = Math.max(0, item.stock + delta);
+        const status = newStock <= item.minStock ? 'Low Stock' : 'In Stock';
+        return { ...item, stock: newStock, status };
+      }
+      return item;
+    }));
+    const target = inventory.find(i => i.id === id);
+    if (target) {
+      logActivity('stock', `Stock adjusted for ${target.name}: ${delta > 0 ? `+${delta}` : delta} ${target.unit}`);
+    }
+  }, [inventory, logActivity]);
+
+  const deleteInventoryItem = useCallback((id) => {
+    const target = inventory.find(i => i.id === id);
     setInventory(prev => prev.filter(i => i.id !== id));
     if (target) {
-      logActivity('stock', `Deleted product: ${target.name}`);
-      createAuditLog('Delete', 'Products', id, `Deleted product ${target.name}`);
+      logActivity('stock', `Deleted inventory item: ${target.name} (${target.sku})`);
     }
-  }, [products, logActivity, createAuditLog]);
-
-
-  // Old inventory functions mapped to new flow
-  const addInventoryItem = addProduct;
-  const updateInventoryItem = updateProduct;
-  const deleteInventoryItem = deleteProduct;
-  
-  const adjustStock = useCallback((id, delta) => {
-    addStockMovement({
-      productId: id,
-      type: 'STOCK_ADJUSTMENT',
-      quantity: delta,
-      referenceType: 'Manual',
-      referenceId: 'N/A'
-    });
-  }, [addStockMovement]);
-
-
-  // ----------------------------------------------------
-  // SUPPLIER ACTIONS
-  // ----------------------------------------------------
-  const addSupplier = useCallback((supplierData) => {
-    const id = `SUP-${String(suppliers.length + 1).padStart(3, '0')}`;
-    const newSupplier = { ...supplierData, id };
-    setSuppliers(prev => [newSupplier, ...prev]);
-    logActivity('alert', `Registered new supplier: ${newSupplier.name}`);
-    createAuditLog('Create', 'Suppliers', id, `Registered new supplier ${newSupplier.name}`);
-    return newSupplier;
-  }, [suppliers.length, logActivity, createAuditLog]);
-
-  const updateSupplier = useCallback((id, updates) => {
-    setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
-    createAuditLog('Update', 'Suppliers', id, `Updated supplier record`);
-  }, [createAuditLog]);
-
-  const deleteSupplier = useCallback((id) => {
-    const target = suppliers.find(s => s.id === id);
-    setSuppliers(prev => prev.filter(s => s.id !== id));
-    if (target) {
-      logActivity('alert', `Removed supplier: ${target.name}`);
-      createAuditLog('Delete', 'Suppliers', id, `Removed supplier ${target.name}`);
-    }
-  }, [suppliers, logActivity, createAuditLog]);
+  }, [inventory, logActivity]);
 
   // ----------------------------------------------------
   // CUSTOMER ACTIONS
@@ -344,78 +220,21 @@ export function ErpProvider({ children }) {
     };
     setCustomers(prev => [newCust, ...prev]);
     logActivity('customer', `Registered new client: ${newCust.name} (${newCust.tier})`);
-    createAuditLog('Create', 'Customers', id, `Registered new client ${newCust.name}`);
     return newCust;
-  }, [customers.length, logActivity, createAuditLog]);
+  }, [customers.length, logActivity]);
 
   const updateCustomer = useCallback((id, updates) => {
     setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-    createAuditLog('Update', 'Customers', id, `Updated client record`);
-  }, [createAuditLog]);
+    logActivity('customer', `Updated client record for ${updates.name || id}`);
+  }, [logActivity]);
 
   const deleteCustomer = useCallback((id) => {
     const target = customers.find(c => c.id === id);
     setCustomers(prev => prev.filter(c => c.id !== id));
     if (target) {
       logActivity('customer', `Removed client: ${target.name}`);
-      createAuditLog('Delete', 'Customers', id, `Removed client ${target.name}`);
     }
-  }, [customers, logActivity, createAuditLog]);
-
-  // ----------------------------------------------------
-  // PURCHASE ORDER ACTIONS
-  // ----------------------------------------------------
-  const createPurchaseOrder = useCallback((poData) => {
-    const id = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const items = poData.items || [];
-    const totalAmount = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
-
-    const newPO = {
-      id,
-      supplierId: poData.supplierId,
-      supplierName: poData.supplierName,
-      date: new Date().toISOString().split('T')[0],
-      expectedDate: poData.expectedDate || '',
-      items,
-      totalAmount,
-      status: 'Draft',
-    };
-
-    setPurchaseOrders(prev => [newPO, ...prev]);
-    logActivity('order', `Created Purchase Order #${id} for ${newPO.supplierName}`);
-    createAuditLog('Create', 'Purchase', id, `Created PO for ${newPO.supplierName}`);
-    return newPO;
-  }, [logActivity, createAuditLog]);
-
-  const updatePurchaseOrderStatus = useCallback((id, status) => {
-    setPurchaseOrders(prev => prev.map(po => po.id === id ? { ...po, status } : po));
-    createAuditLog('Update', 'Purchase', id, `Status updated to ${status}`);
-  }, [createAuditLog]);
-
-  const receivePurchaseOrder = useCallback((id) => {
-    const target = purchaseOrders.find(po => po.id === id);
-    if (!target) return;
-
-    if (target.status === 'Received') {
-      alert("This Purchase Order has already been received.");
-      return;
-    }
-
-    setPurchaseOrders(prev => prev.map(po => po.id === id ? { ...po, status: 'Received' } : po));
-
-    target.items.forEach(item => {
-      addStockMovement({
-        productId: item.productId,
-        type: 'PURCHASE_IN',
-        quantity: Number(item.quantity),
-        referenceType: 'PurchaseOrder',
-        referenceId: id
-      });
-    });
-
-    logActivity('stock', `Received Goods for PO #${id}`);
-    createAuditLog('Receive', 'Purchase', id, `Received Goods for PO #${id}`);
-  }, [purchaseOrders, addStockMovement, logActivity, createAuditLog]);
+  }, [customers, logActivity]);
 
   // ----------------------------------------------------
   // SALES ORDER ACTIONS
@@ -439,30 +258,23 @@ export function ErpProvider({ children }) {
       fulfillmentStatus: orderData.fulfillmentStatus || 'Processing',
     };
 
-    // Note: Deducting stock is now deferred to order fulfillment or dispatch to be more robust, 
-    // but to preserve existing behavior and satisfy Phase 1, we map it to stock movements if it's considered "Processed".
-    // For now, let's deduct immediately to keep backward compat if requested, OR handle it during fulfillment.
-    // The prompt says "When the sale is fulfilled: Finished Goods stock decreases. An inventory movement should be created."
-    // So we should not deduct here! (Unlike before)
-    // Actually, in the old codebase we deducted instantly. Let's preserve old behavior for now, or use addStockMovement.
-    
-    // I will use addStockMovement to deduct stock instantly if we are preserving old behavior, but prompt says "When the sale is fulfilled".
-    // I will deduct stock here to prevent breaking the existing app until Sales enhancement phase.
-    items.forEach(item => {
-      addStockMovement({
-        productId: item.productId,
-        type: 'SALE_OUT',
-        quantity: -Math.abs(Number(item.quantity)),
-        referenceType: 'SalesOrder',
-        referenceId: id
-      });
-    });
+    setInventory(prev => prev.map(invItem => {
+      const orderItem = items.find(it => it.productId === invItem.id);
+      if (orderItem) {
+        const newStock = Math.max(0, invItem.stock - Number(orderItem.quantity));
+        return {
+          ...invItem,
+          stock: newStock,
+          status: newStock <= invItem.minStock ? 'Low Stock' : 'In Stock'
+        };
+      }
+      return invItem;
+    }));
 
     setOrders(prev => [newOrder, ...prev]);
-    logActivity('order', `New Sales Order created: #${id} for ${newOrder.customerName}`);
-    createAuditLog('Create', 'Sales', id, `Created sales order for ${newOrder.customerName}`);
+    logActivity('order', `New Sales Order created: #${id} for ${newOrder.customerName} (${formatCurrency(totalAmount)})`);
     return newOrder;
-  }, [logActivity, createAuditLog, addStockMovement]);
+  }, [formatCurrency, logActivity]);
 
   const updateOrderStatus = useCallback((orderId, fulfillmentStatus, paymentStatus) => {
     setOrders(prev => prev.map(ord => {
@@ -476,17 +288,15 @@ export function ErpProvider({ children }) {
       return ord;
     }));
     logActivity('order', `Order #${orderId} status updated: ${fulfillmentStatus || ''} ${paymentStatus ? `[${paymentStatus}]` : ''}`);
-    createAuditLog('Update', 'Sales', orderId, `Status updated to ${fulfillmentStatus}`);
-  }, [logActivity, createAuditLog]);
+  }, [logActivity]);
 
   const deleteSalesOrder = useCallback((orderId) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
     logActivity('order', `Cancelled order #${orderId}`);
-    createAuditLog('Delete', 'Sales', orderId, `Deleted sales order`);
-  }, [logActivity, createAuditLog]);
+  }, [logActivity]);
 
   // ----------------------------------------------------
-  // PRODUCTION BATCH ACTIONS (Legacy)
+  // PRODUCTION BATCH ACTIONS
   // ----------------------------------------------------
   const launchBatch = useCallback((batchData) => {
     const batchNum = Math.floor(80 + batches.length + 1);
@@ -506,7 +316,7 @@ export function ErpProvider({ children }) {
     };
 
     setBatches(prev => [newBatch, ...prev]);
-    logActivity('production', `Launched production batch #${id}: ${newBatch.productName}`);
+    logActivity('production', `Launched production batch #${id}: ${newBatch.productName} (${newBatch.targetQty} ${newBatch.unit}) on ${newBatch.line}`);
     return newBatch;
   }, [batches.length, logActivity]);
 
@@ -533,17 +343,21 @@ export function ErpProvider({ children }) {
     }));
 
     if (target.productId) {
-      addStockMovement({
-        productId: target.productId,
-        type: 'PRODUCTION_OUTPUT',
-        quantity: Math.abs(Number(target.targetQty)),
-        referenceType: 'Batch',
-        referenceId: batchId
-      });
+      setInventory(prev => prev.map(invItem => {
+        if (invItem.id === target.productId) {
+          const newStock = invItem.stock + Number(target.targetQty);
+          return {
+            ...invItem,
+            stock: newStock,
+            status: newStock <= invItem.minStock ? 'Low Stock' : 'In Stock'
+          };
+        }
+        return invItem;
+      }));
     }
 
-    logActivity('production', `Batch #${batchId} completed: Restocked ${target.productName}`);
-  }, [batches, logActivity, addStockMovement]);
+    logActivity('production', `Batch #${batchId} completed: Restocked ${target.targetQty} ${target.unit} of ${target.productName}`);
+  }, [batches, logActivity]);
 
   const deleteBatch = useCallback((batchId) => {
     setBatches(prev => prev.filter(b => b.id !== batchId));
@@ -564,13 +378,14 @@ export function ErpProvider({ children }) {
       permissions: userData.permissions || null
     };
     setManagedUsers(prev => [newUser, ...prev]);
-    logActivity('alert', `System Administrator created user account for ${newUser.name}`);
+    logActivity('alert', `System Administrator created user account for ${newUser.name} (${newUser.position || newUser.role})`);
     return newUser;
   }, [managedUsers.length, logActivity]);
 
   const updateManagedUser = useCallback((id, updates) => {
     setManagedUsers(prev => prev.map(u => u.id === id ? { ...u, ...updates } : u));
-  }, []);
+    logActivity('alert', `Updated user credentials for ${updates.name || id}`);
+  }, [logActivity]);
 
   const deleteManagedUser = useCallback((id) => {
     const target = managedUsers.find(u => u.id === id);
@@ -627,15 +442,6 @@ export function ErpProvider({ children }) {
 
   const resetToDefaultData = useCallback(() => {
     storage.resetAll();
-    setProducts(storage.getProducts());
-    setSuppliers(storage.getSuppliers());
-    setPurchaseOrders(storage.getPurchaseOrders());
-    setBoms(storage.getBoms());
-    setWorkOrders(storage.getWorkOrders());
-    setStockMovements(storage.getStockMovements());
-    setProcurementRecs(storage.getProcurementRecs());
-    setAuditLogs(storage.getAuditLogs());
-    
     setInventory(storage.getInventory());
     setCustomers(storage.getCustomers());
     setOrders(storage.getOrders());
@@ -650,15 +456,6 @@ export function ErpProvider({ children }) {
 
   const clearAllData = useCallback(() => {
     storage.clearAll();
-    setProducts([]);
-    setSuppliers([]);
-    setPurchaseOrders([]);
-    setBoms([]);
-    setWorkOrders([]);
-    setStockMovements([]);
-    setProcurementRecs([]);
-    setAuditLogs([]);
-    
     setInventory([]);
     setCustomers([]);
     setOrders([]);
@@ -676,9 +473,9 @@ export function ErpProvider({ children }) {
       .reduce((sum, ord) => sum + (Number(ord.totalAmount) || 0), 0);
 
     const activeOrders = orders.filter(o => o.fulfillmentStatus !== 'Delivered');
-    const lowStockItems = products.filter(i => i.stock <= i.minStock);
+    const lowStockItems = inventory.filter(i => i.stock <= i.minStock);
     const activeBatches = batches.filter(b => b.status !== 'Completed');
-    const totalCatalogItems = products.length;
+    const totalCatalogItems = inventory.length;
 
     const customerSpendMap = {};
     const customerOrderCountMap = {};
@@ -715,7 +512,7 @@ export function ErpProvider({ children }) {
     ];
 
     const catMap = {};
-    products.forEach(item => {
+    inventory.forEach(item => {
       const cat = item.category || 'Other';
       catMap[cat] = (catMap[cat] || 0) + item.stock;
     });
@@ -764,7 +561,7 @@ export function ErpProvider({ children }) {
       ],
       alerts
     };
-  }, [orders, products, batches]);
+  }, [orders, inventory, batches]);
 
   const value = {
     // Authentication
@@ -778,14 +575,6 @@ export function ErpProvider({ children }) {
     logoutUser,
 
     // Data
-    products,
-    suppliers,
-    purchaseOrders,
-    boms,
-    workOrders,
-    stockMovements,
-    procurementRecs,
-    auditLogs,
     inventory,
     customers,
     orders,
@@ -797,28 +586,11 @@ export function ErpProvider({ children }) {
     roleMatrix,
     metrics,
     formatCurrency,
-    
-    // Core ERP functions
-    createAuditLog,
-    addStockMovement,
-    
-    // Products & Inventory
-    addProduct,
-    updateProduct,
-    deleteProduct,
+    // Inventory
     addInventoryItem,
     updateInventoryItem,
     adjustStock,
     deleteInventoryItem,
-    
-    // Suppliers
-    addSupplier,
-    updateSupplier,
-    deleteSupplier,
-    // Purchase Orders
-    createPurchaseOrder,
-    updatePurchaseOrderStatus,
-    receivePurchaseOrder,
     // Customers
     addCustomer,
     updateCustomer,

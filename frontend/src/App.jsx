@@ -11,6 +11,9 @@ import Production from "./components/manufacturing/Production";
 import Customers from "./components/sales/Customers";
 import Settings from "./components/common/Settings";
 import UserManagement from "./components/common/UserManagement";
+import Products from "./components/inventory/Products";
+import Suppliers from "./components/purchase/Suppliers";
+import Purchase from "./components/purchase/Purchase";
 import PageTransition from "./components/layout/PageTransition";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import AdminRoute from "./components/common/AdminRoute";
@@ -69,6 +72,9 @@ function AnimatedRoutes() {
         <Route path="sales" element={<Sales />} />
         <Route path="production" element={<Production />} />
         <Route path="customers" element={<Customers />} />
+        <Route path="products" element={<Products />} />
+        <Route path="suppliers" element={<Suppliers />} />
+        <Route path="purchase" element={<Purchase />} />
         {/* Admin-only Protected Route */}
         <Route
           path="users"
@@ -87,6 +93,9 @@ function AnimatedRoutes() {
       <Route path="/sales" element={<Navigate to="/layout/sales" replace />} />
       <Route path="/production" element={<Navigate to="/layout/production" replace />} />
       <Route path="/customers" element={<Navigate to="/layout/customers" replace />} />
+      <Route path="/products" element={<Navigate to="/layout/products" replace />} />
+      <Route path="/suppliers" element={<Navigate to="/layout/suppliers" replace />} />
+      <Route path="/purchase" element={<Navigate to="/layout/purchase" replace />} />
       <Route path="/users" element={<Navigate to="/layout/users" replace />} />
       <Route path="/settings" element={<Navigate to="/layout/settings" replace />} />
 
