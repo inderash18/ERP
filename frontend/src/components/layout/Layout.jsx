@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X } from "lucide-react";
+import { Package, Users, ShoppingCart, LogOut, LayoutDashboard, Settings, Factory, Bell, AlertTriangle, CheckCircle2, RotateCcw, X, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useErp } from "../../context/ErpContext";
 import RouteTransition from "./RouteTransition";
