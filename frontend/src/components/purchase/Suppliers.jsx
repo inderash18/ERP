@@ -15,6 +15,8 @@ export default function Suppliers() {
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const [formData, setFormData] = useState({
     name: '',

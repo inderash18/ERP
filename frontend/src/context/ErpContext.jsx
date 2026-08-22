@@ -273,12 +273,12 @@ export function ErpProvider({ children }) {
     window.addEventListener('focus', handleVisibilityOrFocus);
     document.addEventListener('visibilitychange', handleVisibilityOrFocus);
 
-    // Heartbeat auto-poll every 2.5s
+    // Heartbeat auto-poll every 30s
     const pollInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshData(false);
       }
-    }, 2500);
+    }, 30000);
 
     return () => {
       if (syncChannelRef.current) {
