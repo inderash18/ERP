@@ -117,11 +117,29 @@ export default function Dashboard() {
     return [...orders].slice(-5).reverse();
   }, [orders]);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      style={{ display: "flex", flexDirection: "column", gap: 20 }}
+    >
+        
       {/* ── Page Header & Quick Execution Actions ─────────────── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+      <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Operational Overview
@@ -157,13 +175,13 @@ export default function Dashboard() {
             <Plus size={14} /> Create Sales Order
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Metric KPI Grid (4 High-Density Enterprise Cards) ──── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14 }}>
         
         {/* Total Sales Revenue */}
-        <div className="erp-card" style={{ padding: "18px 20px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Total Revenue
@@ -178,10 +196,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             From {totalOrdCount} confirmed commercial orders
           </div>
-        </div>
+        </motion.div>
 
         {/* Active Production Orders */}
-        <div className="erp-card" style={{ padding: "18px 20px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Shop Floor Batches
@@ -196,10 +214,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             BoM routing & work centers operational
           </div>
-        </div>
+        </motion.div>
 
         {/* Inventory Stock Position */}
-        <div className="erp-card" style={{ padding: "18px 20px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Stock On Hand
@@ -214,10 +232,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             Across {totalProdCount} catalog items (including pins & hardware)
           </div>
-        </div>
+        </motion.div>
 
         {/* Procurement Position */}
-        <div className="erp-card" style={{ padding: "18px 20px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Purchase Volume
@@ -232,7 +250,7 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             Direct supplier replenishment stream
           </div>
-        </div>
+        </motion.div>
 
       </div>
 
@@ -240,7 +258,7 @@ export default function Dashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 16 }}>
         
         {/* Trajectory Chart Card */}
-        <div className="erp-card" style={{ padding: "20px 22px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "20px 22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
@@ -278,10 +296,10 @@ export default function Dashboard() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Order Fulfillment Donut Card */}
-        <div className="erp-card" style={{ padding: "20px" }}>
+        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "20px" }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>
             Fulfillment Breakdown
           </div>
@@ -326,12 +344,12 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
       </div>
 
       {/* ── Bottom Section: Recent Orders Data Table ──────────── */}
-      <div className="erp-card" style={{ overflow: "hidden" }}>
+      <motion.div variants={itemVariants} className="erp-card" style={{ overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid #e2e8f0" }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
@@ -421,8 +439,8 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
