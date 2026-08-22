@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import loginImage from "../../assets/wall.jpg";
+import loginImage from "../../assets/wall1.jpg";
 import backgroundImage from "../../assets/background image.jpg";
 import { useErp } from "../../context/ErpContext";
 
