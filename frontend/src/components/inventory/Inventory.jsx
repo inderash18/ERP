@@ -20,6 +20,7 @@ export default function Inventory() {
   const [adjustModalItem, setAdjustModalItem] = useState(null);
   const [adjustDelta, setAdjustDelta] = useState(1);
   const [adjustType, setAdjustType] = useState('add');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenAdjust = (item, type = 'add') => {
     setAdjustModalItem(item);
@@ -30,9 +31,17 @@ export default function Inventory() {
   const handleExecuteAdjust = async (e) => {
     e.preventDefault();
     if (!adjustModalItem) return;
-    const delta = adjustType === 'add' ? Math.abs(Number(adjustDelta)) : -Math.abs(Number(adjustDelta));
-    await adjustStock(adjustModalItem.id || adjustModalItem._id, delta);
-    setAdjustModalItem(null);
+    setIsSubmitting(true);
+    try {
+      const delta = adjustType === 'add' ? Math.abs(Number(adjustDelta)) : -Math.abs(Number(adjustDelta));
+      await adjustStock(adjustModalItem.id || adjustModalItem._id, delta);
+      setAdjustModalItem(null);
+    } catch (err) {
+      console.error("Adjustment error:", err);
+      alert(`Failed to adjust stock: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filtered Stock Rows
@@ -315,13 +324,15 @@ export default function Inventory() {
                 </button>
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   style={{
                     padding: '7px 16px', borderRadius: 6, border: 'none',
                     background: adjustType === 'add' ? '#16a34a' : '#dc2626',
-                    color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
+                    color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    opacity: isSubmitting ? 0.7 : 1
                   }}
                 >
-                  Confirm {adjustType === 'add' ? 'Inward' : 'Outward'}
+                  {isSubmitting ? 'Processing...' : `Confirm ${adjustType === 'add' ? 'Inward' : 'Outward'}`}
                 </button>
               </div>
             </form>
