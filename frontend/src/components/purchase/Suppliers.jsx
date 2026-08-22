@@ -43,7 +43,7 @@ export default function Suppliers() {
       name: item.name || '',
       email: item.email || '',
       phone: item.phone || '',
-      address: item.address || ''
+      address: typeof item.address === 'object' ? Object.values(item.address).filter(Boolean).join(', ') : (item.address || '')
     });
     setShowAddModal(true);
   };

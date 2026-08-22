@@ -58,9 +58,12 @@ const GEO_DICTIONARY = {
 
 function extractCityCoordinates(address) {
   if (!address) return null;
-  const lowerAddress = address.toLowerCase();
+  const addressStr = typeof address === 'object' 
+    ? Object.values(address).filter(Boolean).join(' ').toLowerCase() 
+    : String(address).toLowerCase();
+    
   for (const [city, coords] of Object.entries(GEO_DICTIONARY)) {
-    if (lowerAddress.includes(city)) {
+    if (addressStr.includes(city)) {
       // Add a tiny bit of random jitter so markers in the same city don't completely overlap
       return [
         coords[0] + (Math.random() - 0.5) * 0.05,
