@@ -46,8 +46,8 @@ export function ErpProvider({ children }) {
   const [dashboardMetrics, setDashboardMetrics] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [settings, setSettings] = useState({
-    orgName: 'Shiv Furniture Works',
-    orgEmail: 'contact@shivfurniture.in',
+    orgName: 'ELVARA FURNITURE',
+    orgEmail: 'contact@elvarafurniture.in',
     orgPhone: '+91 22 1234 5678',
     currency: 'INR',
     currencySymbol: '₹',

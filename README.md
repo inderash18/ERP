@@ -1,4 +1,4 @@
-# Mini-ERP SaaS Platform — Shiv Furniture Works
+# Mini-ERP SaaS Platform — ELVARA FURNITURE
 
 > A modern, multi-tenant manufacturing enterprise resource planning (ERP) platform built with Node.js, Express, MongoDB Atlas, React, and Vite. Designed to orchestrate end-to-end manufacturing workflows: product engineering, inventory balances, MTS/MTO procurement strategies, Bill of Materials (BoM) explosion, purchase lifecycle, and immutable stock ledger auditability.
 
@@ -16,7 +16,7 @@
 
 ## 1. Product Overview
 
-Shiv Furniture Works is a high-mix custom and batch manufacturing enterprise. This Mini-ERP SaaS replaces disconnected spreadsheets and siloed CRUD tools with a reactive, unified transaction engine that links commercial sales directly to shop-floor production and supplier procurement.
+ELVARA FURNITURE is a high-mix custom and batch manufacturing enterprise. This Mini-ERP SaaS replaces disconnected spreadsheets and siloed CRUD tools with a reactive, unified transaction engine that links commercial sales directly to shop-floor production and supplier procurement.
 
 ```
                                ┌────────────────────────┐
@@ -270,12 +270,12 @@ Run `npm run seed` in the `backend/` directory to reset and populate the databas
 
 | Role | Employee ID | Email | Password | Assigned Permissions |
 |:---|:---|:---|:---|:---|
-| **System Administrator** | `ADMIN01` | `admin@shivfurniture.in` | `password123` | `*` (Full System Wildcard) |
-| **Business Owner** | `OWNER01` | `owner@shivfurniture.in` | `password123` | `*` (Full System Wildcard) |
-| **Sales Representative** | `SALE01` | `sales@shivfurniture.in` | `password123` | `sales.*`, `customer.*`, `product.view`, `inventory.view` |
-| **Procurement Specialist** | `PUR01` | `purchase@shivfurniture.in` | `password123` | `purchase.*`, `vendor.*`, `product.view`, `inventory.view` |
-| **Production Manager** | `MFG01` | `mfg@shivfurniture.in` | `password123` | `manufacturing.*`, `bom.*`, `product.view`, `inventory.view` |
-| **Inventory Clerk** | `INV01` | `inventory@shivfurniture.in` | `password123` | `inventory.*`, `product.view` |
+| **System Administrator** | `ADMIN01` | `admin@elvarafurniture.in` | `password123` | `*` (Full System Wildcard) |
+| **Business Owner** | `OWNER01` | `owner@elvarafurniture.in` | `password123` | `*` (Full System Wildcard) |
+| **Sales Representative** | `SALE01` | `sales@elvarafurniture.in` | `password123` | `sales.*`, `customer.*`, `product.view`, `inventory.view` |
+| **Procurement Specialist** | `PUR01` | `purchase@elvarafurniture.in` | `password123` | `purchase.*`, `vendor.*`, `product.view`, `inventory.view` |
+| **Production Manager** | `MFG01` | `mfg@elvarafurniture.in` | `password123` | `manufacturing.*`, `bom.*`, `product.view`, `inventory.view` |
+| **Inventory Clerk** | `INV01` | `inventory@elvarafurniture.in` | `password123` | `inventory.*`, `product.view` |
 
 ---
 
@@ -362,7 +362,7 @@ npm test
 
 ▶ Authentication & User Resolution Tests
   ✔ A. Employee ID login (ADMIN01 / password123) should return HTTP 200, user data, and JWT cookie (1015ms)
-  ✔ B. Email login (admin@shivfurniture.in / password123) should return HTTP 200 and user data (367ms)
+  ✔ B. Email login (admin@elvarafurniture.in / password123) should return HTTP 200 and user data (367ms)
   ✔ C. Invalid password should return HTTP 401 (312ms)
   ✔ D. Authenticated /me endpoint should return authenticated user details using cookie (686ms)
   ✔ E. Logout should clear JWT cookie and subsequent /me should return 401 (21ms)
@@ -513,7 +513,7 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/mini-erp-prod?retryWrites=true&w=majority
 JWT_SECRET=<64_character_cryptographically_secure_random_string>
 JWT_EXPIRES_IN=7d
-CORS_ORIGIN=https://erp.shivfurniture.in
+CORS_ORIGIN=https://erp.elvarafurniture.in
 ```
 
 ### Production Build
@@ -532,4 +532,4 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ---
 
-**Shiv Furniture Works Enterprise ERP** • Engineered for robust manufacturing operational control.
+**ELVARA FURNITURE Enterprise ERP** • Engineered for robust manufacturing operational control.

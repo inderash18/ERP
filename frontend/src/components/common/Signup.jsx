@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import loginImage from "../../assets/login1.jpg";
-import backgroundImage from "../../assets/background image.jpg";
+import backgroundImage from "../../assets/wall.jpg";
 import { useErp } from "../../context/ErpContext";
 
 export default function Signup() {

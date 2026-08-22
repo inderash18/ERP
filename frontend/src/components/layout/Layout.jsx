@@ -102,7 +102,7 @@ export default function Layout() {
     return name ? name.charAt(0).toUpperCase() : 'A';
   };
 
-  const userEmail = authUser?.email || user?.email || 'admin@shivfurniture.in';
+  const userEmail = authUser?.email || user?.email || 'admin@elvarafurniture.in';
   const employeeId = authUser?.employeeId || user?.employeeId || 'ADMIN01';
 
   const getBreadcrumbTitle = () => {
@@ -159,10 +159,10 @@ export default function Layout() {
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
-                Shiv Furniture
+                ELVARA FURNITURE
               </div>
               <div style={{ fontSize: 11, color: "var(--text-tertiary)", fontWeight: 400 }}>
-                shivfurniture.in
+                elvarafurniture.in
               </div>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function Layout() {
         }}>
           {/* Breadcrumbs Navigation */}
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12.5, color: "var(--text-tertiary)" }}>
-            <span style={{ fontWeight: 450 }}>Shiv Furniture</span>
+            <span style={{ fontWeight: 450 }}>ELVARA FURNITURE</span>
             <ChevronRight size={13} />
             <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
               {getBreadcrumbTitle()}

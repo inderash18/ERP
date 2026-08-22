@@ -33,14 +33,14 @@ export const register = async (req, res) => {
       });
     }
 
-    const cleanEmail = email ? email.toLowerCase().trim() : `${employeeId.toLowerCase().trim()}@shivfurniture.in`;
+    const cleanEmail = email ? email.toLowerCase().trim() : `${employeeId.toLowerCase().trim()}@elvarafurniture.in`;
 
     // Find default organization or create one
     let org = await Organization.findOne();
     if (!org) {
       org = await Organization.create({
-        name: companyName || 'Shiv Furniture Works',
-        domain: 'shivfurniture.in'
+        name: companyName || 'ELVARA FURNITURE',
+        domain: 'elvarafurniture.in'
       });
     }
 

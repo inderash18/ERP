@@ -23,7 +23,7 @@ describe('End-to-End MTS and MTO Business Flow Tests', () => {
 
   before(async () => {
     await connectDB();
-    testTenant = await createTestTenant('Shiv Furniture Works Flow Test');
+    testTenant = await createTestTenant('ELVARA FURNITURE Flow Test');
 
     testCustomer = await Customer.create({
       organizationId: testTenant.org._id,

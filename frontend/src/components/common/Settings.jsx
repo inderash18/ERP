@@ -32,8 +32,8 @@ export default function Settings({ defaultTab }) {
   } = useErp();
 
   const [formSettings, setFormSettings] = useState({
-    orgName: 'Shiv Furniture Works',
-    orgEmail: 'admin@shivfurniture.in',
+    orgName: 'ELVARA FURNITURE',
+    orgEmail: 'admin@elvarafurniture.in',
     currency: 'INR',
     taxRate: 18,
     lowStockThresholdPercent: 20
