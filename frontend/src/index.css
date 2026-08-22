@@ -190,7 +190,7 @@ button, [role="button"] {
 .recharts-default-tooltip .recharts-tooltip-item-unit,
 .recharts-default-tooltip .recharts-tooltip-item-value,
 .recharts-default-tooltip .recharts-tooltip-label {
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 /* ── Accessibility: Reduced Motion Support ─────────────────── */
