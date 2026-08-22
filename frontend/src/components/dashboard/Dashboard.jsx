@@ -121,13 +121,17 @@ export default function Dashboard() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.3, ease: "easeInOut" }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { duration: 0.4, ease: "easeInOut" } }
   };
 
   return (
@@ -135,6 +139,7 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
+      exit="exit"
       style={{ display: "flex", flexDirection: "column", gap: 20 }}
     >
         
