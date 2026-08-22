@@ -136,7 +136,7 @@ export default function Dashboard() {
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "7px 12px", borderRadius: 6,
-              border: "1px solid #e2e8f0", background: "#ffffff",
+              border: "1px solid var(--border)", background: "var(--surface)",
               color: "var(--text-primary)", fontSize: 12.5, fontWeight: 600,
               textDecoration: "none"
             }}
@@ -148,9 +148,9 @@ export default function Dashboard() {
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "7px 14px", borderRadius: 6,
-              background: "var(--accent)", color: "#ffffff",
+              background: "var(--accent)", color: "var(--canvas)",
               fontSize: 12.5, fontWeight: 600, textDecoration: "none",
-              boxShadow: "0 1px 2px 0 rgba(37, 99, 235, 0.2)"
+              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.1)"
             }}
           >
             <Plus size={14} /> Create Sales Order
