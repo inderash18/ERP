@@ -23,6 +23,7 @@ export default function Products() {
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -83,6 +84,7 @@ export default function Products() {
     if (!formData.name.trim()) return alert("Product name is required");
     if (!formData.sku.trim()) return alert("SKU is required");
 
+    setIsSubmitting(true);
     const payload = {
       name: formData.name.trim(),
       sku: formData.sku.trim().toUpperCase(),
@@ -98,12 +100,19 @@ export default function Products() {
       defaultVendor: formData.defaultVendor || undefined
     };
 
-    if (editingItem) {
-      await updateProduct(editingItem.id || editingItem._id, payload);
-    } else {
-      await addProduct(payload);
+    try {
+      if (editingItem) {
+        await updateProduct(editingItem.id || editingItem._id, payload);
+      } else {
+        await addProduct(payload);
+      }
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Failed to save product:", err);
+      alert(`Failed to save product: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setShowAddModal(false);
   };
 
   const handleDelete = async (id) => {
@@ -443,9 +452,14 @@ export default function Products() {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                  disabled={isSubmitting}
+                  style={{
+                    padding: '7px 16px', borderRadius: 6, border: 'none',
+                    background: 'var(--accent)', color: 'var(--canvas)', fontSize: 12.5, fontWeight: 600,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1
+                  }}
                 >
-                  {editingItem ? 'Save Changes' : 'Create Item'}
+                  {isSubmitting ? 'Processing...' : (editingItem ? 'Save Changes' : 'Create Item')}
                 </button>
               </div>
             </form>
