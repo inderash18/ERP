@@ -79,14 +79,6 @@ export default function Dashboard() {
       });
     }
 
-    if (result.every(r => r.sales === 0 && r.orders === 0)) {
-      return [
-        { month: "May", sales: Math.round(totalRevenue * 0.15) || 12000, orders: 1 },
-        { month: "Jun", sales: Math.round(totalRevenue * 0.3) || 28000, orders: 2 },
-        { month: "Jul", sales: Math.round(totalRevenue * 0.55) || 45000, orders: 4 },
-        { month: "Aug", sales: totalRevenue || 64000, orders: Math.max(1, totalOrdCount) },
-      ];
-    }
     return result;
   }, [orders, totalRevenue, totalOrdCount]);
 
@@ -95,14 +87,6 @@ export default function Dashboard() {
     const delivered = orders.filter(o => o.status === 'DELIVERED' || o.fulfillmentStatus === 'Completed').length;
     const inProgress = orders.filter(o => o.status === 'CONFIRMED' || o.status === 'RESERVED' || o.fulfillmentStatus === 'Ready for Delivery').length;
     const draft = orders.filter(o => o.status === 'DRAFT').length;
-
-    if (delivered + inProgress + draft === 0) {
-      return [
-        { name: "Delivered", value: 65, color: "#10b981" },
-        { name: "In Production", value: 25, color: "var(--accent)" },
-        { name: "Pending", value: 10, color: "#f59e0b" },
-      ];
-    }
 
     return [
       { name: "Delivered", value: delivered, color: "#10b981" },
