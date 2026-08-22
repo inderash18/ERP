@@ -12,6 +12,14 @@ import {
 } from "lucide-react";
 import { useErp } from "../../context/ErpContext";
 
+
+const Skeleton = ({ width, height, style, className }) => (
+  <div 
+    className={`animate-pulse rounded ${className || ''}`} 
+    style={{ width: width || '100%', height: height || '20px', background: 'var(--border)', opacity: 0.6, ...style }} 
+  />
+);
+
 export default function Dashboard() {
   const { 
     metrics, 
@@ -171,7 +179,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
-            {formatCurrency ? formatCurrency(totalRevenue) : `₹${totalRevenue.toLocaleString()}`}
+            {isLoading ? <Skeleton width="120px" height="28px" /> : (formatCurrency ? formatCurrency(totalRevenue) : `₹${totalRevenue.toLocaleString()}`)}
           </div>
           <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             From {totalOrdCount} confirmed commercial orders
@@ -189,7 +197,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
-            {activeWorkOrdersCount} Active MOs
+            {isLoading ? <Skeleton width="140px" height="28px" /> : `${activeWorkOrdersCount} Active MOs`}
           </div>
           <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             BoM routing & work centers operational
@@ -207,7 +215,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
-            {totalInventoryUnits.toLocaleString()} Units
+            {isLoading ? <Skeleton width="100px" height="28px" /> : `${totalInventoryUnits.toLocaleString()} Units`}
           </div>
           <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             Across {totalProdCount} catalog items (including pins & hardware)
@@ -225,7 +233,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
-            {formatCurrency ? formatCurrency(totalPurchasesCost) : `₹${totalPurchasesCost.toLocaleString()}`}
+            {isLoading ? <Skeleton width="120px" height="28px" /> : (formatCurrency ? formatCurrency(totalPurchasesCost) : `₹${totalPurchasesCost.toLocaleString()}`)}
           </div>
           <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             Direct supplier replenishment stream
@@ -366,7 +374,18 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.length === 0 ? (
+              {isLoading ? (
+                [1, 2, 3].map(i => (
+                  <tr key={i}>
+                    <td><Skeleton width="60px" height="16px" /></td>
+                    <td><Skeleton width="120px" height="16px" /></td>
+                    <td><Skeleton width="70px" height="16px" /></td>
+                    <td><Skeleton width="100px" height="16px" /></td>
+                    <td><Skeleton width="80px" height="16px" style={{ marginLeft: 'auto' }} /></td>
+                    <td><Skeleton width="50px" height="24px" style={{ marginLeft: 'auto' }} /></td>
+                  </tr>
+                ))
+              ) : recentOrders.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "var(--text-secondary)" }}>
                     No orders created yet. Click "Create Sales Order" to launch a new order.
