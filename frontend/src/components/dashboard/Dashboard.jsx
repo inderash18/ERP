@@ -122,10 +122,10 @@ export default function Dashboard() {
       {/* ── Page Header & Quick Execution Actions ─────────────── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
             Operational Overview
           </h1>
-          <p style={{ fontSize: 13, color: "#64748b", margin: "3px 0 0" }}>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>
             Real-time telemetry across Sales, Inventory, Shop Floor, and Procurement pipelines.
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function Dashboard() {
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "7px 12px", borderRadius: 6,
               border: "1px solid #e2e8f0", background: "#ffffff",
-              color: "#334155", fontSize: 12.5, fontWeight: 600,
+              color: "var(--text-primary)", fontSize: 12.5, fontWeight: 600,
               textDecoration: "none"
             }}
           >
@@ -164,17 +164,17 @@ export default function Dashboard() {
         {/* Total Sales Revenue */}
         <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Total Revenue
             </span>
             <span style={{ padding: "2px 6px", borderRadius: 4, background: "#ecfdf5", color: "#059669", fontSize: 11, fontWeight: 700 }}>
               +14.2%
             </span>
           </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
             {formatCurrency ? formatCurrency(totalRevenue) : `₹${totalRevenue.toLocaleString()}`}
           </div>
-          <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             From {totalOrdCount} confirmed commercial orders
           </div>
         </div>
@@ -182,17 +182,17 @@ export default function Dashboard() {
         {/* Active Production Orders */}
         <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Shop Floor Batches
             </span>
             <span style={{ padding: "2px 6px", borderRadius: 4, background: "#eff6ff", color: "var(--accent)", fontSize: 11, fontWeight: 700 }}>
               MTO Active
             </span>
           </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
             {activeWorkOrdersCount} Active MOs
           </div>
-          <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             BoM routing & work centers operational
           </div>
         </div>
@@ -200,17 +200,17 @@ export default function Dashboard() {
         {/* Inventory Stock Position */}
         <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Stock On Hand
             </span>
             <span style={{ padding: "2px 6px", borderRadius: 4, background: lowStockItems.length > 0 ? "#fef3c7" : "#ecfdf5", color: lowStockItems.length > 0 ? "#b45309" : "#059669", fontSize: 11, fontWeight: 700 }}>
               {lowStockItems.length > 0 ? `${lowStockItems.length} Low` : "Healthy"}
             </span>
           </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
             {totalInventoryUnits.toLocaleString()} Units
           </div>
-          <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             Across {totalProdCount} catalog items (including pins & hardware)
           </div>
         </div>
@@ -218,17 +218,17 @@ export default function Dashboard() {
         {/* Procurement Position */}
         <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Purchase Volume
             </span>
             <span style={{ padding: "2px 6px", borderRadius: 4, background: "#f1f5f9", color: "#475569", fontSize: 11, fontWeight: 700 }}>
               {purchaseOrders.length} POs
             </span>
           </div>
-          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "#0f172a", marginTop: 8 }}>
+          <div className="tabular-nums" style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginTop: 8 }}>
             {formatCurrency ? formatCurrency(totalPurchasesCost) : `₹${totalPurchasesCost.toLocaleString()}`}
           </div>
-          <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginTop: 4 }}>
             Direct supplier replenishment stream
           </div>
         </div>
@@ -242,14 +242,14 @@ export default function Dashboard() {
         <div className="erp-card" style={{ padding: "20px 22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
                 Commercial Revenue & Demand Trajectory
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
                 Monthly aggregated dispatch and sales volume
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11.5, fontWeight: 600, color: "#64748b" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }} />
                 <span>Sales Revenue (₹)</span>
@@ -266,14 +266,14 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fill: '#64748b', fontSize: 11.5 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v === 0 ? "0" : `₹${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="month" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11.5 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickFormatter={(v) => v === 0 ? "0" : `₹${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   formatter={(val) => [formatCurrency ? formatCurrency(val) : `₹${Number(val).toLocaleString()}`, "Revenue"]}
-                  contentStyle={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-                  itemStyle={{ color: '#ffffff' }}
-                  labelStyle={{ color: '#ffffff', fontWeight: 600 }}
+                  contentStyle={{ background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '8px', border: 'none', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                  itemStyle={{ color: 'var(--text-primary)' }}
+                  labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
                 />
                 <Area isAnimationActive={false} type="monotone" dataKey="sales" stroke="var(--accent)" strokeWidth={2} fillOpacity={1} fill="url(#humanChartGrad)" />
               </AreaChart>
@@ -283,10 +283,10 @@ export default function Dashboard() {
 
         {/* Order Fulfillment Donut Card */}
         <div className="erp-card" style={{ padding: "20px" }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
             Fulfillment Breakdown
           </div>
-          <div style={{ fontSize: 11.5, color: "#64748b", marginBottom: 12 }}>
+          <div style={{ fontSize: 11.5, color: "var(--text-secondary)", marginBottom: 12 }}>
             Real-time pipeline distribution
           </div>
 
@@ -309,9 +309,9 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip
                   formatter={(val, name) => [`${val} orders`, name]}
-                  contentStyle={{ background: '#0f172a', color: '#ffffff', borderRadius: '6px', fontSize: '11px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-                  itemStyle={{ color: '#ffffff' }}
-                  labelStyle={{ color: '#ffffff', fontWeight: 600 }}
+                  contentStyle={{ background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '6px', fontSize: '11px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                  itemStyle={{ color: 'var(--text-primary)' }}
+                  labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -324,7 +324,7 @@ export default function Dashboard() {
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.color }} />
                   <span>{item.name}</span>
                 </div>
-                <span className="tabular-nums" style={{ fontWeight: 600, color: "#0f172a" }}>
+                <span className="tabular-nums" style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {item.value}
                 </span>
               </div>
@@ -336,12 +336,12 @@ export default function Dashboard() {
 
       {/* ── Bottom Section: Recent Orders Data Table ──────────── */}
       <div className="erp-card" style={{ overflow: "hidden" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid #e2e8f0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
               Active Commercial Orders
             </div>
-            <div style={{ fontSize: 11.5, color: "#64748b" }}>
+            <div style={{ fontSize: 11.5, color: "var(--text-secondary)" }}>
               Latest customer demand records and reservation statuses
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function Dashboard() {
             <tbody>
               {recentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "30px", color: "var(--text-secondary)" }}>
                     No orders created yet. Click "Create Sales Order" to launch a new order.
                   </td>
                 </tr>
@@ -386,7 +386,7 @@ export default function Dashboard() {
                           {order.orderNumber || order.id || 'SO-001'}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 500, color: "#0f172a" }}>
+                      <td style={{ fontWeight: 500, color: "var(--text-primary)" }}>
                         {order.customerName || order.customer?.name || 'Walk-in Client'}
                       </td>
                       <td>
@@ -400,10 +400,10 @@ export default function Dashboard() {
                           {status}
                         </span>
                       </td>
-                      <td style={{ color: "#64748b", fontSize: 12 }}>
+                      <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>
                         {order.fulfillmentStatus || (isDelivered ? 'Delivered' : 'Awaiting dispatch')}
                       </td>
-                      <td className="tabular-nums" style={{ textAlign: "right", fontWeight: 600, color: "#0f172a" }}>
+                      <td className="tabular-nums" style={{ textAlign: "right", fontWeight: 600, color: "var(--text-primary)" }}>
                         {formatCurrency ? formatCurrency(order.totalAmount || 0) : `₹${(order.totalAmount || 0).toLocaleString()}`}
                       </td>
                       <td style={{ textAlign: "right" }}>
