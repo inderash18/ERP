@@ -90,6 +90,48 @@ app.use(limiter);
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+// ---------------------------------------------------------------------------
+// GLOBAL IN-MEMORY API CACHE (Microsecond Load Times)
+// ---------------------------------------------------------------------------
+const apiCache = new Map();
+
+app.use((req, res, next) => {
+  // We only want to cache API routes, excluding auth which needs real-time validation
+  if (!req.path.startsWith('/api/v1') || req.path.startsWith('/api/v1/auth')) {
+    return next();
+  }
+
+  // If the request is a write operation (POST, PUT, PATCH, DELETE)
+  // We completely wipe the cache to ensure no user ever sees stale data.
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    apiCache.clear();
+    return next();
+  }
+
+  // For GET requests, we check our lightning-fast RAM cache
+  if (req.method === 'GET') {
+    const cacheKey = req.originalUrl || req.url;
+    
+    if (apiCache.has(cacheKey)) {
+      // Boom! Microsecond response time!
+      res.setHeader('X-Cache', 'HIT');
+      return res.status(200).json(apiCache.get(cacheKey));
+    }
+
+    // If it's not in the cache, we intercept the res.json function so we can save it for next time
+    const originalJson = res.json;
+    res.json = function (body) {
+      // Only cache successful requests
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        apiCache.set(cacheKey, body);
+      }
+      res.setHeader('X-Cache', 'MISS');
+      return originalJson.call(this, body);
+    };
+  }
+
+  next();
+});
 
 // Primary REST Endpoints
 app.use('/api/v1/auth', authRoutes);
