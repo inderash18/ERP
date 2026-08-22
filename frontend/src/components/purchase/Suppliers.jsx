@@ -52,12 +52,29 @@ export default function Suppliers() {
     e.preventDefault();
     if (!formData.name.trim()) return alert("Vendor name required");
 
-    if (editingItem) {
-      await updateSupplier(editingItem.id || editingItem._id, formData);
-    } else {
-      await addSupplier(formData);
+    setIsSubmitting(true);
+    try {
+      const addressString = typeof formData.address === 'string' ? formData.address : '';
+      const parts = addressString.split(',').map(s => s.trim());
+      const payload = {
+        ...formData,
+        address: {
+          city: parts[0] || '',
+          state: parts.slice(1).join(', ') || ''
+        }
+      };
+
+      if (editingItem) {
+        await updateSupplier(editingItem.id || editingItem._id, payload);
+      } else {
+        await addSupplier(payload);
+      }
+      setShowAddModal(false);
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsSubmitting(false);
     }
-    setShowAddModal(false);
   };
 
   const handleDelete = async (id) => {
