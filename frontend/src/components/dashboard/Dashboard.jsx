@@ -20,8 +20,18 @@ export default function Dashboard() {
     products = [], 
     customers = [], 
     workOrders = [], 
-    formatCurrency 
+    formatCurrency,
+    isLoading
   } = useErp();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="w-10 h-10 rounded-full border-4 border-[var(--border)] border-t-[var(--accent)] animate-spin" />
+        <div className="text-[var(--text-secondary)] text-sm font-medium animate-pulse">Syncing telemetry data...</div>
+      </div>
+    );
+  }
 
   // 1. Dynamic Financial & Operational KPI Aggregations
   const totalRevenue = useMemo(() => {
@@ -88,11 +98,16 @@ export default function Dashboard() {
     const inProgress = orders.filter(o => o.status === 'CONFIRMED' || o.status === 'RESERVED' || o.fulfillmentStatus === 'Ready for Delivery').length;
     const draft = orders.filter(o => o.status === 'DRAFT').length;
 
-    return [
+    const activeData = [
       { name: "Delivered", value: delivered, color: "#10b981" },
       { name: "In Production", value: inProgress, color: "var(--accent)" },
       { name: "Draft", value: draft, color: "#f59e0b" },
     ].filter(i => i.value > 0);
+
+    if (activeData.length === 0) {
+      return [{ name: "No Orders Yet", value: 1, color: "var(--border)" }];
+    }
+    return activeData;
   }, [orders]);
 
   // 4. Recent Orders Table
@@ -394,9 +409,9 @@ export default function Dashboard() {
                         <Link
                           to="/layout/sales"
                           style={{
-                            fontSize: 12, fontWeight: 600, color: "var(--accent)",
+                            fontSize: 12, fontWeight: 600, color: "var(--text-primary)",
                             textDecoration: "none", padding: "4px 8px", borderRadius: 4,
-                            background: "#f1f5f9"
+                            background: "var(--surface)", border: "1px solid var(--border)"
                           }}
                         >
                           Manage
