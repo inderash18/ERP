@@ -3,6 +3,7 @@ import {
   Truck, Plus, Search, Edit2, Trash2, X, MapPin, Mail, Phone
 } from 'lucide-react';
 import { useErp } from '../../context/ErpContext';
+import SupplyChainMap from './SupplyChainMap';
 
 export default function Suppliers() {
   const {
