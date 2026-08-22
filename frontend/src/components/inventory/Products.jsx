@@ -46,7 +46,7 @@ export default function Products() {
     setFormData({
       name: '',
       sku: `PRD-${Math.floor(1000 + Math.random() * 9000)}`,
-      category: 'Raw Wood & Timber',
+      category: '',
       type: 'Raw Material',
       unit: 'pcs',
       salesPrice: '0',
@@ -65,8 +65,8 @@ export default function Products() {
     setFormData({
       name: item.name || '',
       sku: item.sku || '',
-      category: typeof item.category === 'object' && item.category ? item.category.name : (item.category || ''),
-      type: item.type || 'Raw Material',
+      category: typeof item.category === 'object' && item.category ? item.category._id : (item.category || ''),
+      type: item.type || 'Finished Good',
       unit: item.unit || 'pcs',
       salesPrice: String(item.salesPrice || item.sellingPrice || 0),
       costPrice: String(item.costPrice || item.purchasePrice || 0),
@@ -88,7 +88,7 @@ export default function Products() {
     const payload = {
       name: formData.name.trim(),
       sku: formData.sku.trim().toUpperCase(),
-      category: formData.category,
+      category: formData.category && formData.category.match(/^[0-9a-fA-F]{24}$/) ? formData.category : undefined,
       type: formData.type,
       unit: formData.unit,
       salesPrice: Number(formData.salesPrice) || 0,
