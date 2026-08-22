@@ -121,13 +121,13 @@ export default function AdminLogin() {
                     <div className="w-[360px]">
                         {/* TITLE */}
                         <div className="flex items-center gap-2">
-                            <Shield size={24} className="text-[#405b4d]" />
+                            <Shield size={24} className="text-black" />
                             <h1
                                 className="
                   text-[30px]
                   font-semibold
                   tracking-tight
-                  text-[#17241d]
+                  text-black
                 "
                             >
                                 Admin Login
@@ -145,7 +145,7 @@ export default function AdminLogin() {
                         <form onSubmit={handleAdminLogin} noValidate>
                             {/* EMPLOYEE ID */}
                             <div className="mt-6">
-                                <label className="mb-2 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-2 block text-[12px] font-medium text-gray-700">
                                     Admin Employee ID
                                 </label>
                                 <input
@@ -162,16 +162,16 @@ export default function AdminLogin() {
                                         w-full
                                         rounded-full
                                         border
-                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
                                         bg-white
                                         px-5
                                         text-sm
                                         outline-none
-                                        shadow-[0_3px_10px_rgba(25,53,43,0.08)]
+                                        shadow-sm
                                         transition
-                                        focus:border-[#405b4d]
+                                        focus:border-black
                                         focus:ring-2
-                                        focus:ring-[#405b4d]/20
+                                        focus:ring-black/20
                                     `}
                                 />
                                 {errors.employeeId && (
@@ -189,7 +189,7 @@ export default function AdminLogin() {
                     block
                     text-[12px]
                     font-medium
-                    text-[#3f4943]
+                    text-gray-700
                   "
                                 >
                                     Password
@@ -210,16 +210,16 @@ export default function AdminLogin() {
                                             w-full
                                             rounded-full
                                             border
-                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
                                             bg-white
                                             px-5
                                             pr-12
                                             text-sm
                                             outline-none
                                             transition
-                                            focus:border-[#405b4d]
+                                            focus:border-black
                                             focus:ring-2
-                                            focus:ring-[#405b4d]/20
+                                            focus:ring-black/20
                                         `}
                                     />
 
@@ -257,13 +257,13 @@ export default function AdminLogin() {
                                     h-[43px]
                                     w-full
                                     rounded-full
-                                    bg-[#8B4513]
+                                    bg-black
                                     text-[13px]
                                     font-medium
                                     text-white
                                     shadow-sm
                                     transition
-                                    hover:bg-[#72380f]
+                                    hover:bg-gray-800
                                     disabled:opacity-60
                                     disabled:cursor-not-allowed
                                     flex
@@ -299,8 +299,8 @@ export default function AdminLogin() {
                                 onClick={() => navigate("/login")}
                                 className="
                   font-semibold
-                  text-[#405b4d]
-                  hover:text-[#314b3e]
+                  text-black
+                  hover:text-gray-800
                   hover:underline
                   text-[12px]
                 "

@@ -122,7 +122,7 @@ export default function Login() {
                     <div className="w-[360px]">
 
                         {/* TITLE */}
-                        <h1 className="text-[30px] font-semibold tracking-tight text-[#17241d]">
+                        <h1 className="text-[30px] font-semibold tracking-tight text-black">
                             Log in
                         </h1>
 
@@ -137,7 +137,7 @@ export default function Login() {
                         <form onSubmit={handleLogin} noValidate>
                             {/* LOGIN ID / EMAIL */}
                             <div className="mt-6">
-                                <label className="mb-2 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-2 block text-[12px] font-medium text-gray-700">
                                     Employee ID / Login ID
                                 </label>
 
@@ -155,16 +155,16 @@ export default function Login() {
                                         w-full
                                         rounded-full
                                         border
-                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
                                         bg-white
                                         px-5
                                         text-sm
                                         outline-none
-                                        shadow-[0_3px_10px_rgba(25,53,43,0.08)]
+                                        shadow-sm
                                         transition
-                                        focus:border-[#405b4d]
+                                        focus:border-black
                                         focus:ring-2
-                                        focus:ring-[#405b4d]/20
+                                        focus:ring-black/20
                                     `}
                                 />
                                 {errors.employeeId && (
@@ -176,7 +176,7 @@ export default function Login() {
 
                             {/* PASSWORD */}
                             <div className="mt-4">
-                                <label className="mb-2 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-2 block text-[12px] font-medium text-gray-700">
                                     Password
                                 </label>
 
@@ -195,17 +195,17 @@ export default function Login() {
                                             w-full
                                             rounded-full
                                             border
-                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
+                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
                                             bg-white
                                             px-5
                                             pr-12
                                             text-sm
                                             outline-none
-                                            shadow-[0_3px_10px_rgba(25,53,43,0.08)]
+                                            shadow-sm
                                             transition
-                                            focus:border-[#405b4d]
+                                            focus:border-black
                                             focus:ring-2
-                                            focus:ring-[#405b4d]/20
+                                            focus:ring-black/20
                                         `}
                                     />
 
@@ -218,7 +218,7 @@ export default function Login() {
                                             top-1/2
                                             -translate-y-1/2
                                             text-[#8b948e]
-                                            hover:text-[#405b4d]
+                                            hover:text-black
                                         "
                                     >
                                         {showPassword ? (
@@ -244,15 +244,15 @@ export default function Login() {
                                     h-[43px]
                                     w-full
                                     rounded-full
-                                    bg-[#8B4513]
+                                    bg-black
                                     text-[13px]
                                     font-medium
                                     text-white
-                                    shadow-[0_7px_18px_rgba(64,91,77,0.28)]
+                                    shadow-lg
                                     transition-all
                                     hover:-translate-y-[1px]
-                                    hover:bg-[#72380f]
-                                    hover:shadow-[0_10px_25px_rgba(64,91,77,0.35)]
+                                    hover:bg-gray-800
+                                    hover:shadow-xl
                                     disabled:cursor-not-allowed
                                     disabled:opacity-60
                                     flex
@@ -291,17 +291,17 @@ export default function Login() {
                                     w-full
                                     rounded-xl
                                     border
-                                    border-[#d1d5d2]
+                                    border-gray-300
                                     bg-white
                                     text-[12px]
                                     font-medium
-                                    text-[#405b4d]
-                                    shadow-[0_4px_12px_rgba(25,53,43,0.08)]
+                                    text-black
+                                    shadow-sm
                                     transition-all
                                     hover:-translate-y-[1px]
-                                    hover:border-[#405b4d]
-                                    hover:bg-[#f3f6f4]
-                                    hover:shadow-[0_7px_18px_rgba(64,91,77,0.15)]
+                                    hover:border-black
+                                    hover:bg-gray-50
+                                    hover:shadow-md
                                 "
                             >
                                 Login as Admin
@@ -317,8 +317,8 @@ export default function Login() {
                                     onClick={() => navigate("/signup")}
                                     className="
                                         font-semibold
-                                        text-[#405b4d]
-                                        hover:text-[#314b3e]
+                                        text-black
+                                        hover:text-gray-800
                                         hover:underline
                                     "
                                 >

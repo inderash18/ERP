@@ -153,7 +153,7 @@ export default function Signup() {
               text-[30px]
               font-semibold
               tracking-tight
-              text-[#17241d]
+              text-black
             ">
                             Sign up
                         </h1>
@@ -176,7 +176,7 @@ export default function Signup() {
                         <form onSubmit={handleSignup} noValidate>
                             {/* EMPLOYEE ID */}
                             <div className="mt-5">
-                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-1.5 block text-[12px] font-medium text-gray-700">
                                     Employee ID / Login ID
                                 </label>
                                 <input
@@ -190,8 +190,8 @@ export default function Signup() {
                                     placeholder="e.g. SALE04"
                                     className={`
                                         h-[40px] w-full rounded-full border
-                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
-                                        bg-white px-5 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                        ${errors.employeeId ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
+                                        bg-white px-5 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/20
                                     `}
                                 />
                                 {errors.employeeId && (
@@ -201,7 +201,7 @@ export default function Signup() {
 
                             {/* FULL NAME */}
                             <div className="mt-3">
-                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-1.5 block text-[12px] font-medium text-gray-700">
                                     Full Name
                                 </label>
                                 <input
@@ -215,8 +215,8 @@ export default function Signup() {
                                     placeholder="e.g. Alexander Reed"
                                     className={`
                                         h-[40px] w-full rounded-full border
-                                        ${errors.name ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
-                                        bg-white px-5 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                        ${errors.name ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
+                                        bg-white px-5 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/20
                                     `}
                                 />
                                 {errors.name && (
@@ -226,7 +226,7 @@ export default function Signup() {
 
                             {/* EMAIL */}
                             <div className="mt-3">
-                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-1.5 block text-[12px] font-medium text-gray-700">
                                     Email Address
                                 </label>
                                 <input
@@ -240,8 +240,8 @@ export default function Signup() {
                                     placeholder="alex@company.com"
                                     className={`
                                         h-[40px] w-full rounded-full border
-                                        ${errors.email ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
-                                        bg-white px-5 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                        ${errors.email ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
+                                        bg-white px-5 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/20
                                     `}
                                 />
                                 {errors.email && (
@@ -251,7 +251,7 @@ export default function Signup() {
 
                             {/* PASSWORD */}
                             <div className="mt-3">
-                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-1.5 block text-[12px] font-medium text-gray-700">
                                     Password
                                 </label>
                                 <div className="relative">
@@ -266,8 +266,8 @@ export default function Signup() {
                                         placeholder="Min. 6 characters"
                                         className={`
                                             h-[40px] w-full rounded-full border
-                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
-                                            bg-white px-5 pr-12 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                            ${errors.password ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
+                                            bg-white px-5 pr-12 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/20
                                         `}
                                     />
                                     <button
@@ -285,7 +285,7 @@ export default function Signup() {
 
                             {/* CONFIRM PASSWORD */}
                             <div className="mt-3">
-                                <label className="mb-1.5 block text-[12px] font-medium text-[#3f4943]">
+                                <label className="mb-1.5 block text-[12px] font-medium text-gray-700">
                                     Confirm Password
                                 </label>
                                 <div className="relative">
@@ -300,8 +300,8 @@ export default function Signup() {
                                         placeholder="Repeat password"
                                         className={`
                                             h-[40px] w-full rounded-full border
-                                            ${errors.confirmPassword ? "border-red-500 ring-1 ring-red-500/30" : "border-[#aeb5b0]"}
-                                            bg-white px-5 pr-12 text-sm outline-none transition focus:border-[#405b4d] focus:ring-2 focus:ring-[#405b4d]/20
+                                            ${errors.confirmPassword ? "border-red-500 ring-1 ring-red-500/30" : "border-gray-300"}
+                                            bg-white px-5 pr-12 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/20
                                         `}
                                     />
                                     <button
@@ -326,13 +326,13 @@ export default function Signup() {
                                     h-[42px]
                                     w-full
                                     rounded-full
-                                    bg-[#8B4513]
+                                    bg-black
                                     text-[13px]
                                     font-medium
                                     text-white
                                     shadow-sm
                                     transition
-                                    hover:bg-[#72380f]
+                                    hover:bg-gray-800
                                     disabled:opacity-60
                                     disabled:cursor-not-allowed
                                     flex
@@ -361,7 +361,7 @@ export default function Signup() {
                                     onClick={() => navigate("/login")}
                                     className="
                                         font-semibold
-                                        text-[#405b4d]
+                                        text-black
                                         hover:text-[#8B4513]
                                         hover:underline
                                     "

@@ -99,14 +99,14 @@ export default function Dashboard() {
     if (delivered + inProgress + draft === 0) {
       return [
         { name: "Delivered", value: 65, color: "#10b981" },
-        { name: "In Production", value: 25, color: "#3b82f6" },
+        { name: "In Production", value: 25, color: "var(--accent)" },
         { name: "Pending", value: 10, color: "#f59e0b" },
       ];
     }
 
     return [
       { name: "Delivered", value: delivered, color: "#10b981" },
-      { name: "In Production", value: inProgress, color: "#3b82f6" },
+      { name: "In Production", value: inProgress, color: "var(--accent)" },
       { name: "Draft", value: draft, color: "#f59e0b" },
     ].filter(i => i.value > 0);
   }, [orders]);
@@ -148,7 +148,7 @@ export default function Dashboard() {
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "7px 14px", borderRadius: 6,
-              background: "#2563eb", color: "#ffffff",
+              background: "var(--accent)", color: "#ffffff",
               fontSize: 12.5, fontWeight: 600, textDecoration: "none",
               boxShadow: "0 1px 2px 0 rgba(37, 99, 235, 0.2)"
             }}
@@ -185,7 +185,7 @@ export default function Dashboard() {
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Shop Floor Batches
             </span>
-            <span style={{ padding: "2px 6px", borderRadius: 4, background: "#eff6ff", color: "#2563eb", fontSize: 11, fontWeight: 700 }}>
+            <span style={{ padding: "2px 6px", borderRadius: 4, background: "#eff6ff", color: "var(--accent)", fontSize: 11, fontWeight: 700 }}>
               MTO Active
             </span>
           </div>
@@ -251,7 +251,7 @@ export default function Dashboard() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11.5, fontWeight: 600, color: "#64748b" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2563eb" }} />
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }} />
                 <span>Sales Revenue (₹)</span>
               </div>
             </div>
@@ -262,8 +262,8 @@ export default function Dashboard() {
               <AreaChart data={ordersTrajectoryData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <defs>
                   <linearGradient id="humanChartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.12}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.12}/>
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -275,7 +275,7 @@ export default function Dashboard() {
                   itemStyle={{ color: '#ffffff' }}
                   labelStyle={{ color: '#ffffff', fontWeight: 600 }}
                 />
-                <Area isAnimationActive={false} type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#humanChartGrad)" />
+                <Area isAnimationActive={false} type="monotone" dataKey="sales" stroke="var(--accent)" strokeWidth={2} fillOpacity={1} fill="url(#humanChartGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -347,7 +347,7 @@ export default function Dashboard() {
           </div>
           <Link
             to="/layout/sales"
-            style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
+            style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
           >
             <span>View all sales orders</span>
             <ArrowRight size={13} />
@@ -382,7 +382,7 @@ export default function Dashboard() {
                   return (
                     <tr key={order.id || order._id}>
                       <td style={{ fontWeight: 600 }}>
-                        <span className="font-mono" style={{ color: "#2563eb" }}>
+                        <span className="font-mono" style={{ color: "var(--accent)" }}>
                           {order.orderNumber || order.id || 'SO-001'}
                         </span>
                       </td>
@@ -394,7 +394,7 @@ export default function Dashboard() {
                           display: "inline-flex", alignItems: "center", gap: 4,
                           fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 4,
                           background: isDelivered ? "#ecfdf5" : isConfirmed ? "#eff6ff" : "#fef3c7",
-                          color: isDelivered ? "#059669" : isConfirmed ? "#2563eb" : "#b45309"
+                          color: isDelivered ? "#059669" : isConfirmed ? "var(--accent)" : "#b45309"
                         }}>
                           <span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor" }} />
                           {status}
@@ -410,7 +410,7 @@ export default function Dashboard() {
                         <Link
                           to="/layout/sales"
                           style={{
-                            fontSize: 12, fontWeight: 600, color: "#2563eb",
+                            fontSize: 12, fontWeight: 600, color: "var(--accent)",
                             textDecoration: "none", padding: "4px 8px", borderRadius: 4,
                             background: "#f1f5f9"
                           }}
