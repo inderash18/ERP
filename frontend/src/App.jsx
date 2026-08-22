@@ -125,6 +125,7 @@ function AnimatedRoutes() {
               </AdminRoute>
             }
           />
+          <Route path="audit" element={<Settings defaultTab="audit" />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
@@ -138,6 +139,7 @@ function AnimatedRoutes() {
         <Route path="/suppliers" element={<Navigate to="/layout/suppliers" replace />} />
         <Route path="/purchase" element={<Navigate to="/layout/purchase" replace />} />
         <Route path="/users" element={<Navigate to="/layout/users" replace />} />
+        <Route path="/audit" element={<Navigate to="/layout/audit" replace />} />
         <Route path="/settings" element={<Navigate to="/layout/settings" replace />} />
 
         {/* Catch-all unknown routes → Redirect to Login */}

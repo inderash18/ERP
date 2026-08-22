@@ -159,7 +159,7 @@ export function ErpProvider({ children }) {
         promises.push(masterApi.getVendors());
       }
 
-      if (hasPermission('audit.view') || hasPermission('*')) {
+      if (hasPermission('audit.view') || hasPermission('inventory.view') || hasPermission('*') || isAdmin) {
         keys.push('audit');
         promises.push(auditApi.getLogs());
       }

@@ -75,6 +75,7 @@ export default function Layout() {
       title: "ADMINISTRATION",
       items: [
         { name: "Team & Roles",       path: "/layout/users",      icon: Shield,          count: null,                      perm: 'admin' },
+        { name: "Audit Trail",        path: "/layout/audit",      icon: Activity,        count: null,                      perm: 'all' },
         { name: "System Settings",    path: "/layout/settings",   icon: Settings,        count: null,                      perm: 'all' },
       ]
     }
