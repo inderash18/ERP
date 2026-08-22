@@ -102,7 +102,7 @@ export default function Login() {
                         alt="Decorative background"
                         className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-[#19352b]/30" />
+
                 </div>
 
                 {/* LOGIN SECTION */}

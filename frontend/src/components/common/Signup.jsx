@@ -130,7 +130,7 @@ export default function Signup() {
                         className="h-full w-full object-cover"
                     />
                     {/* GREEN OVERLAY */}
-                    <div className="absolute inset-0 bg-[#19352b]/30" />
+
                 </div>
 
                 {/* SIGNUP SECTION */}
