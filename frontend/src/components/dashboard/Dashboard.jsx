@@ -118,20 +118,19 @@ export default function Dashboard() {
   }, [orders]);
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     show: {
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 }
+      transition: { staggerChildren: 0.08 }
     },
     exit: { 
       opacity: 0,
-      transition: { duration: 0.3, ease: "easeInOut" }
+      transition: { duration: 0.2 }
     }
   };
 
   const itemVariants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { duration: 0.4, ease: "easeInOut" } }
+    show: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
   return (
