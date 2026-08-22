@@ -7,7 +7,6 @@ import {
   Layers, ArrowUpRight, Check, Activity, Sliders, Warehouse,
   Building2, ChevronDown, UserCheck, Sparkles
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useErp } from "../../context/ErpContext";
 import RouteTransition from "./RouteTransition";
 
@@ -390,117 +389,107 @@ export default function Layout() {
             </div>
 
             {/* ── Notification Popover ────────────────────────── */}
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  style={{
-                    position: "absolute", top: 38, right: 0,
-                    width: 320, background: "var(--surface)",
-                    borderRadius: 8, border: "1px solid var(--border)",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 100,
-                    overflow: "hidden"
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)" }}>
-                      Operational Alerts
-                    </span>
-                    <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
-                      {alertsList.length} alerts
-                    </span>
-                  </div>
+            {showNotifications && (
+              <div
+                style={{
+                  position: "absolute", top: 38, right: 0,
+                  width: 320, background: "var(--surface)",
+                  borderRadius: 8, border: "1px solid var(--border)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 100,
+                  overflow: "hidden"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)" }}>
+                    Operational Alerts
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+                    {alertsList.length} alerts
+                  </span>
+                </div>
 
-                  <div style={{ maxHeight: 240, overflowY: "auto", padding: "6px" }}>
-                    {alertsList.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "20px 10px", color: "var(--text-tertiary)", fontSize: 12 }}>
-                        No active operational alerts.
-                      </div>
-                    ) : (
-                      alertsList.map((alt, idx) => (
-                        <div key={idx} style={{
-                          padding: "8px 10px", borderRadius: 5,
-                          background: "var(--surface-hover)", marginBottom: 4,
-                          fontSize: 12, display: "flex", alignItems: "flex-start", gap: 8
-                        }}>
-                          <AlertTriangle size={13} color="var(--warning)" style={{ flexShrink: 0, marginTop: 2 }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{alt.title || 'Stock Alert'}</div>
-                            <div style={{ color: "var(--text-secondary)", fontSize: 11.5 }}>{alt.message || alt.text || 'Action required'}</div>
-                          </div>
+                <div style={{ maxHeight: 240, overflowY: "auto", padding: "6px" }}>
+                  {alertsList.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "20px 10px", color: "var(--text-tertiary)", fontSize: 12 }}>
+                      No active operational alerts.
+                    </div>
+                  ) : (
+                    alertsList.map((alt, idx) => (
+                      <div key={idx} style={{
+                        padding: "8px 10px", borderRadius: 5,
+                        background: "var(--surface-hover)", marginBottom: 4,
+                        fontSize: 12, display: "flex", alignItems: "flex-start", gap: 8
+                      }}>
+                        <AlertTriangle size={13} color="var(--warning)" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{alt.title || 'Stock Alert'}</div>
+                          <div style={{ color: "var(--text-secondary)", fontSize: 11.5 }}>{alt.message || alt.text || 'Action required'}</div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* ── User Profile Popover ────────────────────────── */}
-            <AnimatePresence>
-              {showProfile && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  style={{
-                    position: "absolute", top: 38, right: 0,
-                    width: 240, background: "var(--surface)",
-                    borderRadius: 8, border: "1px solid var(--border)",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 100,
-                    overflow: "hidden"
-                  }}
-                >
-                  <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {getUserFullName()}
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 2 }}>
-                      {userEmail}
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, marginTop: 4 }}>
-                      {employeeId} • {currentRole}
-                    </div>
+            {showProfile && (
+              <div
+                style={{
+                  position: "absolute", top: 38, right: 0,
+                  width: 240, background: "var(--surface)",
+                  borderRadius: 8, border: "1px solid var(--border)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.1)", zIndex: 100,
+                  overflow: "hidden"
+                }}
+              >
+                <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                    {getUserFullName()}
                   </div>
-
-                  <div style={{ padding: "4px" }}>
-                    <Link
-                      to="/layout/settings"
-                      onClick={() => setShowProfile(false)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "7px 10px", borderRadius: 5,
-                        fontSize: 12, color: "var(--text-primary)",
-                        textDecoration: "none"
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    >
-                      <Settings size={13} />
-                      <span>Account Settings</span>
-                    </Link>
-
-                    <button
-                      onClick={handleLogout}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        width: "100%", padding: "7px 10px", borderRadius: 5,
-                        fontSize: 12, color: "var(--danger)",
-                        background: "transparent", border: "none", cursor: "pointer",
-                        textAlign: "left"
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = "var(--danger-bg)"}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    >
-                      <LogOut size={13} />
-                      <span>Sign Out</span>
-                    </button>
+                  <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 2 }}>
+                    {userEmail}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, marginTop: 4 }}>
+                    {employeeId} • {currentRole}
+                  </div>
+                </div>
+
+                <div style={{ padding: "4px" }}>
+                  <Link
+                    to="/layout/settings"
+                    onClick={() => setShowProfile(false)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "7px 10px", borderRadius: 5,
+                      fontSize: 12, color: "var(--text-primary)",
+                      textDecoration: "none"
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <Settings size={13} />
+                    <span>Account Settings</span>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      width: "100%", padding: "7px 10px", borderRadius: 5,
+                      fontSize: 12, color: "var(--danger)",
+                      background: "transparent", border: "none", cursor: "pointer",
+                      textAlign: "left"
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--danger-bg)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <LogOut size={13} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
           </div>
         </header>

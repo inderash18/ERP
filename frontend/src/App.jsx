@@ -41,20 +41,13 @@ function RouteFallback() {
         <div style={{
           width: 32,
           height: 32,
-          border: "3px solid #e2e8f0",
-          borderTopColor: "#1a73e8",
-          borderRadius: "50%",
-          animation: "spin 0.6s linear infinite"
+          border: "3px solid #1a73e8",
+          borderRadius: "50%"
         }} />
         <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>
           Loading workspace...
         </span>
       </div>
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

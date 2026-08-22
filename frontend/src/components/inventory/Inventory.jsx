@@ -4,7 +4,6 @@ import {
   Edit2, PlusCircle, MinusCircle, DollarSign, Filter, X, ArrowUpRight,
   TrendingDown, Layers, SlidersHorizontal
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
 
 const TABS = ["All Stock", "Low Stock Alerts", "Finished Goods", "Raw Materials", "Fasteners & Pins"];
@@ -265,75 +264,70 @@ export default function Inventory() {
       </div>
 
       {/* ── Stock Adjustment Modal ──────────────────────────── */}
-      <AnimatePresence>
-        {adjustModalItem && (
-          <div style={{
-            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-          }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              style={{
-                width: '100%', maxWidth: 400, background: '#ffffff',
-                borderRadius: 8, border: '1px solid #cbd5e1',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
-                  {adjustType === 'add' ? 'Stock Receipt / Inward' : 'Stock Issue / Write-off'}
-                </span>
-                <button onClick={() => setAdjustModalItem(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
-                  <X size={16} />
-                </button>
+      {adjustModalItem && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div
+            style={{
+              width: '100%', maxWidth: 400, background: '#ffffff',
+              borderRadius: 8, border: '1px solid #cbd5e1',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                {adjustType === 'add' ? 'Stock Receipt / Inward' : 'Stock Issue / Write-off'}
+              </span>
+              <button onClick={() => setAdjustModalItem(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleExecuteAdjust} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{adjustModalItem.name}</div>
+                <div style={{ fontSize: 11.5, color: '#64748b' }}>SKU: {adjustModalItem.sku} • Current On Hand: {adjustModalItem.onHand ?? adjustModalItem.stock ?? 0} {adjustModalItem.unit || 'units'}</div>
               </div>
 
-              <form onSubmit={handleExecuteAdjust} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{adjustModalItem.name}</div>
-                  <div style={{ fontSize: 11.5, color: '#64748b' }}>SKU: {adjustModalItem.sku} • Current On Hand: {adjustModalItem.onHand ?? adjustModalItem.stock ?? 0} {adjustModalItem.unit || 'units'}</div>
-                </div>
+              <div>
+                <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                  Quantity to {adjustType === 'add' ? 'Add (+)' : 'Deduct (-)'}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={adjustDelta}
+                  onChange={e => setAdjustDelta(e.target.value)}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                />
+              </div>
 
-                <div>
-                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
-                    Quantity to {adjustType === 'add' ? 'Add (+)' : 'Deduct (-)'}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={adjustDelta}
-                    onChange={e => setAdjustDelta(e.target.value)}
-                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 6, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
-                  <button
-                    type="button"
-                    onClick={() => setAdjustModalItem(null)}
-                    style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      padding: '7px 16px', borderRadius: 6, border: 'none',
-                      background: adjustType === 'add' ? '#16a34a' : '#dc2626',
-                      color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
-                    }}
-                  >
-                    Confirm {adjustType === 'add' ? 'Inward' : 'Outward'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 6, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  onClick={() => setAdjustModalItem(null)}
+                  style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '7px 16px', borderRadius: 6, border: 'none',
+                    background: adjustType === 'add' ? '#16a34a' : '#dc2626',
+                    color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  Confirm {adjustType === 'add' ? 'Inward' : 'Outward'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
     </div>
   );

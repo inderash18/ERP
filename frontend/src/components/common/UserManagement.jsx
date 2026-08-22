@@ -4,9 +4,7 @@ import {
   Edit2, Trash2, Shield, ArrowLeft, Save, RotateCcw,
   Sparkles, CheckSquare, Square, UserCheck, Phone, Mail, MapPin, Briefcase
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
-import { TextShuffle } from './AnimatedText';
 
 const MODULE_TABS = ['Sales', 'Purchase', 'Manufacturing', 'Product'];
 

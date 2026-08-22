@@ -3,7 +3,6 @@ import {
   Settings as SettingsIcon, Shield, Bell, Key, Database, Globe,
   Save, RotateCcw, Check, CheckCircle2, UserCheck
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
 
 const CURRENCIES = [

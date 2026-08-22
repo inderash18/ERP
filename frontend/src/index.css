@@ -59,6 +59,8 @@
 
 *, *::before, *::after {
   box-sizing: border-box;
+  animation: none !important;
+  transition: none !important;
 }
 
 html, body, #root {
@@ -78,7 +80,6 @@ body {
   color: var(--text-primary);
   background-color: var(--canvas);
   overflow: hidden;
-  transition: background-color 150ms var(--ease-enterprise), color 150ms var(--ease-enterprise);
 }
 
 /* ── Typography & Tabular Alignment ────────────────────────── */
@@ -109,15 +110,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   outline-offset: 2px;
 }
 
-/* ── Interactive Micro-Interactions ────────────────────────── */
+/* ── Buttons ───────────────────────────────────────────────── */
 button, [role="button"] {
-  transition: background-color var(--duration-hover) var(--ease-enterprise),
-              border-color var(--duration-hover) var(--ease-enterprise),
-              color var(--duration-hover) var(--ease-enterprise),
-              transform 80ms var(--ease-enterprise);
-}
-button:active {
-  transform: scale(0.98);
+  cursor: pointer;
 }
 
 /* ── Enterprise Card System ────────────────────────────────── */
@@ -184,6 +179,20 @@ button:active {
   font-weight: 600;
 }
 
+/* ── Recharts Custom Tooltip Overrides ─────────────────────── */
+.recharts-default-tooltip {
+  border-radius: 6px !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+.recharts-default-tooltip .recharts-tooltip-item,
+.recharts-default-tooltip .recharts-tooltip-item-name,
+.recharts-default-tooltip .recharts-tooltip-item-unit,
+.recharts-default-tooltip .recharts-tooltip-item-value,
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: #ffffff !important;
+}
+
 /* ── Accessibility: Reduced Motion Support ─────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -193,3 +202,4 @@ button:active {
     scroll-behavior: auto !important;
   }
 }
+

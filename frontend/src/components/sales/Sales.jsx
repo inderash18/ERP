@@ -3,7 +3,6 @@ import {
   ShoppingCart, Plus, Search, CheckCircle2, Clock, Trash2,
   X, AlertCircle, FileText, ArrowRight, PackageCheck, Send
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
 
 const STATUS_FILTERS = ['All Orders', 'Draft', 'Confirmed', 'Delivered', 'Cancelled'];
@@ -331,128 +330,123 @@ export default function Sales() {
       </div>
 
       {/* ── Create Order Modal ───────────────────────────────── */}
-      <AnimatePresence>
-        {showOrderModal && (
-          <div style={{
-            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-          }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              style={{
-                width: '100%', maxWidth: 560, background: '#ffffff',
-                borderRadius: 8, border: '1px solid #cbd5e1',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
-                  Create Sales Order
-                </span>
-                <button onClick={() => setShowOrderModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
-                  <X size={16} />
-                </button>
+      {showOrderModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div
+            style={{
+              width: '100%', maxWidth: 560, background: '#ffffff',
+              borderRadius: 8, border: '1px solid #cbd5e1',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                Create Sales Order
+              </span>
+              <button onClick={() => setShowOrderModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Select Customer Account</label>
+                <select
+                  required
+                  value={selectedCustomerId}
+                  onChange={e => setSelectedCustomerId(e.target.value)}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
+                >
+                  <option value="" disabled>Choose customer...</option>
+                  {customers.map(c => (
+                    <option key={c.id || c._id} value={c.id || c._id}>
+                      {c.name} ({c.email || 'Client'})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Select Customer Account</label>
-                  <select
-                    required
-                    value={selectedCustomerId}
-                    onChange={e => setSelectedCustomerId(e.target.value)}
-                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: '#475569' }}>Order Line Items</span>
+                  <button
+                    type="button"
+                    onClick={handleAddLine}
+                    style={{ border: 'none', background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                   >
-                    <option value="" disabled>Choose customer...</option>
-                    {customers.map(c => (
-                      <option key={c.id || c._id} value={c.id || c._id}>
-                        {c.name} ({c.email || 'Client'})
-                      </option>
-                    ))}
-                  </select>
+                    + Add Item
+                  </button>
                 </div>
 
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: '#475569' }}>Order Line Items</span>
-                    <button
-                      type="button"
-                      onClick={handleAddLine}
-                      style={{ border: 'none', background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      + Add Item
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {lineItems.map((item, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
-                        <select
-                          value={item.productId}
-                          onChange={e => handleProductChange(idx, e.target.value)}
-                          style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5, background: '#fff' }}
-                        >
-                          {products.map(p => (
-                            <option key={p.id || p._id} value={p.id || p._id}>
-                              {p.name} ({p.sku})
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={e => handleQtyChange(idx, e.target.value)}
-                          placeholder="Qty"
-                          style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5 }}
-                        />
-                        <div className="tabular-nums" style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a', textAlign: 'right' }}>
-                          ₹{(item.quantity * item.unitPrice).toLocaleString()}
-                        </div>
-                        {lineItems.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveLine(idx)}
-                            style={{ border: 'none', background: 'transparent', color: '#dc2626', cursor: 'pointer' }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {lineItems.map((item, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                      <select
+                        value={item.productId}
+                        onChange={e => handleProductChange(idx, e.target.value)}
+                        style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5, background: '#fff' }}
+                      >
+                        {products.map(p => (
+                          <option key={p.id || p._id} value={p.id || p._id}>
+                            {p.name} ({p.sku})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={e => handleQtyChange(idx, e.target.value)}
+                        placeholder="Qty"
+                        style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12.5 }}
+                      />
+                      <div className="tabular-nums" style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a', textAlign: 'right' }}>
+                        ₹{(item.quantity * item.unitPrice).toLocaleString()}
                       </div>
-                    ))}
-                  </div>
+                      {lineItems.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLine(idx)}
+                          style={{ border: 'none', background: 'transparent', color: '#dc2626', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
-                  <div>
-                    <span style={{ fontSize: 12, color: '#64748b' }}>Total Order Value: </span>
-                    <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
-                      ₹{calculateTotal.toLocaleString()}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      type="button"
-                      onClick={() => setShowOrderModal(false)}
-                      style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      Confirm Order
-                    </button>
-                  </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                <div>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Total Order Value: </span>
+                  <span className="tabular-nums" style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
+                    ₹{calculateTotal.toLocaleString()}
+                  </span>
                 </div>
-              </form>
-            </motion.div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowOrderModal(false)}
+                    style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Confirm Order
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
     </div>
   );

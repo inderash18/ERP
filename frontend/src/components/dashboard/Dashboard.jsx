@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar
@@ -117,33 +116,11 @@ export default function Dashboard() {
     return [...orders].slice(-5).reverse();
   }, [orders]);
 
-  const containerVariants = {
-    hidden: {},
-    show: {
-      transition: { staggerChildren: 0.08 }
-    },
-    exit: { 
-      opacity: 0,
-      transition: { duration: 0.2 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
-  };
-
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      exit="exit"
-      style={{ display: "flex", flexDirection: "column", gap: 20 }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         
       {/* ── Page Header & Quick Execution Actions ─────────────── */}
-      <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>
             Operational Overview
@@ -179,13 +156,13 @@ export default function Dashboard() {
             <Plus size={14} /> Create Sales Order
           </Link>
         </div>
-      </motion.div>
+      </div>
 
       {/* ── Metric KPI Grid (4 High-Density Enterprise Cards) ──── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14 }}>
         
         {/* Total Sales Revenue */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
+        <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Total Revenue
@@ -200,10 +177,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             From {totalOrdCount} confirmed commercial orders
           </div>
-        </motion.div>
+        </div>
 
         {/* Active Production Orders */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
+        <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Shop Floor Batches
@@ -218,10 +195,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             BoM routing & work centers operational
           </div>
-        </motion.div>
+        </div>
 
         {/* Inventory Stock Position */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
+        <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Stock On Hand
@@ -236,10 +213,10 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             Across {totalProdCount} catalog items (including pins & hardware)
           </div>
-        </motion.div>
+        </div>
 
         {/* Procurement Position */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "18px 20px" }}>
+        <div className="erp-card" style={{ padding: "18px 20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               Purchase Volume
@@ -254,7 +231,7 @@ export default function Dashboard() {
           <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4 }}>
             Direct supplier replenishment stream
           </div>
-        </motion.div>
+        </div>
 
       </div>
 
@@ -262,7 +239,7 @@ export default function Dashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 16 }}>
         
         {/* Trajectory Chart Card */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "20px 22px" }}>
+        <div className="erp-card" style={{ padding: "20px 22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
@@ -294,16 +271,18 @@ export default function Dashboard() {
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => v === 0 ? "0" : `₹${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   formatter={(val) => [formatCurrency ? formatCurrency(val) : `₹${Number(val).toLocaleString()}`, "Revenue"]}
-                  contentStyle={{ background: '#0f172a', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                  contentStyle={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                  itemStyle={{ color: '#ffffff' }}
+                  labelStyle={{ color: '#ffffff', fontWeight: 600 }}
                 />
-                <Area type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#humanChartGrad)" />
+                <Area isAnimationActive={false} type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#humanChartGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
+        </div>
 
         {/* Order Fulfillment Donut Card */}
-        <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="erp-card" style={{ padding: "20px" }}>
+        <div className="erp-card" style={{ padding: "20px" }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>
             Fulfillment Breakdown
           </div>
@@ -315,6 +294,7 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
+                  isAnimationActive={false}
                   data={saleAnalyticsData}
                   cx="50%"
                   cy="50%"
@@ -329,7 +309,9 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip
                   formatter={(val, name) => [`${val} orders`, name]}
-                  contentStyle={{ background: '#0f172a', color: '#fff', borderRadius: '6px', fontSize: '11px' }}
+                  contentStyle={{ background: '#0f172a', color: '#ffffff', borderRadius: '6px', fontSize: '11px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+                  itemStyle={{ color: '#ffffff' }}
+                  labelStyle={{ color: '#ffffff', fontWeight: 600 }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -348,12 +330,12 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
       </div>
 
       {/* ── Bottom Section: Recent Orders Data Table ──────────── */}
-      <motion.div variants={itemVariants} className="erp-card" style={{ overflow: "hidden" }}>
+      <div className="erp-card" style={{ overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid #e2e8f0" }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
@@ -443,8 +425,8 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </div>
 
-    </motion.div>
+    </div>
   );
 }

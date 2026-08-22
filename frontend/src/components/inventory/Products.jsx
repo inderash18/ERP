@@ -3,7 +3,6 @@ import {
   Package, Plus, Search, CheckCircle2, AlertTriangle, Trash2,
   Edit2, X, Filter, ArrowUpDown, Layers, SlidersHorizontal
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useErp } from '../../context/ErpContext';
 
 const TYPE_TABS = ["All Items", "Finished Good", "Raw Material", "Component"];
@@ -318,146 +317,141 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ── Add / Edit Modal ─────────────────────────────────── */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div style={{
-            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-          }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              style={{
-                width: '100%', maxWidth: 520, background: '#ffffff',
-                borderRadius: 8, border: '1px solid #cbd5e1',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
-                  {editingItem ? 'Edit Catalog Item' : 'New Catalog Item'}
-                </span>
-                <button onClick={() => setShowAddModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
-                  <X size={16} />
-                </button>
+      {/* ── Add / Edit Modal ───────────────────────────────── */}
+      {showAddModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div
+            style={{
+              width: '100%', maxWidth: 520, background: '#ffffff',
+              borderRadius: 8, border: '1px solid #cbd5e1',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)', overflow: 'hidden'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                {editingItem ? 'Edit Catalog Item' : 'New Catalog Item'}
+              </span>
+              <button onClick={() => setShowAddModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Product Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Solid Teak Dining Table"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>SKU Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.sku}
+                    onChange={e => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontFamily: 'monospace' }}
+                  />
+                </div>
               </div>
 
-              <form onSubmit={handleFormSubmit} style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Product Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g. Solid Teak Dining Table"
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>SKU Code</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.sku}
-                      onChange={e => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, fontFamily: 'monospace' }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Item Type</label>
-                    <select
-                      value={formData.type}
-                      onChange={e => setFormData({ ...formData, type: e.target.value })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
-                    >
-                      <option value="Finished Good">Finished Good</option>
-                      <option value="Raw Material">Raw Material</option>
-                      <option value="Component">Component</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Unit of Measure</label>
-                    <input
-                      type="text"
-                      value={formData.unit}
-                      onChange={e => setFormData({ ...formData, unit: e.target.value })}
-                      placeholder="pcs, feet, grams, pins"
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Cost Price (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.costPrice}
-                      onChange={e => setFormData({ ...formData, costPrice: e.target.value })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Selling Price (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.salesPrice}
-                      onChange={e => setFormData({ ...formData, salesPrice: e.target.value })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Procurement Strategy</label>
-                    <select
-                      value={formData.procurementStrategy}
-                      onChange={e => setFormData({ ...formData, procurementStrategy: e.target.value })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
-                    >
-                      <option value="MTS">MTS (Make To Stock)</option>
-                      <option value="MTO">MTO (Make To Order)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Reorder Threshold</label>
-                    <input
-                      type="number"
-                      value={formData.reorderLevel}
-                      onChange={e => setFormData({ ...formData, reorderLevel: e.target.value })}
-                      style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Item Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={e => setFormData({ ...formData, type: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    {editingItem ? 'Save Changes' : 'Create Item'}
-                  </button>
+                    <option value="Finished Good">Finished Good</option>
+                    <option value="Raw Material">Raw Material</option>
+                    <option value="Component">Component</option>
+                  </select>
                 </div>
-              </form>
-            </motion.div>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Unit of Measure</label>
+                  <input
+                    type="text"
+                    value={formData.unit}
+                    onChange={e => setFormData({ ...formData, unit: e.target.value })}
+                    placeholder="pcs, feet, grams, pins"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Cost Price (₹)</label>
+                  <input
+                    type="number"
+                    value={formData.costPrice}
+                    onChange={e => setFormData({ ...formData, costPrice: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Selling Price (₹)</label>
+                  <input
+                    type="number"
+                    value={formData.salesPrice}
+                    onChange={e => setFormData({ ...formData, salesPrice: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Procurement Strategy</label>
+                  <select
+                    value={formData.procurementStrategy}
+                    onChange={e => setFormData({ ...formData, procurementStrategy: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff' }}
+                  >
+                    <option value="MTS">MTS (Make To Stock)</option>
+                    <option value="MTO">MTO (Make To Order)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Reorder Threshold</label>
+                  <input
+                    type="number"
+                    value={formData.reorderLevel}
+                    onChange={e => setFormData({ ...formData, reorderLevel: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  style={{ padding: '7px 14px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  {editingItem ? 'Save Changes' : 'Create Item'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
     </div>
   );
