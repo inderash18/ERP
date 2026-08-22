@@ -128,82 +128,71 @@ export default function Suppliers() {
         </div>
       </div>
 
-      {/* ── Suppliers Data Table ─────────────────────────────── */}
-      <div className="erp-card" style={{ overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="erp-table">
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left' }}>Vendor Name</th>
-                <th style={{ textAlign: 'left' }}>Email Address</th>
-                <th style={{ textAlign: 'left' }}>Phone</th>
-                <th style={{ textAlign: 'left' }}>Address</th>
-                <th style={{ textAlign: 'left' }}>Status</th>
-                <th style={{ textAlign: 'right', width: '90px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSuppliers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    No vendor records found.
-                  </td>
-                </tr>
-              ) : (
-                filteredSuppliers.map(item => (
-                  <tr key={item.id || item._id}>
-                    <td>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.name}</div>
-                    </td>
-                    <td style={{ color: '#475569', fontSize: 12.5 }}>
-                      {item.email || 'vendor@example.com'}
-                    </td>
-                    <td className="font-mono" style={{ color: '#475569', fontSize: 12 }}>
-                      {item.phone || '+91 98000 00000'}
-                    </td>
-                    <td style={{ color: '#64748b', fontSize: 12.5 }}>
-                      {item.address || 'Mumbai, MH'}
-                    </td>
-                    <td>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
-                        background: '#ecfdf5', color: '#059669'
-                      }}>
-                        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
-                        Active
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: 4 }}>
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          title="Edit"
-                          style={{
-                            border: '1px solid #cbd5e1', background: '#ffffff',
-                            borderRadius: 4, padding: '4px 6px', cursor: 'pointer', color: '#475569'
-                          }}
-                        >
-                          <Edit2 size={12} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id || item._id)}
-                          title="Delete"
-                          style={{
-                            border: '1px solid #fecaca', background: '#fef2f2',
-                            borderRadius: 4, padding: '4px 6px', cursor: 'pointer', color: '#dc2626'
-                          }}
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* ── Suppliers Cards Grid ─────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+        {filteredSuppliers.length === 0 ? (
+          <div className="erp-card" style={{ padding: '36px', textAlign: 'center', color: '#64748b', gridColumn: '1 / -1' }}>
+            No vendor records found.
+          </div>
+        ) : (
+          filteredSuppliers.map(item => (
+            <div key={item.id || item._id} className="erp-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 15 }}>{item.name}</div>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                  background: '#ecfdf5', color: '#059669', textTransform: 'uppercase'
+                }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
+                  Active
+                </span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                  <Mail size={14} />
+                  {item.email || 'vendor@example.com'}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }} className="font-mono">
+                  <Phone size={14} />
+                  {item.phone || '+91 98000 00000'}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                  <MapPin size={14} />
+                  {item.address || 'Mumbai, MH'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                <button
+                  onClick={() => handleOpenEdit(item)}
+                  title="Edit"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    border: '1px solid var(--border)', background: 'var(--surface)',
+                    borderRadius: 4, padding: '6px 12px', cursor: 'pointer', color: 'var(--text-secondary)',
+                    fontSize: 12, fontWeight: 600
+                  }}
+                >
+                  <Edit2 size={14} /> Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id || item._id)}
+                  title="Delete"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    border: '1px solid #fecaca', background: '#fef2f2',
+                    borderRadius: 4, padding: '6px 12px', cursor: 'pointer', color: '#dc2626',
+                    fontSize: 12, fontWeight: 600
+                  }}
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* ── Add / Edit Modal ───────────────────────────────── */}
